@@ -1,0 +1,99 @@
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="styles/styles.css">  
+    <title>12 Tone Circlep</title>
+    <link rel="icon" type="image/jpeg" href="images/sig.png"/>  
+    <meta property="og:title" content="Root Position Triads" />
+    <meta property="og:image" content="http://pender.co/images/lesson.jpeg" />  
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+    <header class="nav-bar">
+        <!-- <svg width="20px" height="20px" viewBox="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <g transform="translate(-60, -20)">
+              <path d="M68.5913474,30 L60,38.5913474 L61.4142136,40.005561 L70.005561,31.4142136 L78.5969083,40.005561 L80.0111219,38.5913474 L71.4197745,30 L80.0111219,21.4086526 L78.5969083,19.994439 L70.005561,28.5857864 L61.4142136,19.994439 L60,21.4086526 L68.5913474,30 Z"></path>
+            </g>
+        </svg> -->
+        <p class="center">Chapters</p>
+    </header>
+
+
+    <nav>
+        <div class="toc">
+            <ul>
+                <li class="chapter"><a href="index.html">Introduction</a></li>
+            </ul>
+            <ol>
+                <li class="chapter"><a href="#">Reading</a></li>
+                <ol class="lessons">
+                    <li class="lessons"><a href="treble-clef.html">Treble Clef</a></li>
+                    <li class="lessons"><a href="pitch.html">Pitch</a></li>
+                    <li class="lessons"><a href="rhythm.html">Rhythm</a></li>
+                </ol>
+                <li class="chapter"><a href="#">Repertoire</a></li>
+                <li class="chapter"><a href="#">Technique</a></li>
+                <ol class="lessons">
+                    <li class="lessons"><a href="anynote.html">Any Note, Anywhere</a></li>
+                    <li class="lessons"><a href="root-triads.html">Root Position Triads</a></li>
+                    <li class="lessons"><a href="first-inv-triads.html">First Inversion Triads</a></li>
+                    <li class="lessons"><a href="second-inv-triads.html">Second Inversion Triads</a></li>
+                    <li class="lessons"><a href="diminished-v.html">V Chord Substitution: Diminished</a></li>
+                </ol>
+                <li class="chapter"><a href="#">Hearing</a></li>
+                <li class="chapter"><a href="#">Composition</a></li>
+            </ol>
+        </div>
+    </nav>
+
+
+    <main>
+        <div class="lesson-page">
+            <h1 class="center star">*</h1>
+            <h1 class="center">12 Tone Circle</h1>
+            <p class="center"></p>
+        </div>
+    
+        <div class="lesson-page circle">
+            <div class="circlenote">A</div>
+            <div class="circlenote">A#</div>
+            <div class="circlenote">B</div>
+            <div class="circlenote">C</div>
+            <div class="circlenote selected">C#</div>
+            <div class="circlenote">D</div>
+            <div class="circlenote">D#</div>
+            <div class="circlenote">E</div>
+            <div class="circlenote">F</div>
+            <div class="circlenote">F#</div>
+            <div class="circlenote">G</div>
+            <div class="circlenote">G#</div>
+        </div>
+    
+        <div class="lesson-page-end">
+ 
+        </div>
+    </main>
+
+    <script>
+
+        // CIRCLE SELECTOR
+
+
+        // NAV TOGGLE
+        let navBar = document.querySelector('.nav-bar');
+        let toc = document.querySelector('.toc');
+        let main = document.querySelector('main');
+
+        document.querySelector(".nav-bar").addEventListener("click", navToggle);
+
+        function navToggle() {
+            toc.classList.toggle('active');
+            main.classList.toggle('hidden');                           
+        }
+
+    </script>
+
+</body>
