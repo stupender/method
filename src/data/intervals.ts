@@ -21,6 +21,7 @@ export const M2: Interval = { name: 'M2', diatonicSteps: 1, semitones: 2 };  // 
 export const m3: Interval = { name: 'm3', diatonicSteps: 2, semitones: 3 };  // minor 3rd
 export const M3: Interval = { name: 'M3', diatonicSteps: 2, semitones: 4 };  // major 3rd
 export const P4: Interval = { name: 'P4', diatonicSteps: 3, semitones: 5 };  // perfect 4th
+export const d5: Interval = { name: 'd5', diatonicSteps: 4, semitones: 6 };  // diminished 5th (flat 5)
 export const P5: Interval = { name: 'P5', diatonicSteps: 4, semitones: 7 };  // perfect 5th
 export const M6: Interval = { name: 'M6', diatonicSteps: 5, semitones: 9 };  // major 6th
 export const m7: Interval = { name: 'm7', diatonicSteps: 6, semitones: 10 }; // minor 7th

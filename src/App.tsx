@@ -1,49 +1,38 @@
 // ============================================================================
 // App.tsx — the top of the React component tree
 // ----------------------------------------------------------------------------
-// Session 4 adds chords. A mode switch flips between two views that share the
-// same root chooser, fretboard and audio:
-//   - Scales: the major scale across the neck (Session 3).
-//   - Chords: a chord + voicing realised as a playable shape, with TAB.
-// As always, App only wires state -> data -> theory -> render/audio. The voicing
-// list is filtered by chord size purely from the data (3-tone vs 4-tone).
+// Three modes share one root chooser:
+//   - Scales:  a scale across the neck, playable (Session 3).
+//   - Chords:  any chord quality, explored as voicings (Session 4).
+//   - Harmony: the chords OF a key — diatonic harmony with Roman numerals.
+// Chords and Harmony both hand a (root, chord) to <ChordExplorer>, which owns
+// the shared voicing/inversion/TAB/play UI. App just wires data -> theory ->
+// the views.
 // ============================================================================
 
 import { useState } from 'react';
 import type { Note } from './theory/types';
 import { GUITAR } from './data/instruments';
 import { GUITAR_STANDARD } from './data/tunings';
-import { SCALES } from './data/scales';
+import { SCALES, MAJOR_SCALE } from './data/scales';
 import { CHORDS } from './data/chords';
-import { STRUCTURES } from './data/voicings';
 import { ROOT_CHOICES } from './data/roots';
 import { placeScale, realizeScale } from './theory/scale';
-import {
-  placeVoicing,
-  structuresForChord,
-  structureName,
-  inversionCount,
-  inversionName,
-} from './theory/chord';
+import { diatonicChords } from './theory/harmony';
 import { midiOf, noteName } from './theory/notes';
-import { playNote, playSequence, playChord } from './audio/player';
+import { playNote, playSequence } from './audio/player';
 import { Fretboard } from './render/Fretboard';
-import { TabView } from './render/TabView';
+import { ChordExplorer } from './ui/ChordExplorer';
 import './App.css';
 
 const SCALE_LIST = Object.values(SCALES);
 const CHORD_LIST = Object.values(CHORDS);
 
-type Mode = 'scale' | 'chord';
+type Mode = 'scale' | 'chord' | 'harmony';
 
 function App() {
   const [mode, setMode] = useState<Mode>('scale');
-  const [rootIndex, setRootIndex] = useState(0); // C
-  const [scaleId, setScaleId] = useState(SCALE_LIST[0].id);
-  const [chordId, setChordId] = useState(CHORD_LIST[0].id);
-  const [structureId, setStructureId] = useState('close');
-  const [inversionIndex, setInversionIndex] = useState(0);
-  const [labelMode, setLabelMode] = useState<'note' | 'degree'>('degree');
+  const [rootIndex, setRootIndex] = useState(0); // shared: scale root / chord root / key
 
   const root = ROOT_CHOICES[rootIndex];
 
@@ -53,21 +42,17 @@ function App() {
         <h1 className="title title--sm">Method</h1>
       </header>
 
-      {/* Mode switch + shared root chooser. */}
       <div className="controls">
         <div className="control-group" role="group" aria-label="Mode">
-          <button
-            className={mode === 'scale' ? 'pill pill--on' : 'pill'}
-            onClick={() => setMode('scale')}
-          >
-            Scales
-          </button>
-          <button
-            className={mode === 'chord' ? 'pill pill--on' : 'pill'}
-            onClick={() => setMode('chord')}
-          >
-            Chords
-          </button>
+          {(['scale', 'chord', 'harmony'] as Mode[]).map((m) => (
+            <button
+              key={m}
+              className={mode === m ? 'pill pill--on' : 'pill'}
+              onClick={() => setMode(m)}
+            >
+              {m === 'scale' ? 'Scales' : m === 'chord' ? 'Chords' : 'Harmony'}
+            </button>
+          ))}
         </div>
 
         <div className="control-group" role="group" aria-label="Root">
@@ -83,71 +68,18 @@ function App() {
         </div>
       </div>
 
-      {mode === 'scale' ? (
-        <ScaleView
-          root={root}
-          scaleId={scaleId}
-          setScaleId={setScaleId}
-          labelMode={labelMode}
-          setLabelMode={setLabelMode}
-        />
-      ) : (
-        <ChordView
-          root={root}
-          chordId={chordId}
-          setChordId={setChordId}
-          structureId={structureId}
-          setStructureId={setStructureId}
-          inversionIndex={inversionIndex}
-          setInversionIndex={setInversionIndex}
-          labelMode={labelMode}
-          setLabelMode={setLabelMode}
-        />
-      )}
+      {mode === 'scale' && <ScaleView root={root} />}
+      {mode === 'chord' && <ChordView root={root} />}
+      {mode === 'harmony' && <HarmonyView root={root} />}
     </main>
   );
 }
 
-// --- Shared little control: the note/degree label toggle -------------------
-function LabelToggle({
-  labelMode,
-  setLabelMode,
-}: {
-  labelMode: 'note' | 'degree';
-  setLabelMode: (m: 'note' | 'degree') => void;
-}) {
-  return (
-    <div className="control-group" role="group" aria-label="Labels">
-      <button
-        className={labelMode === 'degree' ? 'pill pill--on' : 'pill'}
-        onClick={() => setLabelMode('degree')}
-      >
-        Degrees
-      </button>
-      <button
-        className={labelMode === 'note' ? 'pill pill--on' : 'pill'}
-        onClick={() => setLabelMode('note')}
-      >
-        Notes
-      </button>
-    </div>
-  );
-}
-
 // --- Scale view (Session 3) ------------------------------------------------
-function ScaleView({
-  root,
-  scaleId,
-  setScaleId,
-  labelMode,
-  setLabelMode,
-}: {
-  root: Note;
-  scaleId: string;
-  setScaleId: (id: string) => void;
-  labelMode: 'note' | 'degree';
-  setLabelMode: (m: 'note' | 'degree') => void;
-}) {
+function ScaleView({ root }: { root: Note }) {
+  const [scaleId, setScaleId] = useState(SCALE_LIST[0].id);
+  const [labelMode, setLabelMode] = useState<'note' | 'degree'>('degree');
+
   const scale = SCALES[scaleId];
   const tones = realizeScale(root, scale);
   const highlights = placeScale(GUITAR, GUITAR_STANDARD, root, scale);
@@ -178,7 +110,20 @@ function ScaleView({
               </button>
             ))}
           </div>
-          <LabelToggle labelMode={labelMode} setLabelMode={setLabelMode} />
+          <div className="control-group" role="group" aria-label="Labels">
+            <button
+              className={labelMode === 'degree' ? 'pill pill--on' : 'pill'}
+              onClick={() => setLabelMode('degree')}
+            >
+              Degrees
+            </button>
+            <button
+              className={labelMode === 'note' ? 'pill pill--on' : 'pill'}
+              onClick={() => setLabelMode('note')}
+            >
+              Notes
+            </button>
+          </div>
           <button className="pill pill--play" onClick={playScale}>
             ▶ Play scale
           </button>
@@ -193,125 +138,95 @@ function ScaleView({
         onNoteTap={(placed) => playNote(midiOf(placed.note))}
       />
 
-      <footer className="footnote">
-        Tap any note to hear it; root in coral.
-      </footer>
+      <footer className="footnote">Tap any note to hear it; root in coral.</footer>
     </>
   );
 }
 
-// --- Chord view (Session 4) ------------------------------------------------
-function ChordView({
-  root,
-  chordId,
-  setChordId,
-  structureId,
-  setStructureId,
-  inversionIndex,
-  setInversionIndex,
-  labelMode,
-  setLabelMode,
-}: {
-  root: Note;
-  chordId: string;
-  setChordId: (id: string) => void;
-  structureId: string;
-  setStructureId: (id: string) => void;
-  inversionIndex: number;
-  setInversionIndex: (i: number) => void;
-  labelMode: 'note' | 'degree';
-  setLabelMode: (m: 'note' | 'degree') => void;
-}) {
+// --- Chord view (Session 4): any chord quality, on any root ----------------
+function ChordView({ root }: { root: Note }) {
+  const [chordId, setChordId] = useState(CHORD_LIST[0].id);
   const chord = CHORDS[chordId];
-  const voiceCount = inversionCount(chord);
-
-  // Which structures apply to this chord (Drop 3 needs 4 voices, etc.), and the
-  // chosen one — falling back to the first if the current id doesn't apply.
-  const structures = structuresForChord(chord, STRUCTURES);
-  const structure = structures.find((s) => s.id === structureId) ?? structures[0];
-
-  // Clamp the inversion to this chord's range (triad has 3, a 7th has 4).
-  const inversion = Math.min(inversionIndex, voiceCount - 1);
-
-  const placed = placeVoicing(
-    GUITAR,
-    GUITAR_STANDARD,
-    root,
-    chord,
-    structure,
-    inversion,
-  );
-
-  const strum = () => playChord(placed.map((p) => midiOf(p.note)));
 
   return (
     <>
       <p className="tagline">
         {noteName(root)}
-        {chord.symbol} — {structureName(structure, voiceCount)},{' '}
-        {inversionName(inversion)}
+        {chord.symbol} — {chord.name}
+      </p>
+
+      <div className="control-group control-group--wrap" role="group" aria-label="Chord">
+        {CHORD_LIST.map((c) => (
+          <button
+            key={c.id}
+            className={c.id === chordId ? 'pill pill--on' : 'pill'}
+            onClick={() => setChordId(c.id)}
+          >
+            {c.name}
+          </button>
+        ))}
+      </div>
+
+      <ChordExplorer root={root} chord={chord} />
+
+      <footer className="footnote">
+        Structure × inversion are independent — the same tones, rearranged.
+      </footer>
+    </>
+  );
+}
+
+// --- Harmony view: the chords OF a key (diatonic harmony) ------------------
+function HarmonyView({ root }: { root: Note }) {
+  const [seventh, setSeventh] = useState(false);
+  const [degree, setDegree] = useState(0);
+
+  // The diatonic chords of this major key — derived, not stored.
+  const chords = diatonicChords(root, MAJOR_SCALE, seventh);
+  const selected = chords[degree] ?? chords[0];
+
+  return (
+    <>
+      <p className="tagline">
+        Key of {noteName(root)} major — {selected.roman}: {selected.name}
       </p>
 
       <div className="view-controls">
-        <div className="controls-row">
-          <div className="control-group" role="group" aria-label="Chord">
-            {CHORD_LIST.map((c) => (
-              <button
-                key={c.id}
-                className={c.id === chordId ? 'pill pill--on' : 'pill'}
-                onClick={() => setChordId(c.id)}
-              >
-                {c.name}
-              </button>
-            ))}
-          </div>
-          <LabelToggle labelMode={labelMode} setLabelMode={setLabelMode} />
-          <button className="pill pill--play" onClick={strum}>
-            ▶ Play chord
+        {/* Triads vs seventh chords. */}
+        <div className="control-group" role="group" aria-label="Chord size">
+          <button
+            className={!seventh ? 'pill pill--on' : 'pill'}
+            onClick={() => setSeventh(false)}
+          >
+            Triads
+          </button>
+          <button
+            className={seventh ? 'pill pill--on' : 'pill'}
+            onClick={() => setSeventh(true)}
+          >
+            Sevenths
           </button>
         </div>
 
-        {/* Structure: how spread out the voices are. */}
-        <div className="control-group" role="group" aria-label="Structure">
-          {structures.map((s) => (
-            <button
-              key={s.id}
-              className={s.id === structure.id ? 'pill pill--on' : 'pill'}
-              onClick={() => setStructureId(s.id)}
-            >
-              {structureName(s, voiceCount)}
-            </button>
-          ))}
-        </div>
-
-        {/* Inversion: which chord tone is in the bass (one per chord tone). */}
-        <div className="control-group" role="group" aria-label="Inversion">
-          {Array.from({ length: voiceCount }, (_, i) => (
+        {/* One pill per scale degree, labelled with its Roman numeral. */}
+        <div className="control-group" role="group" aria-label="Scale degree">
+          {chords.map((c, i) => (
             <button
               key={i}
-              className={i === inversion ? 'pill pill--on' : 'pill'}
-              onClick={() => setInversionIndex(i)}
+              className={i === degree ? 'pill pill--on' : 'pill'}
+              onClick={() => setDegree(i)}
             >
-              {inversionName(i)}
+              {c.roman}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="chord-stage">
-        <Fretboard
-          instrument={GUITAR}
-          tuning={GUITAR_STANDARD}
-          highlights={placed}
-          labelMode={labelMode}
-          onNoteTap={(p) => playNote(midiOf(p.note))}
-        />
-        <TabView instrument={GUITAR} tuning={GUITAR_STANDARD} placed={placed} />
-      </div>
+      {/* The chosen diatonic chord, explored with the shared voicing UI. */}
+      <ChordExplorer root={selected.chordRoot} chord={selected.chord} />
 
       <footer className="footnote">
-        Structure × inversion are independent — the same tones, rearranged. Tap a
-        note or play the chord.
+        Each chord's quality comes from where it's built in the key.
       </footer>
     </>
   );

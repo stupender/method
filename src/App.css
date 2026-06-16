@@ -71,6 +71,11 @@
   gap: 6px;
 }
 
+/* A standalone group that needs breathing room before the content below it. */
+.control-group--wrap {
+  margin-bottom: 22px;
+}
+
 /* Second row groups the scale / label / play controls together. */
 .controls-row {
   display: flex;

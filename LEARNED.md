@@ -95,3 +95,21 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   view corrects out-of-range choices when you switch chords.
 - **SVG placement detail** — note dots sit ON the fret wire (`fretX(fret)`);
   inlays sit in the middle of the fret space (`inlayX`), as on a real neck.
+
+## Session 4b — diatonic harmony (chords of a key)
+
+- **Diatonic harmony** — build a chord on each scale degree using only scale
+  notes (stack in thirds). The QUALITY falls out of the position: a major key
+  always gives I ii iii IV V vi vii° (and Imaj7 ii7 iii7 IVmaj7 V7 vi7 viiø7).
+- **Quality by fingerprint** — instead of hard-coding qualities per degree, we
+  build the chord's tones, reduce them to semitone offsets from the root (a
+  "signature" like [0,4,7]), and look up which chord definition matches. New
+  scales get their harmony for free.
+- **Roman numerals** — case shows major vs minor (IV vs ii), ° = diminished,
+  ø = half-diminished; a small suffix carries the 7th type.
+- **Shared component (`ChordExplorer`)** — the structure/inversion/TAB/play UI is
+  one component reused by both the Chords view and the Harmony view; it owns its
+  own view-state. Don't-repeat-yourself, and each view just supplies a chord.
+- **Lifting state to the right level** — `ChordExplorer` keeps structure/inversion
+  local because they're about *viewing* a chord; the chosen key/degree lives in
+  the Harmony view. Each piece of state sits with whoever owns that decision.

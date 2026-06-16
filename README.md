@@ -39,7 +39,8 @@ npm run deploy   # publish to GitHub Pages
 ## Status
 
 Built across a series of sessions. Currently: **Session 4 — chords, voicings &
-TAB** complete (triads with inversions + spread and seventh chords with drop-2 /
-drop-3, each realised as a playable shape from data, shown on the neck and as
-TAB, and strummable). Next: the "Search Engine / GPS" progressive-reveal
-interaction.
+TAB** complete (triads and seventh chords as playable shapes from data, with
+independent structure × inversion, shown on the neck and as TAB, strummable),
+plus a **Harmony** view — the diatonic chords of a key with Roman-numeral
+analysis (triads and sevenths). Next: the "Search Engine / GPS" progressive-
+reveal interaction.
