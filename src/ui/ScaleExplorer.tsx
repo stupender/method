@@ -13,7 +13,7 @@ import { useState } from 'react';
 import type { Note, ScaleDefinition } from '../theory/types';
 import { GUITAR } from '../data/instruments';
 import { GUITAR_STANDARD } from '../data/tunings';
-import { scalePositions } from '../theory/scalePositions';
+import { scalePositions, positionalBoxes } from '../theory/scalePositions';
 import { midiOf } from '../theory/notes';
 import { playSequence } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
@@ -21,13 +21,18 @@ import { TabView } from '../render/TabView';
 
 export function ScaleExplorer({ root, scale }: { root: Note; scale: ScaleDefinition }) {
   const [labelMode, setLabelMode] = useState<'note' | 'degree'>('degree');
+  // Which fingering system: three-notes-per-string, or the in-position "box".
+  const [fingering, setFingering] = useState<'3nps' | 'box'>('3nps');
   // Pinned (clicked, stays lit) vs hovered (temporary preview). Hover wins while
   // over a box; otherwise the pinned one shows. Click the empty neck to unpin.
   const [pinnedShape, setPinnedShape] = useState<number | null>(null);
   const [hoveredShape, setHoveredShape] = useState<number | null>(null);
   const activeShape = hoveredShape ?? pinnedShape;
 
-  const positions = scalePositions(GUITAR, GUITAR_STANDARD, root, scale);
+  const positions =
+    fingering === '3nps'
+      ? scalePositions(GUITAR, GUITAR_STANDARD, root, scale)
+      : positionalBoxes(GUITAR, GUITAR_STANDARD, root, scale);
   const shapes = positions.map((p) => p.notes);
 
   // Play a position ascending (lowest pitch to highest).
@@ -48,6 +53,21 @@ export function ScaleExplorer({ root, scale }: { root: Note; scale: ScaleDefinit
     <>
       <div className="view-controls">
         <div className="controls-row">
+          {/* The fingering system: 3 notes per string vs in-position box. */}
+          <div className="control-group" role="group" aria-label="Fingering">
+            <button
+              className={fingering === '3nps' ? 'pill pill--on' : 'pill'}
+              onClick={() => setFingering('3nps')}
+            >
+              3 per string
+            </button>
+            <button
+              className={fingering === 'box' ? 'pill pill--on' : 'pill'}
+              onClick={() => setFingering('box')}
+            >
+              Positional
+            </button>
+          </div>
           <div className="control-group" role="group" aria-label="Labels">
             <button
               className={labelMode === 'degree' ? 'pill pill--on' : 'pill'}

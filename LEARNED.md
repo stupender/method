@@ -160,6 +160,11 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **One TAB, two jobs** — `TabView` now lists all frets per string (one for a
   chord, three for a scale box), so the same component serves both.
 - **17 frets** — bumped the guitar's fret count so all 7 positions fit on-screen.
+- **Two fingering systems** — scales toggle between 3-notes-per-string (even, ~6
+  frets, 3 on every string) and the in-position "box" (all scale tones in a
+  ~4-fret hand window, mostly 2 per string). Both yield 7 boxes (the 7 modes);
+  same constellation/TAB machinery, different generator. The box caps the low E
+  to 2 notes so it "starts with two on the low E", as a guitarist expects.
 - **One grip per string set** — a voicing is shown once on each string set it
   fits: a triad on its 4 contiguous 3-string sets, a 7th on its 3 contiguous
   4-string sets, each at its lowest playable position (span is octave-independent
