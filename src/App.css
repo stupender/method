@@ -147,6 +147,92 @@
   border-color: var(--accent);
 }
 
+/* --- Songwriter / GPS reveal -------------------------------------------- */
+.reveal {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.reveal-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+
+.reveal-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* A candidate key (or a chord in the drill-down): Roman numeral over key name. */
+.key-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 86px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.key-chip:hover {
+  border-color: var(--muted);
+}
+.key-chip__roman {
+  font-family: var(--serif);
+  font-size: 18px;
+  color: var(--ink);
+}
+.key-chip__key {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* The candidate key the user has opened. */
+.key-chip--on {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.key-chip--on .key-chip__roman {
+  color: #fff;
+}
+.key-chip--on .key-chip__key {
+  color: #cfcabf;
+}
+
+/* In the drill-down, the slot the entered chord occupies. */
+.key-chip--here {
+  border-color: var(--accent);
+  cursor: default;
+}
+.key-chip--here .key-chip__roman {
+  color: var(--accent);
+}
+
+/* The drill-down panel. */
+.key-detail {
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+.key-detail__title {
+  margin: 0 0 14px;
+  color: var(--muted);
+}
+.key-detail__title strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
 .footnote {
   margin-top: 8vh;
   text-align: center;

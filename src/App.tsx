@@ -20,12 +20,13 @@ import { diatonicChords } from './theory/harmony';
 import { noteName } from './theory/notes';
 import { ChordExplorer } from './ui/ChordExplorer';
 import { ScaleExplorer } from './ui/ScaleExplorer';
+import { SongwriterView } from './ui/SongwriterView';
 import './App.css';
 
 const SCALE_LIST = Object.values(SCALES);
 const CHORD_LIST = Object.values(CHORDS);
 
-type Mode = 'scale' | 'chord' | 'harmony';
+type Mode = 'scale' | 'chord' | 'harmony' | 'songwriter';
 
 function App() {
   const [mode, setMode] = useState<Mode>('scale');
@@ -56,30 +57,34 @@ function App() {
           ))}
         </div>
 
-        <div className="control-group control-group--wrap" role="group" aria-label="Scale type">
-          {SCALE_LIST.map((s) => (
-            <button
-              key={s.id}
-              className={s.id === scaleId ? 'pill pill--on' : 'pill'}
-              onClick={() => setScaleId(s.id)}
-            >
-              {s.name}
-            </button>
-          ))}
-        </div>
+        {/* Scale type drives Scales & Harmony; it's irrelevant in Songwriter
+            (the whole point there is to DISCOVER the keys), so we hide it. */}
+        {mode !== 'songwriter' && (
+          <div className="control-group control-group--wrap" role="group" aria-label="Scale type">
+            {SCALE_LIST.map((s) => (
+              <button
+                key={s.id}
+                className={s.id === scaleId ? 'pill pill--on' : 'pill'}
+                onClick={() => setScaleId(s.id)}
+              >
+                {s.name}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* 'chord' (the absolute, key-less chord explorer) is intentionally NOT
             offered here — it isn't useful on this key-oriented page yet. The
             view + ChordExplorer are kept below for a future, less key-centric
             section (e.g. Ear Training); re-add 'chord' to this list to show it. */}
         <div className="control-group" role="group" aria-label="Mode">
-          {(['scale', 'harmony'] as Mode[]).map((m) => (
+          {(['scale', 'harmony', 'songwriter'] as Mode[]).map((m) => (
             <button
               key={m}
               className={mode === m ? 'pill pill--on' : 'pill'}
               onClick={() => setMode(m)}
             >
-              {m === 'scale' ? 'Scales' : 'Harmony'}
+              {m === 'scale' ? 'Scales' : m === 'harmony' ? 'Harmony' : 'Songwriter'}
             </button>
           ))}
         </div>
@@ -88,6 +93,7 @@ function App() {
       {mode === 'scale' && <ScaleView root={root} scale={scale} />}
       {mode === 'chord' && <ChordView root={root} />}
       {mode === 'harmony' && <HarmonyView root={root} scale={scale} />}
+      {mode === 'songwriter' && <SongwriterView root={root} />}
     </main>
   );
 }

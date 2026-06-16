@@ -72,8 +72,10 @@ must match the repo name (`/method/`).
 2. **Fretboard engine — render from tuning data, light up arbitrary notes.** ← done.
 3. **Scales + intervals + Web Audio playback.** ← done.
 4. **Chords (triads + 7ths) with voicings + TAB.** ← done.
-5. The "Search Engine / GPS" reveal — progressive note reveal, changing
-   harmonic possibility space. The signature interaction.
+5. **The "Search Engine / GPS" reveal** — chord → all keys it could live in →
+   their chords. The signature interaction. ← MVP done (Songwriter view); next:
+   multi-chord progressions that intersect/narrow the candidate keys, then
+   timing/import/voice-leading.
 6. VexFlow notation + polish + case study.
 7. Study guide (teaching pass, after ship).
 

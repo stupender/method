@@ -193,3 +193,18 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Parking a feature without deleting it** — the key-less "Chords" view is kept
   (component + render branch intact, still referenced) but dropped from the Mode
   buttons, so it's one line away from returning for a future Ear Training section.
+
+## Session 5 — the GPS reveal (signature interaction)
+
+- **Reverse lookup** — `keysContaining(chord)` runs `diatonicChords` in reverse:
+  sweep all keys (4 scale systems × 12 roots) and keep the ones where the chord is
+  diatonic, recording the Roman numeral it plays there. One chord → many keys.
+- **Possibility space** — the Songwriter view shows that list grouped by system;
+  clicking a key drills into its diatonic chords (where to go next), with the
+  entered chord's slot lit. Committing more chords later will INTERSECT the keys
+  and narrow the space — the core "search engine / GPS" idea.
+- **Reusing the engine both ways** — Harmony goes key→chords, Songwriter goes
+  chord→keys, both off the one `diatonicChords` function. Build the rule once.
+- **Mode-specific global controls** — Scale type is hidden in Songwriter (you're
+  there to DISCOVER the scale, not pick it); the shared root pill is the chord's
+  root there instead of a key.
