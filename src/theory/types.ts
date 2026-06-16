@@ -224,21 +224,45 @@ export interface PlacedNote {
 
 
 // ----------------------------------------------------------------------------
-// 7. CHORD SEQUENCES — the seam for iReal Pro import (v2, NOT built now)
+// 7. CHORD SEQUENCES / SONGS — the seam for the progression workbench (v2)
 // ----------------------------------------------------------------------------
-// We don't build the importer yet, but we shape the progression model now so a
-// future iReal Pro import has somewhere to land with no rearchitecting. iReal
-// charts carry: a title, a key, a time signature, and a list of measures with
-// chord symbols, grouped into sections with repeats/endings. The minimal model
-// below mirrors that shape.
+// We don't build the progression builder, MIDI in/out, or iReal Pro import yet,
+// but we shape the model now so those land with no rearchitecting. See
+// BACKLOG.md (items C–G). The fields beyond `symbol` are documented SEAMS:
+// optional, unused today, here so the shape is right when we build v2.
+//
+// A chord is understood in three layers, most-open to most-specific:
+//   (1) the neutral chord symbol,
+//   (2) its Roman-numeral function relative to a key center — kept PLURAL while
+//       open, because one chord can be (e.g.) ii in C / vi in F / iii in Bb, and
+//       that multiplicity is the same "possibility space" as the GPS reveal,
+//   (3) the chosen voicing to actually play.
 export interface ChordRef {
-  // A chord symbol as written on a chart, e.g. "Cmaj7", "A-7", "G7". Parsing
-  // this into a root + ChordDefinition is a later job; we store the text now.
+  // (1) The chord symbol as written, e.g. "Cmaj7", "A-7", "G7". Parsing this
+  // into a root + ChordDefinition is a later job; we store the text now.
   symbol: string;
+
+  // (2) SEAM: possible Roman-numeral interpretations and the key center(s) they
+  // are measured against. Plural = not yet committed to one reading (open).
+  keyCenter?: string;       // e.g. "C" — the tonic this function is relative to
+  romanNumerals?: string[]; // e.g. ["ii", "vi", "iii"] across candidate keys
+
+  // (3) SEAM: the chosen voicing to play — referenced by the ids the chord/
+  // voicing engine already uses (see ChordDefinition + VoicingStructure).
+  voicing?: {
+    chordId: string;
+    structureId: string;
+    inversion: number;
+  };
+
+  // SEAM: timing in BEATS from the start of the song. Absolute (not per-bar) so
+  // a chord can cross bar lines. Bars (below) are a display grid, not the clock.
+  startBeat?: number;
+  endBeat?: number;
 }
 
 export interface Bar {
-  chords: ChordRef[];   // one or more chords in the measure
+  chords: ChordRef[];   // one or more chords sounding in this measure
 }
 
 export interface Section {
@@ -251,4 +275,6 @@ export interface Progression {
   key?: string;             // e.g. "C", "Eb"
   timeSignature?: string;   // e.g. "4/4"
   sections: Section[];
+  // A song can be as small as one bar with one chord — a tool to practice over a
+  // single chord — or a full chart imported from iReal Pro.
 }

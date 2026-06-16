@@ -79,11 +79,20 @@ must match the repo name (`/method/`).
 
 ## Backlog — added later as DATA, not new code (leave clean seams)
 
-Slash chords; scale patterns/permutations (paltas); interval pairings; melodic &
-harmonic minor modes; diminished/augmented scales; ear training; negative
-harmony; alternate tunings; ukulele. **iReal Pro import** is a planned v2
-feature — the progression data model (`Progression`/`Section`/`Bar`/`ChordRef`
-in `types.ts`) is shaped for it now, but the importer is NOT built yet.
+See [BACKLOG.md](BACKLOG.md) for the triaged, sequenced plan. In short:
+
+- **Soon (v1.x):** interval+direction melodic sequences / paltas (scale = all
+  2nds, arpeggio = all 3rds as special cases); interval-pairing chord voicings
+  (Vic Juris, e.g. 4th-2nd-6th through the scale).
+- **Later (v2):** the progression/song workbench — build a progression from
+  chosen chords+voicings (a song can be one bar = a practice tool); a three-layer
+  chord model (neutral chord / open Roman numeral vs key center / chosen
+  voicing); bar+beat timing with chords crossing bar lines and drag editing;
+  **MIDI export and import**; **iReal Pro import**. The progression data model
+  (`Progression`/`Section`/`Bar`/`ChordRef` in `types.ts`) is shaped for these.
+- **Data only:** slash chords; more scales/modes (harmonic & melodic minor,
+  harmonic major, diminished/augmented); extra chord qualities; ear training;
+  negative harmony; alternate tunings; ukulele.
 
 ## Working notes
 
