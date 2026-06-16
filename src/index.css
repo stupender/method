@@ -1,0 +1,44 @@
+/* ==========================================================================
+   index.css — global styles and the Method palette
+   --------------------------------------------------------------------------
+   Calm, instrument-like, near-monochrome with a single warm accent. The whole
+   palette lives here as CSS variables so every component reads the same few
+   colours and we can retune the mood in one place.
+   ========================================================================== */
+
+:root {
+  /* Warm near-monochrome base */
+  --bg: #faf8f4; /* soft warm paper */
+  --ink: #1c1a17; /* near-black text */
+  --muted: #8d877c; /* secondary text */
+  --line: #e7e2d8; /* hairline borders, frets */
+
+  /* One accent (a restrained coral, from the original prototypes) */
+  --accent: #e0705b;
+
+  /* Type: a calm serif for display, a clean sans for everything else.
+     System fonts only — no web-font dependency to load or maintain. */
+  --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  color: var(--ink);
+  background: var(--bg);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2 {
+  font-weight: 500;
+}
