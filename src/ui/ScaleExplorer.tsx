@@ -21,7 +21,11 @@ import { TabView } from '../render/TabView';
 
 export function ScaleExplorer({ root, scale }: { root: Note; scale: ScaleDefinition }) {
   const [labelMode, setLabelMode] = useState<'note' | 'degree'>('degree');
-  const [activeShape, setActiveShape] = useState<number | null>(null);
+  // Pinned (clicked, stays lit) vs hovered (temporary preview). Hover wins while
+  // over a box; otherwise the pinned one shows. Click the empty neck to unpin.
+  const [pinnedShape, setPinnedShape] = useState<number | null>(null);
+  const [hoveredShape, setHoveredShape] = useState<number | null>(null);
+  const activeShape = hoveredShape ?? pinnedShape;
 
   const positions = scalePositions(GUITAR, GUITAR_STANDARD, root, scale);
   const shapes = positions.map((p) => p.notes);
@@ -32,6 +36,12 @@ export function ScaleExplorer({ root, scale }: { root: Note; scale: ScaleDefinit
       .sort((a, b) => midiOf(a.note) - midiOf(b.note))
       .map((p) => midiOf(p.note));
     playSequence(midis, 0.18);
+  };
+
+  // Clicking a position (neck or TAB) plays it AND pins it as the selection.
+  const selectShape = (i: number) => {
+    setPinnedShape(i);
+    playPosition(shapes[i] ?? []);
   };
 
   return (
@@ -66,20 +76,22 @@ export function ScaleExplorer({ root, scale }: { root: Note; scale: ScaleDefinit
         tuning={GUITAR_STANDARD}
         shapes={shapes}
         activeShapeIndex={activeShape}
-        onShapeHover={setActiveShape}
-        onShapeTap={playPosition}
+        onShapeHover={setHoveredShape}
+        onShapeTap={selectShape}
+        onBackgroundClick={() => setPinnedShape(null)}
         labelMode={labelMode}
       />
 
       {/* One TAB per position (the modal fingerings), low -> high. Hovering a
-          TAB lights that position's constellation on the neck above. */}
+          TAB previews that position; clicking it pins the selection. */}
       <div className="tab-shelf">
         {positions.map((pos, i) => (
           <div
             key={i}
             className={i === activeShape ? 'tab-card tab-card--on' : 'tab-card'}
-            onMouseEnter={() => setActiveShape(i)}
-            onMouseLeave={() => setActiveShape(null)}
+            onMouseEnter={() => setHoveredShape(i)}
+            onMouseLeave={() => setHoveredShape(null)}
+            onClick={() => selectShape(i)}
           >
             <TabView
               instrument={GUITAR}

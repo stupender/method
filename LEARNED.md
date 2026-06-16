@@ -181,3 +181,15 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Verified against the source** — all three new scales' diatonic 7ths match Vic
   Juris' Harmonic Syllabus exactly (e.g. harmonic minor: i(maj7) iiø7 IIImaj7♯5
   iv7 V7 VImaj7 vii°7).
+
+## Session 4g — pin-to-select; parking a feature
+
+- **Pinned vs hovered selection** — two bits of state: a *pinned* shape (set by a
+  click, stays lit) and a *hovered* shape (a temporary preview). The shown shape
+  is `hovered ?? pinned`, so hover previews and falls back to the pin on leave.
+- **Background click to clear** — the SVG's `onClick` clears the pin; each shape's
+  `onClick` calls `stopPropagation()` so a shape click pins without the
+  background handler also firing.
+- **Parking a feature without deleting it** — the key-less "Chords" view is kept
+  (component + render branch intact, still referenced) but dropped from the Mode
+  buttons, so it's one line away from returning for a future Ear Training section.

@@ -35,9 +35,12 @@ export function ChordExplorer({ root, chord }: { root: Note; chord: ChordDefinit
   const [structureId, setStructureId] = useState('close');
   const [inversionIndex, setInversionIndex] = useState(0);
   const [labelMode, setLabelMode] = useState<'note' | 'degree'>('degree');
-  // Which shape's "constellation" is lit. Shared by the neck and the TABs, so
-  // hovering either one highlights the same shape.
-  const [activeShape, setActiveShape] = useState<number | null>(null);
+  // Two kinds of selection: a PINNED shape (set by clicking, stays lit) and a
+  // HOVERED shape (a temporary preview). Hover wins while the pointer is over a
+  // shape; otherwise the pinned one shows. Click the empty neck to unpin.
+  const [pinnedShape, setPinnedShape] = useState<number | null>(null);
+  const [hoveredShape, setHoveredShape] = useState<number | null>(null);
+  const activeShape = hoveredShape ?? pinnedShape;
 
   const voiceCount = inversionCount(chord);
   const structures = structuresForChord(chord, STRUCTURES);
@@ -54,10 +57,15 @@ export function ChordExplorer({ root, chord }: { root: Note; chord: ChordDefinit
     inversion,
   );
 
-  // Play a chord shape (its notes, strummed). The button plays the lowest shape;
-  // clicking any shape on the neck plays that one.
+  // Play a chord shape (its notes, strummed).
   const playShape = (shape: (typeof shapes)[number]) =>
     playChord(shape.map((p) => midiOf(p.note)));
+
+  // Clicking a shape (neck or TAB) plays it AND pins it as the selection.
+  const selectShape = (i: number) => {
+    setPinnedShape(i);
+    playShape(shapes[i] ?? []);
+  };
 
   return (
     <>
@@ -113,20 +121,22 @@ export function ChordExplorer({ root, chord }: { root: Note; chord: ChordDefinit
         tuning={GUITAR_STANDARD}
         shapes={shapes}
         activeShapeIndex={activeShape}
-        onShapeHover={setActiveShape}
-        onShapeTap={playShape}
+        onShapeHover={setHoveredShape}
+        onShapeTap={selectShape}
+        onBackgroundClick={() => setPinnedShape(null)}
         labelMode={labelMode}
       />
 
       {/* One TAB per shape (sorted by string set, low -> high). Hovering a TAB
-          lights that shape's constellation on the neck above. */}
+          previews that shape; clicking it pins the selection. */}
       <div className="tab-shelf">
         {shapes.map((shape, i) => (
           <div
             key={i}
             className={i === activeShape ? 'tab-card tab-card--on' : 'tab-card'}
-            onMouseEnter={() => setActiveShape(i)}
-            onMouseLeave={() => setActiveShape(null)}
+            onMouseEnter={() => setHoveredShape(i)}
+            onMouseLeave={() => setHoveredShape(null)}
+            onClick={() => selectShape(i)}
           >
             <TabView
               instrument={GUITAR}

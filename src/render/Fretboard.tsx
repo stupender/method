@@ -42,9 +42,11 @@ interface FretboardProps {
   activeShapeIndex?: number | null;
   // Called when the pointer enters/leaves a shape on the neck (index, or null).
   onShapeHover?: (index: number | null) => void;
-  // Called when a whole shape is clicked — used to play the chord. In grouped
-  // mode a click anywhere on the shape triggers this (not a single note).
-  onShapeTap?: (shape: PlacedNote[]) => void;
+  // Called when a whole shape is clicked (by its index) — used to play + pin it.
+  // A click anywhere on the shape triggers this (not a single note).
+  onShapeTap?: (index: number) => void;
+  // Called when the empty neck (not a shape) is clicked — used to clear a pin.
+  onBackgroundClick?: () => void;
   // What to print inside each dot: the note name ("Bb") or its scale degree
   // ("3"). The data carries both; this just picks which to show.
   labelMode?: 'note' | 'degree';
@@ -60,6 +62,7 @@ export function Fretboard({
   activeShapeIndex = null,
   onShapeHover,
   onShapeTap,
+  onBackgroundClick,
   labelMode = 'note',
   onNoteTap,
 }: FretboardProps) {
@@ -90,6 +93,7 @@ export function Fretboard({
     <svg
       className="fretboard"
       viewBox={`0 0 ${width} ${height}`}
+      onClick={onBackgroundClick}
       role="img"
       aria-label={`${instrument.name} fretboard in ${tuning.name} tuning`}
     >
@@ -211,7 +215,15 @@ export function Fretboard({
                 className={onShapeTap ? 'shape tappable' : 'shape'}
                 onMouseEnter={() => onShapeHover?.(si)}
                 onMouseLeave={() => onShapeHover?.(null)}
-                onClick={onShapeTap ? () => onShapeTap(shape) : undefined}
+                onClick={
+                  onShapeTap
+                    ? (e) => {
+                        // Don't let the click also reach the background handler.
+                        e.stopPropagation();
+                        onShapeTap(si);
+                      }
+                    : undefined
+                }
               >
                 {isActive && shape.length > 1 && (
                   <polyline className="constellation" points={points} />

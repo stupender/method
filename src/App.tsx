@@ -68,14 +68,18 @@ function App() {
           ))}
         </div>
 
+        {/* 'chord' (the absolute, key-less chord explorer) is intentionally NOT
+            offered here — it isn't useful on this key-oriented page yet. The
+            view + ChordExplorer are kept below for a future, less key-centric
+            section (e.g. Ear Training); re-add 'chord' to this list to show it. */}
         <div className="control-group" role="group" aria-label="Mode">
-          {(['scale', 'chord', 'harmony'] as Mode[]).map((m) => (
+          {(['scale', 'harmony'] as Mode[]).map((m) => (
             <button
               key={m}
               className={mode === m ? 'pill pill--on' : 'pill'}
               onClick={() => setMode(m)}
             >
-              {m === 'scale' ? 'Scales' : m === 'chord' ? 'Chords' : 'Harmony'}
+              {m === 'scale' ? 'Scales' : 'Harmony'}
             </button>
           ))}
         </div>
