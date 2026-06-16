@@ -27,7 +27,7 @@ import {
   inversionName,
 } from '../theory/chord';
 import { midiOf } from '../theory/notes';
-import { playNote, playChord } from '../audio/player';
+import { playChord } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
 import { TabView } from '../render/TabView';
 
@@ -54,11 +54,10 @@ export function ChordExplorer({ root, chord }: { root: Note; chord: ChordDefinit
     inversion,
   );
 
-  // Play the lowest shape (a single grabbable chord), not every note at once.
-  const strum = () => {
-    const shape = shapes[0] ?? [];
+  // Play a chord shape (its notes, strummed). The button plays the lowest shape;
+  // clicking any shape on the neck plays that one.
+  const playShape = (shape: (typeof shapes)[number]) =>
     playChord(shape.map((p) => midiOf(p.note)));
-  };
 
   return (
     <>
@@ -75,7 +74,7 @@ export function ChordExplorer({ root, chord }: { root: Note; chord: ChordDefinit
               </button>
             ))}
           </div>
-          <button className="pill pill--play" onClick={strum}>
+          <button className="pill pill--play" onClick={() => playShape(shapes[0] ?? [])}>
             ▶ Play chord
           </button>
         </div>
@@ -115,8 +114,8 @@ export function ChordExplorer({ root, chord }: { root: Note; chord: ChordDefinit
         shapes={shapes}
         activeShapeIndex={activeShape}
         onShapeHover={setActiveShape}
+        onShapeTap={playShape}
         labelMode={labelMode}
-        onNoteTap={(p) => playNote(midiOf(p.note))}
       />
 
       {/* One TAB per shape (sorted by string set, low -> high). Hovering a TAB

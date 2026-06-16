@@ -42,10 +42,13 @@ interface FretboardProps {
   activeShapeIndex?: number | null;
   // Called when the pointer enters/leaves a shape on the neck (index, or null).
   onShapeHover?: (index: number | null) => void;
+  // Called when a whole shape is clicked — used to play the chord. In grouped
+  // mode a click anywhere on the shape triggers this (not a single note).
+  onShapeTap?: (shape: PlacedNote[]) => void;
   // What to print inside each dot: the note name ("Bb") or its scale degree
   // ("3"). The data carries both; this just picks which to show.
   labelMode?: 'note' | 'degree';
-  // Called when a lit note is tapped — the UI uses this to play the note.
+  // Called when a single lit note is tapped (flat mode, e.g. a scale).
   onNoteTap?: (placed: PlacedNote) => void;
 }
 
@@ -56,6 +59,7 @@ export function Fretboard({
   shapes,
   activeShapeIndex = null,
   onShapeHover,
+  onShapeTap,
   labelMode = 'note',
   onNoteTap,
 }: FretboardProps) {
@@ -200,9 +204,10 @@ export function Fretboard({
             return (
               <g
                 key={`shape-${si}`}
-                className="shape"
+                className={onShapeTap ? 'shape tappable' : 'shape'}
                 onMouseEnter={() => onShapeHover?.(si)}
                 onMouseLeave={() => onShapeHover?.(null)}
+                onClick={onShapeTap ? () => onShapeTap(shape) : undefined}
               >
                 {isActive && shape.length > 1 && (
                   <polyline className="constellation" points={points} />
