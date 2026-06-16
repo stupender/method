@@ -70,7 +70,7 @@ must match the repo name (`/method/`).
 
 1. **Skeleton + deploy + data schema** ← done.
 2. **Fretboard engine — render from tuning data, light up arbitrary notes.** ← done.
-3. Scales + intervals + Web Audio playback.
+3. **Scales + intervals + Web Audio playback.** ← done.
 4. Chords (triads + 7ths) with voicings + TAB.
 5. The "Search Engine / GPS" reveal — progressive note reveal, changing
    harmonic possibility space. The signature interaction.

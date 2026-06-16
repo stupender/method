@@ -12,7 +12,6 @@
 // ============================================================================
 
 import type { Instrument, Tuning, PlacedNote } from '../theory/types';
-import { noteAtPosition } from '../theory/fretboard';
 import { noteName } from '../theory/notes';
 import './Fretboard.css';
 
@@ -34,9 +33,20 @@ interface FretboardProps {
   tuning: Tuning;
   // Notes to light up. Anything in this list gets a coloured dot + label.
   highlights?: PlacedNote[];
+  // What to print inside each dot: the note name ("Bb") or its scale degree
+  // ("3"). The data carries both; this just picks which to show.
+  labelMode?: 'note' | 'degree';
+  // Called when a lit note is tapped — the UI uses this to play the note.
+  onNoteTap?: (placed: PlacedNote) => void;
 }
 
-export function Fretboard({ instrument, tuning, highlights = [] }: FretboardProps) {
+export function Fretboard({
+  instrument,
+  tuning,
+  highlights = [],
+  labelMode = 'note',
+  onNoteTap,
+}: FretboardProps) {
   const { stringCount, fretCount } = instrument;
 
   // Overall canvas size derived from how many strings/frets we're drawing.
@@ -131,14 +141,20 @@ export function Fretboard({ instrument, tuning, highlights = [] }: FretboardProp
 
       {/* The lit-up notes. Each highlight becomes a dot + label; roots get the
           accent colour. This is the data-driven payload — change `highlights`
-          and the neck relights with no other change. */}
+          and the neck relights with no other change. Tapping plays the note. */}
       {highlights.map((h) => {
         const x = noteX(h.position.fret);
         const y = stringY(h.position.stringIndex);
-        // Re-derive the note so the label always matches what actually sounds.
-        const label = noteName(noteAtPosition(tuning, h.position));
+        // Show the note name or the degree, depending on the chosen mode. We use
+        // the spelling carried on the PlacedNote (e.g. "Bb"), not a re-derived
+        // sharp one, so scale spelling stays correct.
+        const label = labelMode === 'degree' ? h.intervalName : noteName(h.note);
         return (
-          <g key={`hl-${h.position.stringIndex}-${h.position.fret}`}>
+          <g
+            key={`hl-${h.position.stringIndex}-${h.position.fret}`}
+            className={onNoteTap ? 'note tappable' : 'note'}
+            onClick={onNoteTap ? () => onNoteTap(h) : undefined}
+          >
             <circle
               className={h.isRoot ? 'note-dot note-dot--root' : 'note-dot'}
               cx={x}

@@ -48,6 +48,16 @@
 }
 
 /* A lit-up note. */
+.fretboard .note {
+  /* The whole dot+label group reacts together. */
+  transition: opacity 0.12s ease;
+}
+.fretboard .tappable {
+  cursor: pointer;
+}
+.fretboard .tappable:hover {
+  opacity: 0.7;
+}
 .fretboard .note-dot {
   fill: var(--ink);
 }

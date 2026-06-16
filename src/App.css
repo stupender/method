@@ -1,5 +1,5 @@
 /* ==========================================================================
-   App.css — styles for the Session 1 landing screen
+   App.css — styles for the app screen and its controls
    ========================================================================== */
 
 .page {
@@ -31,6 +31,14 @@
   margin: 0;
 }
 
+/* Smaller title once the app's controls share the screen. */
+.title--sm {
+  font-size: 40px;
+}
+.title--sm::after {
+  margin-top: 14px;
+}
+
 /* The accent appears once, as a quiet mark under the title. */
 .title::after {
   content: '';
@@ -48,30 +56,63 @@
   margin: 24px 0 0;
 }
 
-/* The temporary "loaded data" panel. */
-.loaded {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 28px;
+/* --- Controls ------------------------------------------------------------ */
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 24px;
 }
 
-.data-list__label {
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: var(--muted);
-  margin: 0 0 8px;
+/* A cluster of related buttons. */
+.control-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
-.data-list ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+/* Second row groups the scale / label / play controls together. */
+.controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
 }
 
-.data-list li {
-  padding: 6px 0;
-  border-bottom: 1px solid var(--line);
+/* The shared button look: a calm outlined pill. */
+.pill {
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 13px;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+.pill:hover {
+  border-color: var(--muted);
+}
+
+/* The selected pill fills with ink. */
+.pill--on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+/* The play button wears the accent. */
+.pill--play {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+.pill--play:hover {
+  background: var(--accent);
+  color: #fff;
 }
 
 .footnote {
@@ -85,7 +126,7 @@
   .title {
     font-size: 48px;
   }
-  .loaded {
-    grid-template-columns: 1fr;
+  .title--sm {
+    font-size: 34px;
   }
 }

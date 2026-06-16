@@ -38,7 +38,7 @@ npm run deploy   # publish to GitHub Pages
 
 ## Status
 
-Built across a series of sessions. Currently: **Session 2 — the fretboard
-engine** complete (an SVG fretboard rendered from tuning data that lights up any
-set of notes passed as data; pure theory functions for pitch classes and neck
-positions). Next: scales + intervals + Web Audio playback.
+Built across a series of sessions. Currently: **Session 3 — scales, intervals &
+audio** complete (pick a root and the major scale realises across the neck with
+correct enharmonic spelling and degree labels; tap any note or play the whole
+scale via Web Audio). Next: chords (triads + 7ths) with voicings + TAB.

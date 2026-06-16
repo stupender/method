@@ -48,3 +48,26 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Data → render flow** — App picks instrument+tuning+notes (data), the theory
   layer finds positions, the Fretboard component draws them. App itself does no
   theory and no drawing — the layering in action.
+
+## Session 3 — scales, intervals & audio
+
+- **Correct spelling (the diatonic walk)** — to spell an interval, first pick the
+  LETTER by stepping the alphabet `diatonicSteps` places, then pick the
+  ACCIDENTAL so the pitch matches `semitones`. That's why F major reads Bb.
+- **Octave from spelling** — a flat spelling can land in a different octave than
+  a sharp one (Cb vs B), so we solve the MIDI formula backwards to keep audio
+  pitch and written spelling in agreement.
+- **Realizing a scale** — `realizeScale(root, scale)` turns root + data into the
+  ordered, spelled scale tones; `placeScale(...)` puts them across the neck with
+  degree labels. The renderer never learns what a "scale" is.
+- **Web Audio basics** — build a node graph (oscillator → filter → gain →
+  speakers) and schedule it on the audio clock. A gain ENVELOPE (quick attack,
+  slow fade) turns a flat tone into a pluck. MIDI→Hz: 440·2^((m−69)/12).
+- **One AudioContext, started on a gesture** — browsers block audio until the
+  user interacts, so we create/resume the context on the first tap.
+- **React state (`useState`)** — a value a component remembers between renders
+  plus a setter; calling the setter re-renders with the new value. Root, scale
+  and label-mode are state; everything else is DERIVED from them each render.
+- **Lifting choices into state, deriving the rest** — we don't store the
+  highlights; we recompute them from (root, scale) every render. Fewer things to
+  keep in sync.
