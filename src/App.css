@@ -115,6 +115,21 @@
   color: #fff;
 }
 
+/* Fretboard + TAB side by side (stacks on narrow screens). */
+.chord-stage {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+.chord-stage .fretboard {
+  flex: 1;
+}
+@media (max-width: 720px) {
+  .chord-stage {
+    flex-direction: column;
+  }
+}
+
 .footnote {
   margin-top: 8vh;
   text-align: center;

@@ -71,3 +71,23 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Lifting choices into state, deriving the rest** — we don't store the
   highlights; we recompute them from (root, scale) every render. Fewer things to
   keep in sync.
+
+## Session 4 — chords, voicings & TAB
+
+- **Voicing = rearrangement, not a new chord** — a voicing is data: an ordered
+  (low→high) list of which chord tone + how many octaves to shift it. Inversions,
+  drop-2, drop-3 and spread are all just different lists over the SAME tones.
+- **Two-step chord realization** — `buildVoices` stacks the chord and applies the
+  voicing's octave shifts (pure music); `placeVoicing` lays those pitches on a
+  string set and slides the whole shape by whole octaves to find a playable spot.
+- **Drop voicings** — take a close voicing and drop the 2nd (drop-2) or 3rd
+  (drop-3) voice from the top down an octave. That's why close 7th chords are
+  awkward on guitar and drop voicings exist — you can feel it in the shapes.
+- **A guitar-specific seam** — voicings carry an optional `stringSet` (a v1 guitar
+  placement hint). The voicing stays abstract; only placement is guitar-aware.
+- **TAB rendering** — just fret numbers per string, written high string on top,
+  with "×" for muted strings. No theory in the renderer.
+- **Conditional rendering + sub-components** — App shows ScaleView OR ChordView
+  by mode; shared bits (the label toggle) are pulled into small components.
+- **Filtering options from data** — the voicing list is `ALL_VOICINGS` filtered
+  by whether the voice count matches the chord's tone count. No per-chord code.

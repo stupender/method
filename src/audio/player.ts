@@ -79,3 +79,11 @@ export function playSequence(midis: number[], gap = 0.34): void {
   const start = ctx.currentTime;
   midis.forEach((midi, i) => scheduleNote(ctx, midi, start + i * gap, 0.9));
 }
+
+// Play notes together as a chord, with a tiny `strum` delay between voices so it
+// sounds plucked across the strings rather than mechanically simultaneous.
+export function playChord(midis: number[], strum = 0.022): void {
+  const ctx = getContext();
+  const start = ctx.currentTime;
+  midis.forEach((midi, i) => scheduleNote(ctx, midi, start + i * strum, 1.6));
+}

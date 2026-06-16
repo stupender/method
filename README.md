@@ -38,7 +38,8 @@ npm run deploy   # publish to GitHub Pages
 
 ## Status
 
-Built across a series of sessions. Currently: **Session 3 — scales, intervals &
-audio** complete (pick a root and the major scale realises across the neck with
-correct enharmonic spelling and degree labels; tap any note or play the whole
-scale via Web Audio). Next: chords (triads + 7ths) with voicings + TAB.
+Built across a series of sessions. Currently: **Session 4 — chords, voicings &
+TAB** complete (triads with inversions + spread and seventh chords with drop-2 /
+drop-3, each realised as a playable shape from data, shown on the neck and as
+TAB, and strummable). Next: the "Search Engine / GPS" progressive-reveal
+interaction.

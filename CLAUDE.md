@@ -71,7 +71,7 @@ must match the repo name (`/method/`).
 1. **Skeleton + deploy + data schema** ← done.
 2. **Fretboard engine — render from tuning data, light up arbitrary notes.** ← done.
 3. **Scales + intervals + Web Audio playback.** ← done.
-4. Chords (triads + 7ths) with voicings + TAB.
+4. **Chords (triads + 7ths) with voicings + TAB.** ← done.
 5. The "Search Engine / GPS" reveal — progressive note reveal, changing
    harmonic possibility space. The signature interaction.
 6. VexFlow notation + polish + case study.

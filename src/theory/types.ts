@@ -160,6 +160,12 @@ export interface VoicingDefinition {
   name: string;          // display name, e.g. "Drop 2"
   // The voices from LOW to HIGH. Length usually matches the chord's tone count.
   tones: VoicingTone[];
+  // OPTIONAL, guitar-specific v1 hint: which strings (low->high indices) to lay
+  // this voicing on, e.g. [2,3,4,5] for D-G-B-e. The voicing itself stays an
+  // abstract rearrangement of tones; this is just where v1 chooses to place it
+  // on a 6-string neck. (A smarter, instrument-agnostic placement engine that
+  // derives string sets automatically is on the backlog.)
+  stringSet?: number[];
 }
 
 
