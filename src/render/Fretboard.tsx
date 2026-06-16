@@ -73,9 +73,9 @@ export function Fretboard({
   // --- Coordinate helpers -------------------------------------------------
   // Where a fret WIRE sits horizontally (fret 0 = the nut).
   const fretX = (fret: number) => nutX + fret * FRET_SPACING;
-  // Where a NOTE dot sits horizontally: open notes go just left of the nut;
-  // fretted notes sit centred ON their fret wire.
-  const noteX = (fret: number) => (fret === 0 ? nutX - 28 : fretX(fret));
+  // Where a NOTE dot sits horizontally: centred ON its fret wire. Fret 0 is the
+  // nut, so open-string notes sit centred on the nut itself.
+  const noteX = (fret: number) => fretX(fret);
   // Where an INLAY marker sits: in the middle of the fret space (as on a real
   // neck), which is offset half a fret from the wire the note dots sit on.
   const inlayX = (fret: number) => nutX + (fret - 0.5) * FRET_SPACING;
