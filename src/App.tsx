@@ -12,17 +12,14 @@
 
 import { useState } from 'react';
 import type { Note } from './theory/types';
-import { GUITAR } from './data/instruments';
-import { GUITAR_STANDARD } from './data/tunings';
 import { SCALES, MAJOR_SCALE } from './data/scales';
 import { CHORDS } from './data/chords';
 import { ROOT_CHOICES } from './data/roots';
-import { placeScale, realizeScale } from './theory/scale';
+import { realizeScale } from './theory/scale';
 import { diatonicChords } from './theory/harmony';
-import { midiOf, noteName } from './theory/notes';
-import { playNote, playSequence } from './audio/player';
-import { Fretboard } from './render/Fretboard';
+import { noteName } from './theory/notes';
 import { ChordExplorer } from './ui/ChordExplorer';
+import { ScaleExplorer } from './ui/ScaleExplorer';
 import './App.css';
 
 const SCALE_LIST = Object.values(SCALES);
@@ -77,20 +74,11 @@ function App() {
   );
 }
 
-// --- Scale view (Session 3) ------------------------------------------------
+// --- Scale view: the scale's position boxes (its 7 modal fingerings) -------
 function ScaleView({ root }: { root: Note }) {
   const [scaleId, setScaleId] = useState(SCALE_LIST[0].id);
-  const [labelMode, setLabelMode] = useState<'note' | 'degree'>('degree');
-
   const scale = SCALES[scaleId];
   const tones = realizeScale(root, scale);
-  const highlights = placeScale(GUITAR, GUITAR_STANDARD, root, scale);
-
-  const playScale = () => {
-    const midis = tones.map((t) => midiOf(t.note));
-    midis.push(midiOf(root) + 12);
-    playSequence(midis);
-  };
 
   return (
     <>
@@ -99,48 +87,24 @@ function ScaleView({ root }: { root: Note }) {
         {tones.map((t) => noteName(t.note)).join('  ')}
       </p>
 
-      <div className="view-controls">
-        <div className="controls-row">
-          <div className="control-group" role="group" aria-label="Scale">
-            {SCALE_LIST.map((s) => (
-              <button
-                key={s.id}
-                className={s.id === scaleId ? 'pill pill--on' : 'pill'}
-                onClick={() => setScaleId(s.id)}
-              >
-                {s.name}
-              </button>
-            ))}
-          </div>
-          <div className="control-group" role="group" aria-label="Labels">
-            <button
-              className={labelMode === 'degree' ? 'pill pill--on' : 'pill'}
-              onClick={() => setLabelMode('degree')}
-            >
-              Degrees
-            </button>
-            <button
-              className={labelMode === 'note' ? 'pill pill--on' : 'pill'}
-              onClick={() => setLabelMode('note')}
-            >
-              Notes
-            </button>
-          </div>
-          <button className="pill pill--play" onClick={playScale}>
-            ▶ Play scale
+      <div className="control-group control-group--wrap" role="group" aria-label="Scale">
+        {SCALE_LIST.map((s) => (
+          <button
+            key={s.id}
+            className={s.id === scaleId ? 'pill pill--on' : 'pill'}
+            onClick={() => setScaleId(s.id)}
+          >
+            {s.name}
           </button>
-        </div>
+        ))}
       </div>
 
-      <Fretboard
-        instrument={GUITAR}
-        tuning={GUITAR_STANDARD}
-        highlights={highlights}
-        labelMode={labelMode}
-        onNoteTap={(placed) => playNote(midiOf(placed.note))}
-      />
+      <ScaleExplorer root={root} scale={scale} />
 
-      <footer className="footnote">Tap any note to hear it; root in coral.</footer>
+      <footer className="footnote">
+        Each box is a position (a mode's fingering). Hover to light it; click to
+        hear it.
+      </footer>
     </>
   );
 }

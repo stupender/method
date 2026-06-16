@@ -35,6 +35,7 @@
   border-bottom: 1px solid #b8ad99;
   display: flex;
   justify-content: center;
+  gap: 6px;
 }
 
 /* The fret number (or mute mark), centred and lifted onto the line. */

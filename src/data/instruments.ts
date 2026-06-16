@@ -14,7 +14,7 @@ export const GUITAR: Instrument = {
   id: 'guitar',
   name: 'Guitar',
   stringCount: 6,
-  fretCount: 15,
+  fretCount: 17, // enough frets for all 7 three-notes-per-string scale positions
   defaultTuningId: 'guitar-standard',
 };
 

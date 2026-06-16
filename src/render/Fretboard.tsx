@@ -198,7 +198,11 @@ export function Fretboard({
             // The connecting "constellation" line, drawn through the shape's
             // notes in string order, only when the shape is active.
             const points = [...shape]
-              .sort((a, b) => a.position.stringIndex - b.position.stringIndex)
+              .sort(
+                (a, b) =>
+                  a.position.stringIndex - b.position.stringIndex ||
+                  a.position.fret - b.position.fret,
+              )
               .map((h) => `${noteX(h.position.fret)},${stringY(h.position.stringIndex)}`)
               .join(' ');
             return (

@@ -20,10 +20,13 @@ interface TabViewProps {
 }
 
 export function TabView({ instrument, tuning, placed, caption }: TabViewProps) {
-  // Quick lookup: string index -> the fret played on it (if any).
-  const fretByString = new Map<number, number>();
+  // Lookup: string index -> the frets played on it, low to high. A chord has one
+  // per string; a scale position (3 notes per string) has several.
+  const fretsByString = new Map<number, number[]>();
   for (const p of placed) {
-    fretByString.set(p.position.stringIndex, p.position.fret);
+    const list = fretsByString.get(p.position.stringIndex) ?? [];
+    list.push(p.position.fret);
+    fretsByString.set(p.position.stringIndex, list);
   }
 
   // String indices high -> low, the order TAB is written in.
@@ -31,17 +34,22 @@ export function TabView({ instrument, tuning, placed, caption }: TabViewProps) {
   for (let s = instrument.stringCount - 1; s >= 0; s--) rows.push(s);
 
   return (
-    <div className="tab" role="img" aria-label="Chord tablature">
+    <div className="tab" role="img" aria-label="Tablature">
       {rows.map((stringIndex) => {
-        const fret = fretByString.get(stringIndex);
-        const isPlayed = fret !== undefined;
+        const frets = (fretsByString.get(stringIndex) ?? []).sort((a, b) => a - b);
         return (
           <div className="tab-row" key={stringIndex}>
             <span className="tab-open">{noteName(tuning.openNotes[stringIndex])}</span>
             <span className="tab-line">
-              <span className={isPlayed ? 'tab-mark' : 'tab-mark tab-mark--mute'}>
-                {isPlayed ? fret : '×'}
-              </span>
+              {frets.length === 0 ? (
+                <span className="tab-mark tab-mark--mute">×</span>
+              ) : (
+                frets.map((fret, i) => (
+                  <span className="tab-mark" key={i}>
+                    {fret}
+                  </span>
+                ))
+              )}
             </span>
           </div>
         );

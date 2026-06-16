@@ -144,3 +144,19 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   child element, and state updates are async (read after a re-render).
 - **Sort by string set** — shapes are ordered by their string indices low → high
   (then by fret), so the TABs read from the lowest strings upward.
+
+## Session 4e — click-to-play + scale positions (modes)
+
+- **Click a shape = play the chord** — the click handler lives on the shape group,
+  so a click on any of its notes bubbles up and strums the whole chord (grouped
+  mode). Per-note tapping stays for the flat scale view.
+- **Scale positions (3-notes-per-string)** — `scalePositions` walks an ascending
+  ladder of the scale's MIDI notes, putting 3 per string into compact boxes.
+  There are 7, and each starts on a different scale degree — i.e. the 7 MODES
+  (a box starting on the 2nd degree is the Dorian fingering).
+- **Reusing the constellation machinery** — scale boxes are just `shapes` fed to
+  the same Fretboard grouped mode and TABs; only the source differs (positions
+  vs voicings). Clicking a box plays it ascending (`playSequence`).
+- **One TAB, two jobs** — `TabView` now lists all frets per string (one for a
+  chord, three for a scale box), so the same component serves both.
+- **17 frets** — bumped the guitar's fret count so all 7 positions fit on-screen.

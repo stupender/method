@@ -38,9 +38,10 @@ npm run deploy   # publish to GitHub Pages
 
 ## Status
 
-Built across a series of sessions. Currently: **Session 4 — chords, voicings &
-TAB** complete (triads and seventh chords as playable shapes from data, with
-independent structure × inversion, shown on the neck and as TAB, strummable),
-plus a **Harmony** view — the diatonic chords of a key with Roman-numeral
-analysis (triads and sevenths). Next: the "Search Engine / GPS" progressive-
-reveal interaction.
+Built across a series of sessions. Currently complete: scales shown as their 7
+playable position boxes (the modal fingerings); chords (triads + sevenths) as
+playable voicing shapes with independent structure × inversion; a **Harmony**
+view (the diatonic chords of a key with Roman numerals). Every chord/scale shape
+is shown in all positions on the neck as hoverable "constellations" with TAB,
+and is playable (click a chord to strum it, a scale box to run it). Next: the
+"Search Engine / GPS" progressive-reveal interaction.
