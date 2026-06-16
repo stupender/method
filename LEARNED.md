@@ -160,10 +160,13 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **One TAB, two jobs** — `TabView` now lists all frets per string (one for a
   chord, three for a scale box), so the same component serves both.
 - **17 frets** — bumped the guitar's fret count so all 7 positions fit on-screen.
-- **Least-stretch grip** — the same set of notes can be fingered on different
-  string sets (same sound, different grip). `placeVoicingAll` groups placements
-  by their pitch set and keeps only the easiest (least span, then lowest). Notes
-  at different octaves are different pitch sets, so those positions all stay.
+- **One grip per string set** — a voicing is shown once on each string set it
+  fits: a triad on its 4 contiguous 3-string sets, a 7th on its 3 contiguous
+  4-string sets, each at its lowest playable position (span is octave-independent
+  for a fixed string set, so we just slide it down). Open triads and drop-3
+  can't sit on adjacent strings, so when NO contiguous set fits we fall back to
+  the skip string sets — those are the exceptions. (`MAX_SPAN = 4` routes the
+  wide voicings to the skip sets automatically.)
 
 ## Session 4f — harmonic/melodic minor + harmonic major
 

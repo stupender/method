@@ -128,51 +128,81 @@ function openMidi(tuning: Tuning, stringIndex: number): number {
   return midiOf(tuning.openNotes[stringIndex]);
 }
 
-// Candidate string sets for N voices: every run of N adjacent strings, plus runs
-// that skip one interior string (drop-3 shapes need a string skip). Each is a
-// list of string indices low->high, flagged whether it skips.
-function candidateStringSets(
-  voiceCount: number,
-  stringCount: number,
-): { strings: number[]; skipped: boolean }[] {
-  const sets: { strings: number[]; skipped: boolean }[] = [];
-
-  // Contiguous windows.
+// The CONTIGUOUS string sets for N voices: every run of N adjacent strings.
+// These are the standard home of close and drop-2 voicings — 4 for a triad
+// (E-A-D, A-D-G, D-G-B, G-B-e), 3 for a seventh chord.
+function contiguousStringSets(voiceCount: number, stringCount: number): number[][] {
+  const sets: number[][] = [];
   for (let start = 0; start + voiceCount <= stringCount; start++) {
-    const strings = Array.from({ length: voiceCount }, (_, i) => start + i);
-    sets.push({ strings, skipped: false });
+    sets.push(Array.from({ length: voiceCount }, (_, i) => start + i));
   }
+  return sets;
+}
 
-  // Windows spanning one extra string with a single interior string skipped.
+// String sets that SKIP one interior string. Open triads and drop-3 voicings
+// can't sit on adjacent strings, so they live here instead — the exceptions.
+function skipStringSets(voiceCount: number, stringCount: number): number[][] {
+  const sets: number[][] = [];
   for (let start = 0; start + voiceCount + 1 <= stringCount; start++) {
     for (let skip = start + 1; skip < start + voiceCount; skip++) {
       const strings: number[] = [];
       for (let s = start; s <= start + voiceCount; s++) {
         if (s !== skip) strings.push(s);
       }
-      sets.push({ strings, skipped: true });
+      sets.push(strings);
     }
   }
-
   return sets;
 }
 
-// The widest fret span we'll accept as a grabbable shape. Voicings stretched
-// wider than this across an "unnatural" string set aren't really playable, so we
-// drop them rather than show nonsense.
-const MAX_SPAN = 5;
+// The widest fret span we'll accept as a grabbable shape on a string set. Close
+// and drop-2 voicings sit within ~3 frets on adjacent strings; drop-3 and open
+// voicings stretch much wider on adjacent strings (which is exactly why they
+// belong on skip string sets), so this cutoff routes them there.
+const MAX_SPAN = 4;
 
-// Step 4 — place the built voicing on the neck, EVERYWHERE it's playable. The
-// voices' relative pitches and order are fixed; the freedom is which string set
-// and which octave. We collect every valid (string set × octave) that fits the
-// neck and isn't too wide a stretch, so the UI can show the voicing in all its
-// positions up the neck.
-//
-// BUT: the exact same set of notes (same pitches) can often be fingered on more
-// than one string set — same sound, different grip. Those aren't different
-// voicings, so we keep only the EASIEST one (least stretch, then lowest on the
-// neck) per unique set of pitches. Different octaves are different pitches, so
-// those genuinely-different positions all stay. Shapes are ordered low to high.
+// Try to place the voicing on each of the given string sets, once per set, at
+// its lowest playable position. (Span is octave-independent for a fixed string
+// set, so a set either fits or it doesn't; when it fits we take the lowest octave
+// that keeps every fret on the neck — the "least stretch / lowest" choice.)
+function placeOnStringSets(
+  instrument: Instrument,
+  tuning: Tuning,
+  voices: Voice[],
+  stringSets: number[][],
+): PlacedNote[][] {
+  const shapes: PlacedNote[][] = [];
+  for (const strings of stringSets) {
+    const baseFrets = voices.map(
+      (v, i) => midiOf(v.note) - openMidi(tuning, strings[i]),
+    );
+    if (Math.max(...baseFrets) - Math.min(...baseFrets) > MAX_SPAN) continue;
+
+    const minShift = Math.ceil(-Math.min(...baseFrets) / 12);
+    const maxShift = Math.floor(
+      (instrument.fretCount - Math.max(...baseFrets)) / 12,
+    );
+    if (minShift > maxShift) continue; // doesn't fit the neck on this string set
+
+    const octaveShift = minShift; // lowest playable position
+    shapes.push(
+      voices.map((v, i) => ({
+        position: { stringIndex: strings[i], fret: baseFrets[i] + 12 * octaveShift },
+        note: { ...v.note, octave: (v.note.octave ?? 4) + octaveShift },
+        intervalName: v.degree,
+        isRoot: v.isRoot,
+      })),
+    );
+  }
+  return shapes;
+}
+
+// Step 4 — place the built voicing on the neck, ONCE ON EACH STRING SET it fits.
+// We want the voicing shown on every string set so the player sees every place to
+// grab it: a triad on its four contiguous 3-string sets (E-A-D, A-D-G, D-G-B,
+// G-B-e), a 7th on its three contiguous 4-string sets. Voicings that can't sit on
+// adjacent strings (open triads, drop-3) won't fit any contiguous set — for those
+// we fall back to the skip string sets. Shapes are ordered low to high.
 export function placeVoicingAll(
   instrument: Instrument,
   tuning: Tuning,
@@ -183,47 +213,22 @@ export function placeVoicingAll(
 ): PlacedNote[][] {
   const voices = buildVoices(root, chord, structure, inversion);
 
-  // Best (lowest-score) grip found so far for each unique set of pitches.
-  const bestByPitches = new Map<
-    string,
-    { notes: PlacedNote[]; score: number }
-  >();
-
-  for (const set of candidateStringSets(voices.length, instrument.stringCount)) {
-    for (let octaveShift = -2; octaveShift <= 4; octaveShift++) {
-      const frets = voices.map(
-        (v, i) =>
-          midiOf(v.note) + 12 * octaveShift - openMidi(tuning, set.strings[i]),
-      );
-      if (!frets.every((f) => f >= 0 && f <= instrument.fretCount)) continue;
-
-      const span = Math.max(...frets) - Math.min(...frets);
-      if (span > MAX_SPAN) continue;
-
-      // The actual notes sounding (octave applied) — identical across every grip
-      // that plays the same pitches, so it's our grouping key.
-      const notes = voices.map((v, i) => ({
-        position: { stringIndex: set.strings[i], fret: frets[i] },
-        note: { ...v.note, octave: (v.note.octave ?? 4) + octaveShift },
-        intervalName: v.degree,
-        isRoot: v.isRoot,
-      }));
-      const pitchKey = notes
-        .map((n) => midiOf(n.note))
-        .sort((a, b) => a - b)
-        .join(',');
-
-      // Prefer less stretch, then a lower position, then no string-skip.
-      const score = span * 2 + Math.max(...frets) + (set.skipped ? 1 : 0);
-
-      const current = bestByPitches.get(pitchKey);
-      if (!current || score < current.score) {
-        bestByPitches.set(pitchKey, { notes, score });
-      }
-    }
+  // Standard home: the contiguous string sets. Only if NONE fits (open / drop-3)
+  // do we use the skip string sets — those are the exceptions.
+  let shapes = placeOnStringSets(
+    instrument,
+    tuning,
+    voices,
+    contiguousStringSets(voices.length, instrument.stringCount),
+  );
+  if (shapes.length === 0) {
+    shapes = placeOnStringSets(
+      instrument,
+      tuning,
+      voices,
+      skipStringSets(voices.length, instrument.stringCount),
+    );
   }
-
-  const shapes = [...bestByPitches.values()].map((b) => b.notes);
 
   // Order shapes by STRING SET, lowest strings first (then by fret within a
   // string set). So all the shapes on the lowest strings come first, then the
