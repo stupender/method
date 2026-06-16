@@ -113,3 +113,17 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Lifting state to the right level** — `ChordExplorer` keeps structure/inversion
   local because they're about *viewing* a chord; the chosen key/degree lives in
   the Harmony view. Each piece of state sits with whoever owns that decision.
+
+## Session 4c — all positions, and control priority
+
+- **All shapes, not one** — `placeVoicingAll` returns every playable instance of a
+  voicing (each string set × octave that fits and isn't too wide a stretch),
+  instead of picking one "best" shape. The neck shows their union; a TAB per
+  shape lists them low → high.
+- **Dedupe by position** — overlapping shapes share frets, so before drawing we
+  collapse notes by string+fret (also avoids duplicate React keys).
+- **Span filter** — a voicing on the "wrong" string set stretches too far to
+  grab; we drop shapes wider than `MAX_SPAN` frets so only real shapes show.
+- **Control priority = visual order** — controls are laid out most-important
+  first: globally Key → (Scale type) → Mode; within a chord Roman numeral →
+  triad/7th → Inversion → Structure. The UI order encodes the mental model.

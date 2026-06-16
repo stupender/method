@@ -42,7 +42,21 @@ function App() {
         <h1 className="title title--sm">Method</h1>
       </header>
 
+      {/* Global controls, in priority order: Key first, then Mode.
+          (Scale type slots between these in the next checkpoint.) */}
       <div className="controls">
+        <div className="control-group" role="group" aria-label="Key">
+          {ROOT_CHOICES.map((note, i) => (
+            <button
+              key={`${note.letter}${note.accidental}`}
+              className={i === rootIndex ? 'pill pill--on' : 'pill'}
+              onClick={() => setRootIndex(i)}
+            >
+              {noteName(note)}
+            </button>
+          ))}
+        </div>
+
         <div className="control-group" role="group" aria-label="Mode">
           {(['scale', 'chord', 'harmony'] as Mode[]).map((m) => (
             <button
@@ -51,18 +65,6 @@ function App() {
               onClick={() => setMode(m)}
             >
               {m === 'scale' ? 'Scales' : m === 'chord' ? 'Chords' : 'Harmony'}
-            </button>
-          ))}
-        </div>
-
-        <div className="control-group" role="group" aria-label="Root">
-          {ROOT_CHOICES.map((note, i) => (
-            <button
-              key={`${note.letter}${note.accidental}`}
-              className={i === rootIndex ? 'pill pill--on' : 'pill'}
-              onClick={() => setRootIndex(i)}
-            >
-              {noteName(note)}
             </button>
           ))}
         </div>
@@ -192,7 +194,20 @@ function HarmonyView({ root }: { root: Note }) {
       </p>
 
       <div className="view-controls">
-        {/* Triads vs seventh chords. */}
+        {/* Highest priority: which degree (Roman numeral) in the key. */}
+        <div className="control-group" role="group" aria-label="Scale degree">
+          {chords.map((c, i) => (
+            <button
+              key={i}
+              className={i === degree ? 'pill pill--on' : 'pill'}
+              onClick={() => setDegree(i)}
+            >
+              {c.roman}
+            </button>
+          ))}
+        </div>
+
+        {/* Then: triads vs seventh chords. */}
         <div className="control-group" role="group" aria-label="Chord size">
           <button
             className={!seventh ? 'pill pill--on' : 'pill'}
@@ -206,19 +221,6 @@ function HarmonyView({ root }: { root: Note }) {
           >
             Sevenths
           </button>
-        </div>
-
-        {/* One pill per scale degree, labelled with its Roman numeral. */}
-        <div className="control-group" role="group" aria-label="Scale degree">
-          {chords.map((c, i) => (
-            <button
-              key={i}
-              className={i === degree ? 'pill pill--on' : 'pill'}
-              onClick={() => setDegree(i)}
-            >
-              {c.roman}
-            </button>
-          ))}
         </div>
       </div>
 

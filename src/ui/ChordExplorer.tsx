@@ -1,23 +1,26 @@
 // ============================================================================
 // ui/ChordExplorer.tsx — explore one chord's voicings on the neck
 // ----------------------------------------------------------------------------
-// Given a root + a chord quality, this owns the shared chord UI: the Structure
-// and Inversion pickers, the note/degree label toggle, the fretboard shape, the
-// TAB, and the play button. Both the Chords view (absolute chord) and the
-// Harmony view (a chord from a key) hand it a root + chord and reuse all of it.
+// Given a root + a chord quality, this owns the shared chord UI: the Inversion
+// and Structure pickers, the note/degree label toggle, the play button, the
+// fretboard, and the TAB. Both the Chords view (absolute chord) and the Harmony
+// view (a chord from a key) hand it a root + chord and reuse all of it.
 //
-// It keeps Structure/Inversion/label as its own LOCAL state — they're UI choices
-// about how to view whatever chord it's given. When the chord changes, the same
-// derive-and-clamp logic keeps the choice valid.
+// It shows the chosen voicing in ALL its playable positions and string sets: the
+// neck lights up every shape (their union), and below it we draw one TAB per
+// shape, ordered low -> high up the neck.
+//
+// Control order follows the agreed priority: Inversion, then Structure. (The
+// higher-priority Roman-numeral / triad-vs-7th choices live in the view above.)
 // ============================================================================
 
 import { useState } from 'react';
-import type { Note, ChordDefinition } from '../theory/types';
+import type { Note, ChordDefinition, PlacedNote } from '../theory/types';
 import { GUITAR } from '../data/instruments';
 import { GUITAR_STANDARD } from '../data/tunings';
 import { STRUCTURES } from '../data/voicings';
 import {
-  placeVoicing,
+  placeVoicingAll,
   structuresForChord,
   structureName,
   inversionCount,
@@ -38,7 +41,8 @@ export function ChordExplorer({ root, chord }: { root: Note; chord: ChordDefinit
   const structure = structures.find((s) => s.id === structureId) ?? structures[0];
   const inversion = Math.min(inversionIndex, voiceCount - 1);
 
-  const placed = placeVoicing(
+  // Every playable shape of this voicing across the neck.
+  const shapes = placeVoicingAll(
     GUITAR,
     GUITAR_STANDARD,
     root,
@@ -47,28 +51,18 @@ export function ChordExplorer({ root, chord }: { root: Note; chord: ChordDefinit
     inversion,
   );
 
-  const strum = () => playChord(placed.map((p) => midiOf(p.note)));
+  // The neck lights up the union of all shapes (deduped by position).
+  const neckNotes = dedupeByPosition(shapes.flat());
+
+  // Play the lowest shape (a single grabbable chord), not every note at once.
+  const strum = () => {
+    const shape = shapes[0] ?? [];
+    playChord(shape.map((p) => midiOf(p.note)));
+  };
 
   return (
     <>
       <div className="view-controls">
-        <div className="controls-row">
-          <div className="control-group" role="group" aria-label="Structure">
-            {structures.map((s) => (
-              <button
-                key={s.id}
-                className={s.id === structure.id ? 'pill pill--on' : 'pill'}
-                onClick={() => setStructureId(s.id)}
-              >
-                {structureName(s, voiceCount)}
-              </button>
-            ))}
-          </div>
-          <button className="pill pill--play" onClick={strum}>
-            ▶ Play chord
-          </button>
-        </div>
-
         <div className="controls-row">
           <div className="control-group" role="group" aria-label="Inversion">
             {Array.from({ length: voiceCount }, (_, i) => (
@@ -78,6 +72,23 @@ export function ChordExplorer({ root, chord }: { root: Note; chord: ChordDefinit
                 onClick={() => setInversionIndex(i)}
               >
                 {inversionName(i)}
+              </button>
+            ))}
+          </div>
+          <button className="pill pill--play" onClick={strum}>
+            ▶ Play chord
+          </button>
+        </div>
+
+        <div className="controls-row">
+          <div className="control-group" role="group" aria-label="Structure">
+            {structures.map((s) => (
+              <button
+                key={s.id}
+                className={s.id === structure.id ? 'pill pill--on' : 'pill'}
+                onClick={() => setStructureId(s.id)}
+              >
+                {structureName(s, voiceCount)}
               </button>
             ))}
           </div>
@@ -98,16 +109,37 @@ export function ChordExplorer({ root, chord }: { root: Note; chord: ChordDefinit
         </div>
       </div>
 
-      <div className="chord-stage">
-        <Fretboard
-          instrument={GUITAR}
-          tuning={GUITAR_STANDARD}
-          highlights={placed}
-          labelMode={labelMode}
-          onNoteTap={(p) => playNote(midiOf(p.note))}
-        />
-        <TabView instrument={GUITAR} tuning={GUITAR_STANDARD} placed={placed} />
+      <Fretboard
+        instrument={GUITAR}
+        tuning={GUITAR_STANDARD}
+        highlights={neckNotes}
+        labelMode={labelMode}
+        onNoteTap={(p) => playNote(midiOf(p.note))}
+      />
+
+      {/* One TAB per shape, low -> high up the neck. */}
+      <div className="tab-shelf">
+        {shapes.map((shape, i) => (
+          <TabView
+            key={i}
+            instrument={GUITAR}
+            tuning={GUITAR_STANDARD}
+            placed={shape}
+            caption={`fr. ${Math.min(...shape.map((p) => p.position.fret))}`}
+          />
+        ))}
       </div>
     </>
   );
+}
+
+// Collapse notes that land on the same string+fret (shapes overlap on the neck),
+// so the fretboard draws each physical position once.
+function dedupeByPosition(notes: PlacedNote[]): PlacedNote[] {
+  const byPosition = new Map<string, PlacedNote>();
+  for (const note of notes) {
+    const key = `${note.position.stringIndex}:${note.position.fret}`;
+    if (!byPosition.has(key)) byPosition.set(key, note);
+  }
+  return [...byPosition.values()];
 }

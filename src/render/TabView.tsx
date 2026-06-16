@@ -16,9 +16,10 @@ interface TabViewProps {
   instrument: Instrument;
   tuning: Tuning;
   placed: PlacedNote[];
+  caption?: string; // optional label, e.g. the fret the shape sits at
 }
 
-export function TabView({ instrument, tuning, placed }: TabViewProps) {
+export function TabView({ instrument, tuning, placed, caption }: TabViewProps) {
   // Quick lookup: string index -> the fret played on it (if any).
   const fretByString = new Map<number, number>();
   for (const p of placed) {
@@ -45,6 +46,7 @@ export function TabView({ instrument, tuning, placed }: TabViewProps) {
           </div>
         );
       })}
+      {caption && <div className="tab-caption">{caption}</div>}
     </div>
   );
 }

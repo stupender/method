@@ -157,51 +157,56 @@ function candidateStringSets(
   return sets;
 }
 
-// Step 4 — place the built voicing on the neck. The voices' relative pitches and
-// their order are fixed; we choose WHICH strings and WHERE on the neck. We try
-// each candidate string set at each whole-octave shift, keep the placements that
-// fit, and pick the one that's most compact and lowest (with a nudge towards
-// not skipping strings when it's a tie).
-export function placeVoicing(
+// The widest fret span we'll accept as a grabbable shape. Voicings stretched
+// wider than this across an "unnatural" string set aren't really playable, so we
+// drop them rather than show nonsense.
+const MAX_SPAN = 5;
+
+// Step 4 — place the built voicing on the neck, EVERYWHERE it's playable. The
+// voices' relative pitches and order are fixed; the freedom is which string set
+// and which octave. We return one shape per valid (string set × octave) that
+// fits the neck and isn't too wide a stretch — so the UI can show the voicing in
+// all its positions and string sets, not just one spot. Shapes are ordered low
+// (near the nut) to high.
+export function placeVoicingAll(
   instrument: Instrument,
   tuning: Tuning,
   root: Note,
   chord: ChordDefinition,
   structure: VoicingStructure,
   inversion: number,
-): PlacedNote[] {
+): PlacedNote[][] {
   const voices = buildVoices(root, chord, structure, inversion);
-
-  let best:
-    | { strings: number[]; octaveShift: number; frets: number[]; score: number }
-    | null = null;
+  const shapes: PlacedNote[][] = [];
+  const seen = new Set<string>(); // dedupe identical shapes
 
   for (const set of candidateStringSets(voices.length, instrument.stringCount)) {
-    for (let octaveShift = -2; octaveShift <= 3; octaveShift++) {
+    for (let octaveShift = -2; octaveShift <= 4; octaveShift++) {
       const frets = voices.map(
         (v, i) =>
           midiOf(v.note) + 12 * octaveShift - openMidi(tuning, set.strings[i]),
       );
       if (!frets.every((f) => f >= 0 && f <= instrument.fretCount)) continue;
+      if (Math.max(...frets) - Math.min(...frets) > MAX_SPAN) continue;
 
-      const span = Math.max(...frets) - Math.min(...frets);
-      const maxFret = Math.max(...frets);
-      // Lower score is better: compact (small span) and low on the neck, with a
-      // small penalty for skipping a string so contiguous shapes win ties.
-      const score = span * 2 + maxFret + (set.skipped ? 1 : 0);
+      const key = set.strings.map((s, i) => `${s}:${frets[i]}`).join('|');
+      if (seen.has(key)) continue;
+      seen.add(key);
 
-      if (!best || score < best.score) {
-        best = { strings: set.strings, octaveShift, frets, score };
-      }
+      shapes.push(
+        voices.map((v, i) => ({
+          position: { stringIndex: set.strings[i], fret: frets[i] },
+          note: { ...v.note, octave: (v.note.octave ?? 4) + octaveShift },
+          intervalName: v.degree,
+          isRoot: v.isRoot,
+        })),
+      );
     }
   }
 
-  if (!best) return []; // no playable shape found (shouldn't happen for v1)
-
-  return voices.map((v, i) => ({
-    position: { stringIndex: best!.strings[i], fret: best!.frets[i] },
-    note: { ...v.note, octave: (v.note.octave ?? 4) + best!.octaveShift },
-    intervalName: v.degree,
-    isRoot: v.isRoot,
-  }));
+  // Order shapes low -> high so they read left-to-right up the neck.
+  const lowestFret = (shape: PlacedNote[]) =>
+    Math.min(...shape.map((p) => p.position.fret));
+  shapes.sort((a, b) => lowestFret(a) - lowestFret(b));
+  return shapes;
 }

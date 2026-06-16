@@ -59,3 +59,11 @@
   color: var(--muted);
   font-weight: 400;
 }
+
+/* The little position label under a shape, e.g. "fr. 5". */
+.tab-caption {
+  margin-top: 8px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+}

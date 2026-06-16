@@ -128,19 +128,12 @@
   color: #fff;
 }
 
-/* Fretboard + TAB side by side (stacks on narrow screens). */
-.chord-stage {
+/* A wrapping row of TAB diagrams — one per playable shape, low -> high. */
+.tab-shelf {
   display: flex;
-  gap: 20px;
-  align-items: flex-start;
-}
-.chord-stage .fretboard {
-  flex: 1;
-}
-@media (max-width: 720px) {
-  .chord-stage {
-    flex-direction: column;
-  }
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 22px;
 }
 
 .footnote {
