@@ -50,10 +50,14 @@ const ROMAN_STYLE: Record<string, { upper: boolean; suffix: string }> = {
   'major-triad': { upper: true, suffix: '' },
   'minor-triad': { upper: false, suffix: '' },
   'diminished-triad': { upper: false, suffix: '°' },
+  'augmented-triad': { upper: true, suffix: '+' },
   'major-seventh': { upper: true, suffix: 'maj7' },
   'minor-seventh': { upper: false, suffix: '7' },
   'dominant-seventh': { upper: true, suffix: '7' },
   'half-diminished': { upper: false, suffix: 'ø7' },
+  'minor-major-seventh': { upper: false, suffix: '(maj7)' },
+  'diminished-seventh': { upper: false, suffix: '°7' },
+  'augmented-major-seventh': { upper: true, suffix: 'maj7♯5' },
 };
 
 const ROMAN_BASE = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];

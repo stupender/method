@@ -22,18 +22,6 @@ import type {
 import { realizeScale } from './scale';
 import { pitchClassOf, midiOf, octaveForSpelling } from './notes';
 
-// Mode names by the scale degree a box starts on (0-based). Correct for the
-// major scale; other scales fall back to "Position N".
-const MODE_NAMES = [
-  'Ionian',
-  'Dorian',
-  'Phrygian',
-  'Lydian',
-  'Mixolydian',
-  'Aeolian',
-  'Locrian',
-];
-
 export interface ScalePosition {
   notes: PlacedNote[]; // the box, ready for the fretboard
   name: string; // mode / position label
@@ -45,7 +33,6 @@ export function scalePositions(
   tuning: Tuning,
   root: Note,
   scale: ScaleDefinition,
-  isMajor: boolean,
 ): ScalePosition[] {
   // Look up each scale tone by pitch class (for spelling + degree + root flag).
   const tones = realizeScale(root, scale);
@@ -110,9 +97,7 @@ export function scalePositions(
     const startDegree = byPitchClass.get(((ladder[i] % 12) + 12) % 12)!.degreeIndex;
     positions.push({
       notes,
-      name: isMajor
-        ? MODE_NAMES[startDegree]
-        : `Position ${positions.length + 1}`,
+      name: scale.modeNames?.[startDegree] ?? `Position ${positions.length + 1}`,
       lowestFret: Math.min(...notes.map((p) => p.position.fret)),
     });
   }

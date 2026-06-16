@@ -12,7 +12,7 @@
 // ============================================================================
 
 import type { ChordDefinition } from '../theory/types';
-import { P1, m3, M3, d5, P5, m7, M7 } from './intervals';
+import { P1, m3, M3, d5, P5, A5, d7, m7, M7 } from './intervals';
 
 // --- Triads ---------------------------------------------------------------
 export const MAJOR_TRIAD: ChordDefinition = {
@@ -37,6 +37,14 @@ export const DIMINISHED_TRIAD: ChordDefinition = {
   kind: 'chord',
   symbol: 'dim',         // e.g. "Bdim"
   intervals: [P1, m3, d5],
+};
+
+export const AUGMENTED_TRIAD: ChordDefinition = {
+  id: 'augmented-triad',
+  name: 'Augmented Triad',
+  kind: 'chord',
+  symbol: 'aug',         // e.g. "Eaug" (the III+ of harmonic/melodic minor)
+  intervals: [P1, M3, A5],
 };
 
 // --- Seventh chords -------------------------------------------------------
@@ -72,13 +80,41 @@ export const HALF_DIMINISHED: ChordDefinition = {
   intervals: [P1, m3, d5, m7],
 };
 
+export const MINOR_MAJOR_SEVENTH: ChordDefinition = {
+  id: 'minor-major-seventh',
+  name: 'Minor-Major Seventh',
+  kind: 'chord',
+  symbol: 'm(maj7)',     // e.g. "Cm(maj7)" — the tonic of harmonic/melodic minor
+  intervals: [P1, m3, P5, M7],
+};
+
+export const DIMINISHED_SEVENTH: ChordDefinition = {
+  id: 'diminished-seventh',
+  name: 'Diminished Seventh',
+  kind: 'chord',
+  symbol: 'dim7',        // e.g. "Bdim7" — the vii°7 of harmonic minor/major
+  intervals: [P1, m3, d5, d7],
+};
+
+export const AUGMENTED_MAJOR_SEVENTH: ChordDefinition = {
+  id: 'augmented-major-seventh',
+  name: 'Augmented-Major Seventh',
+  kind: 'chord',
+  symbol: 'maj7#5',      // e.g. "Ebmaj7#5" — the III of melodic minor
+  intervals: [P1, M3, A5, M7],
+};
+
 // Lookup by id, in a sensible display order (triads then sevenths).
 export const CHORDS: Record<string, ChordDefinition> = {
   [MAJOR_TRIAD.id]: MAJOR_TRIAD,
   [MINOR_TRIAD.id]: MINOR_TRIAD,
   [DIMINISHED_TRIAD.id]: DIMINISHED_TRIAD,
+  [AUGMENTED_TRIAD.id]: AUGMENTED_TRIAD,
   [MAJOR_SEVENTH.id]: MAJOR_SEVENTH,
   [MINOR_SEVENTH.id]: MINOR_SEVENTH,
   [DOMINANT_SEVENTH.id]: DOMINANT_SEVENTH,
   [HALF_DIMINISHED.id]: HALF_DIMINISHED,
+  [MINOR_MAJOR_SEVENTH.id]: MINOR_MAJOR_SEVENTH,
+  [DIMINISHED_SEVENTH.id]: DIMINISHED_SEVENTH,
+  [AUGMENTED_MAJOR_SEVENTH.id]: AUGMENTED_MAJOR_SEVENTH,
 };

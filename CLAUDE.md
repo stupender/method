@@ -96,9 +96,9 @@ See [BACKLOG.md](BACKLOG.md) for the triaged, sequenced plan. In short:
 - **Personalization (v2+):** user accounts; fingering/note-position preferences;
   saved tags. **Integrations/cultures (v3+):** Ableton Live JS Extensions bridge;
   Raga Sangeet & SARGAM, Barry Harris bebop, other cultures.
-- **Data only:** slash chords; more scales/modes (harmonic & melodic minor,
-  harmonic major, diminished/augmented); extra chord qualities; alternate
-  tunings; ukulele.
+- **Data only:** slash chords; more scales/modes (diminished, augmented/whole-
+  tone, bebop — harmonic & melodic minor and harmonic major are done); extra
+  chord qualities (6ths, extensions); alternate tunings; ukulele.
 
 ## Working notes
 

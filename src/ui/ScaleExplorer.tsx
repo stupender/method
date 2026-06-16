@@ -23,13 +23,7 @@ export function ScaleExplorer({ root, scale }: { root: Note; scale: ScaleDefinit
   const [labelMode, setLabelMode] = useState<'note' | 'degree'>('degree');
   const [activeShape, setActiveShape] = useState<number | null>(null);
 
-  const positions = scalePositions(
-    GUITAR,
-    GUITAR_STANDARD,
-    root,
-    scale,
-    scale.id === 'major-scale',
-  );
+  const positions = scalePositions(GUITAR, GUITAR_STANDARD, root, scale);
   const shapes = positions.map((p) => p.notes);
 
   // Play a position ascending (lowest pitch to highest).

@@ -199,10 +199,10 @@ on the neck. Saved tags/comments (item L) live here too.
 
 Added by dropping in data files that match the schema:
 
-- **Scales/modes:** harmonic minor, melodic minor, harmonic major (next
-  checkpoint), diminished, augmented, and their modes.
-- **Chord qualities:** augmented, dim7, minor-major 7, etc. (needed by the above
-  scales' harmony).
+- **Scales/modes:** ~~harmonic minor, melodic minor, harmonic major~~ (done) —
+  remaining: diminished, augmented (whole-tone), bebop scales, and their modes.
+- **Chord qualities:** ~~augmented, dim7, m(maj7), maj7♯5~~ (done) — remaining:
+  6ths, 9/11/13 extensions, altered dominants, etc.
 - Slash chords.
 - **Instruments/tunings:** alternate tunings (drop-D, DADGAD), ukulele — the
   engine is already instrument/tuning-agnostic.

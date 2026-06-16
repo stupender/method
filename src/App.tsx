@@ -11,8 +11,8 @@
 // ============================================================================
 
 import { useState } from 'react';
-import type { Note } from './theory/types';
-import { SCALES, MAJOR_SCALE } from './data/scales';
+import type { Note, ScaleDefinition } from './theory/types';
+import { SCALES } from './data/scales';
 import { CHORDS } from './data/chords';
 import { ROOT_CHOICES } from './data/roots';
 import { realizeScale } from './theory/scale';
@@ -29,9 +29,11 @@ type Mode = 'scale' | 'chord' | 'harmony';
 
 function App() {
   const [mode, setMode] = useState<Mode>('scale');
-  const [rootIndex, setRootIndex] = useState(0); // shared: scale root / chord root / key
+  const [rootIndex, setRootIndex] = useState(0); // the Key
+  const [scaleId, setScaleId] = useState(SCALE_LIST[0].id); // the Scale type
 
   const root = ROOT_CHOICES[rootIndex];
+  const scale = SCALES[scaleId];
 
   return (
     <main className="page page--wide">
@@ -39,8 +41,8 @@ function App() {
         <h1 className="title title--sm">Method</h1>
       </header>
 
-      {/* Global controls, in priority order: Key first, then Mode.
-          (Scale type slots between these in the next checkpoint.) */}
+      {/* Global controls, in priority order: Key → Scale type → Mode.
+          (Scale type drives the Scales and Harmony views; Chords is absolute.) */}
       <div className="controls">
         <div className="control-group" role="group" aria-label="Key">
           {ROOT_CHOICES.map((note, i) => (
@@ -50,6 +52,18 @@ function App() {
               onClick={() => setRootIndex(i)}
             >
               {noteName(note)}
+            </button>
+          ))}
+        </div>
+
+        <div className="control-group control-group--wrap" role="group" aria-label="Scale type">
+          {SCALE_LIST.map((s) => (
+            <button
+              key={s.id}
+              className={s.id === scaleId ? 'pill pill--on' : 'pill'}
+              onClick={() => setScaleId(s.id)}
+            >
+              {s.name}
             </button>
           ))}
         </div>
@@ -67,17 +81,15 @@ function App() {
         </div>
       </div>
 
-      {mode === 'scale' && <ScaleView root={root} />}
+      {mode === 'scale' && <ScaleView root={root} scale={scale} />}
       {mode === 'chord' && <ChordView root={root} />}
-      {mode === 'harmony' && <HarmonyView root={root} />}
+      {mode === 'harmony' && <HarmonyView root={root} scale={scale} />}
     </main>
   );
 }
 
 // --- Scale view: the scale's position boxes (its 7 modal fingerings) -------
-function ScaleView({ root }: { root: Note }) {
-  const [scaleId, setScaleId] = useState(SCALE_LIST[0].id);
-  const scale = SCALES[scaleId];
+function ScaleView({ root, scale }: { root: Note; scale: ScaleDefinition }) {
   const tones = realizeScale(root, scale);
 
   return (
@@ -86,18 +98,6 @@ function ScaleView({ root }: { root: Note }) {
         {noteName(root)} {scale.name} —{' '}
         {tones.map((t) => noteName(t.note)).join('  ')}
       </p>
-
-      <div className="control-group control-group--wrap" role="group" aria-label="Scale">
-        {SCALE_LIST.map((s) => (
-          <button
-            key={s.id}
-            className={s.id === scaleId ? 'pill pill--on' : 'pill'}
-            onClick={() => setScaleId(s.id)}
-          >
-            {s.name}
-          </button>
-        ))}
-      </div>
 
       <ScaleExplorer root={root} scale={scale} />
 
@@ -143,18 +143,19 @@ function ChordView({ root }: { root: Note }) {
 }
 
 // --- Harmony view: the chords OF a key (diatonic harmony) ------------------
-function HarmonyView({ root }: { root: Note }) {
+function HarmonyView({ root, scale }: { root: Note; scale: ScaleDefinition }) {
   const [seventh, setSeventh] = useState(false);
   const [degree, setDegree] = useState(0);
 
-  // The diatonic chords of this major key — derived, not stored.
-  const chords = diatonicChords(root, MAJOR_SCALE, seventh);
+  // The diatonic chords of this key + scale — derived, not stored. Switching the
+  // global scale type (major, harmonic minor, ...) changes the whole harmony set.
+  const chords = diatonicChords(root, scale, seventh);
   const selected = chords[degree] ?? chords[0];
 
   return (
     <>
       <p className="tagline">
-        Key of {noteName(root)} major — {selected.roman}: {selected.name}
+        Key of {noteName(root)} {scale.name} — {selected.roman}: {selected.name}
       </p>
 
       <div className="view-controls">

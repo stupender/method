@@ -119,7 +119,10 @@ interface TheoryUnitBase {
 export interface ScaleDefinition extends TheoryUnitBase {
   kind: 'scale';
   intervals: Interval[];        // includes the root (P1) as the first entry
-  degreeNames?: string[];       // optional labels: ["1","2","3","4","5","6","7"]
+  degreeNames?: string[];       // optional labels: ["1","2","♭3","4","5","♭6","7"]
+  // The name of the mode/position starting on each scale degree (index 0 = the
+  // box starting on the root). Used to label the position boxes on the neck.
+  modeNames?: string[];
 }
 
 // A CHORD TYPE: the intervals that make up the chord, from the root.

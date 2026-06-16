@@ -164,3 +164,20 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   string sets (same sound, different grip). `placeVoicingAll` groups placements
   by their pitch set and keeps only the easiest (least span, then lowest). Notes
   at different octaves are different pitch sets, so those positions all stay.
+
+## Session 4f — harmonic/melodic minor + harmonic major
+
+- **New scales are pure data** — melodic minor, harmonic minor and harmonic major
+  are just interval lists in `data/scales.ts`. Adding them gave us their position
+  boxes (Scales view) AND their full diatonic harmony (Harmony view) with no new
+  engine code — the fingerprint matcher figures out each chord's quality.
+- **New chord qualities the matcher needed** — augmented triad, m(maj7), maj7♯5
+  (augmented-major 7), dim7, plus the m6/A5/d7 intervals to build them.
+- **Mode names live on the scale** — each `ScaleDefinition` carries `modeNames`,
+  one per degree, so the position boxes label themselves (Dorian, Lydian ♯2,
+  Phrygian Dominant, …). Common names used; Vic Juris' variants noted in comments.
+- **Scale type went global** — Key → Scale type → Mode. The one scale-type choice
+  now drives both the Scales positions and the Harmony set.
+- **Verified against the source** — all three new scales' diatonic 7ths match Vic
+  Juris' Harmonic Syllabus exactly (e.g. harmonic minor: i(maj7) iiø7 IIImaj7♯5
+  iv7 V7 VImaj7 vii°7).
