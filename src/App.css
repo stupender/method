@@ -79,6 +79,14 @@
   gap: 18px;
 }
 
+/* Wraps a view's control rows and puts breathing room before the fretboard. */
+.view-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
 /* The shared button look: a calm outlined pill. */
 .pill {
   font-family: var(--sans);

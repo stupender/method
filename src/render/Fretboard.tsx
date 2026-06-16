@@ -57,10 +57,12 @@ export function Fretboard({
   // --- Coordinate helpers -------------------------------------------------
   // Where a fret WIRE sits horizontally (fret 0 = the nut).
   const fretX = (fret: number) => nutX + fret * FRET_SPACING;
-  // Where a NOTE sits horizontally: open notes go just left of the nut; fretted
-  // notes sit in the middle of their fret space (where a finger would press).
-  const noteX = (fret: number) =>
-    fret === 0 ? nutX - 28 : nutX + (fret - 0.5) * FRET_SPACING;
+  // Where a NOTE dot sits horizontally: open notes go just left of the nut;
+  // fretted notes sit centred ON their fret wire.
+  const noteX = (fret: number) => (fret === 0 ? nutX - 28 : fretX(fret));
+  // Where an INLAY marker sits: in the middle of the fret space (as on a real
+  // neck), which is offset half a fret from the wire the note dots sit on.
+  const inlayX = (fret: number) => nutX + (fret - 0.5) * FRET_SPACING;
   // Where a STRING sits vertically. string 0 (low E) is at the BOTTOM, so we
   // flip the index: higher pitch = higher on screen.
   const stringY = (stringIndex: number) =>
@@ -79,7 +81,7 @@ export function Fretboard({
       {[...SINGLE_INLAYS, ...DOUBLE_INLAYS]
         .filter((f) => f <= fretCount)
         .flatMap((f) => {
-          const x = noteX(f);
+          const x = inlayX(f);
           const midY = PAD_TOP + ((stringCount - 1) * STRING_SPACING) / 2;
           // Single inlays sit on the centre line; double inlays straddle it.
           const ys = DOUBLE_INLAYS.includes(f)
@@ -123,14 +125,14 @@ export function Fretboard({
         );
       })}
 
-      {/* Fret numbers under the neck. */}
+      {/* Fret numbers under the neck, aligned with the wire (where dots sit). */}
       {Array.from({ length: fretCount }, (_, i) => {
         const fret = i + 1;
         return (
           <text
             key={`num-${fret}`}
             className="fret-number"
-            x={noteX(fret)}
+            x={fretX(fret)}
             y={height - 10}
             textAnchor="middle"
           >

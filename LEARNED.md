@@ -74,20 +74,24 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 
 ## Session 4 — chords, voicings & TAB
 
-- **Voicing = rearrangement, not a new chord** — a voicing is data: an ordered
-  (low→high) list of which chord tone + how many octaves to shift it. Inversions,
-  drop-2, drop-3 and spread are all just different lists over the SAME tones.
-- **Two-step chord realization** — `buildVoices` stacks the chord and applies the
-  voicing's octave shifts (pure music); `placeVoicing` lays those pitches on a
-  string set and slides the whole shape by whole octaves to find a playable spot.
-- **Drop voicings** — take a close voicing and drop the 2nd (drop-2) or 3rd
-  (drop-3) voice from the top down an octave. That's why close 7th chords are
-  awkward on guitar and drop voicings exist — you can feel it in the shapes.
-- **A guitar-specific seam** — voicings carry an optional `stringSet` (a v1 guitar
-  placement hint). The voicing stays abstract; only placement is guitar-aware.
+- **Voicing = rearrangement, not a new chord** — the SAME chord tones, moved
+  around. It has two independent axes: INVERSION (which tone is in the bass) and
+  STRUCTURE (how spread out — close / drop-2 / drop-3).
+- **Inversions are computed, not data** — an N-note chord has N inversions; we
+  ROTATE the stack (tones that wrap go up an octave). Inversions/drops are fixed
+  theory operations, so they live as pure functions, not as authored content.
+- **Drop voicings** — drop the 2nd (drop-2) or 3rd (drop-3) voice from the top
+  by an octave, then re-sort. An "open"/"spread" triad is just a drop-2 triad.
+  That's why close 7th chords are cramped on guitar and drop voicings exist.
+- **Automatic placement** — `placeVoicing` tries candidate string sets
+  (contiguous + one-skip, for drop-3) at each octave and keeps the most compact,
+  lowest playable shape. Replaced the earlier hand-written string-set hints.
 - **TAB rendering** — just fret numbers per string, written high string on top,
   with "×" for muted strings. No theory in the renderer.
 - **Conditional rendering + sub-components** — App shows ScaleView OR ChordView
   by mode; shared bits (the label toggle) are pulled into small components.
-- **Filtering options from data** — the voicing list is `ALL_VOICINGS` filtered
-  by whether the voice count matches the chord's tone count. No per-chord code.
+- **Derive + clamp** — applicable structures are filtered from the chord's voice
+  count; the inversion is clamped to the chord's range. State stays minimal; the
+  view corrects out-of-range choices when you switch chords.
+- **SVG placement detail** — note dots sit ON the fret wire (`fretX(fret)`);
+  inlays sit in the middle of the fret space (`inlayX`), as on a real neck.

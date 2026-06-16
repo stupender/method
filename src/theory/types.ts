@@ -139,33 +139,30 @@ export type TheoryUnit = ScaleDefinition | ChordDefinition;
 
 
 // ----------------------------------------------------------------------------
-// 4. VOICINGS — how chord tones are arranged in space  (fully built in Session 4)
+// 4. VOICINGS — how chord tones are arranged in space
 // ----------------------------------------------------------------------------
-// A voicing takes a chord's tones and decides their ORDER and OCTAVE. Root
-// position, first/second inversion, drop-2, drop-3 and spread voicings are all
-// just different orderings + octave shifts of the same chord tones. Modelling
-// this as data (not as a hard-coded function per voicing) means new voicings
-// are added as data later. Sketched now so the seam exists; refined in Session 4.
-export interface VoicingTone {
-  // Which chord tone, named by its interval shorthand from the chord definition
-  // (e.g. "M3", "P5", "M7"). Lets a voicing pick tones without re-listing pitches.
-  intervalName: string;
-  // Octave shift applied to that tone, in octaves: 0 = as written, -1 = down an
-  // octave (this is exactly what "drop 2" does to the 2nd-from-top voice), etc.
-  octaveShift: number;
-}
-
-export interface VoicingDefinition {
-  id: string;            // e.g. "drop2", "root-position", "first-inversion"
-  name: string;          // display name, e.g. "Drop 2"
-  // The voices from LOW to HIGH. Length usually matches the chord's tone count.
-  tones: VoicingTone[];
-  // OPTIONAL, guitar-specific v1 hint: which strings (low->high indices) to lay
-  // this voicing on, e.g. [2,3,4,5] for D-G-B-e. The voicing itself stays an
-  // abstract rearrangement of tones; this is just where v1 chooses to place it
-  // on a 6-string neck. (A smarter, instrument-agnostic placement engine that
-  // derives string sets automatically is on the backlog.)
-  stringSet?: number[];
+// A voicing is the SAME chord tones, rearranged. It has TWO independent axes:
+//
+//   - INVERSION: which chord tone is in the bass. An N-note chord has N
+//     inversions (root position, 1st, 2nd, ... up to the (N-1)th). A triad has
+//     3, a seventh chord has 4. We COMPUTE these by rotating the stack — no data
+//     per inversion.
+//   - STRUCTURE: how the voices are spread once the bass is chosen. "Close"
+//     packs them tightest; "Drop 2"/"Drop 3" lower the 2nd/3rd voice from the
+//     top by an octave to open the chord up (an "open"/"spread" triad is just a
+//     dropped triad). We COMPUTE these too, from the structure's `dropFromTop`.
+//
+// So a chosen voicing = (chord, structure, inversion). The theory layer turns
+// that into ordered pitches; the placement engine finds a playable shape. The
+// only DATA we keep is the small list of structures below — inversions and the
+// shapes themselves are derived, because they are fixed theory operations, not
+// content you'd author.
+export interface VoicingStructure {
+  id: string;   // "close", "drop2", "drop3"
+  name: string; // display name, e.g. "Drop 2"
+  // Which voice (counting from the TOP, 1 = top voice) to drop by an octave.
+  // 0 = no drop (close position). "Drop 2" = 2, "Drop 3" = 3.
+  dropFromTop: number;
 }
 
 

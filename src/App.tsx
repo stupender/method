@@ -15,10 +15,16 @@ import { GUITAR } from './data/instruments';
 import { GUITAR_STANDARD } from './data/tunings';
 import { SCALES } from './data/scales';
 import { CHORDS } from './data/chords';
-import { ALL_VOICINGS } from './data/voicings';
+import { STRUCTURES } from './data/voicings';
 import { ROOT_CHOICES } from './data/roots';
 import { placeScale, realizeScale } from './theory/scale';
-import { placeVoicing } from './theory/chord';
+import {
+  placeVoicing,
+  structuresForChord,
+  structureName,
+  inversionCount,
+  inversionName,
+} from './theory/chord';
 import { midiOf, noteName } from './theory/notes';
 import { playNote, playSequence, playChord } from './audio/player';
 import { Fretboard } from './render/Fretboard';
@@ -35,7 +41,8 @@ function App() {
   const [rootIndex, setRootIndex] = useState(0); // C
   const [scaleId, setScaleId] = useState(SCALE_LIST[0].id);
   const [chordId, setChordId] = useState(CHORD_LIST[0].id);
-  const [voicingId, setVoicingId] = useState('triad-root');
+  const [structureId, setStructureId] = useState('close');
+  const [inversionIndex, setInversionIndex] = useState(0);
   const [labelMode, setLabelMode] = useState<'note' | 'degree'>('degree');
 
   const root = ROOT_CHOICES[rootIndex];
@@ -89,8 +96,10 @@ function App() {
           root={root}
           chordId={chordId}
           setChordId={setChordId}
-          voicingId={voicingId}
-          setVoicingId={setVoicingId}
+          structureId={structureId}
+          setStructureId={setStructureId}
+          inversionIndex={inversionIndex}
+          setInversionIndex={setInversionIndex}
           labelMode={labelMode}
           setLabelMode={setLabelMode}
         />
@@ -156,22 +165,24 @@ function ScaleView({
         {tones.map((t) => noteName(t.note)).join('  ')}
       </p>
 
-      <div className="controls-row">
-        <div className="control-group" role="group" aria-label="Scale">
-          {SCALE_LIST.map((s) => (
-            <button
-              key={s.id}
-              className={s.id === scaleId ? 'pill pill--on' : 'pill'}
-              onClick={() => setScaleId(s.id)}
-            >
-              {s.name}
-            </button>
-          ))}
+      <div className="view-controls">
+        <div className="controls-row">
+          <div className="control-group" role="group" aria-label="Scale">
+            {SCALE_LIST.map((s) => (
+              <button
+                key={s.id}
+                className={s.id === scaleId ? 'pill pill--on' : 'pill'}
+                onClick={() => setScaleId(s.id)}
+              >
+                {s.name}
+              </button>
+            ))}
+          </div>
+          <LabelToggle labelMode={labelMode} setLabelMode={setLabelMode} />
+          <button className="pill pill--play" onClick={playScale}>
+            ▶ Play scale
+          </button>
         </div>
-        <LabelToggle labelMode={labelMode} setLabelMode={setLabelMode} />
-        <button className="pill pill--play" onClick={playScale}>
-          ▶ Play scale
-        </button>
       </div>
 
       <Fretboard
@@ -194,31 +205,42 @@ function ChordView({
   root,
   chordId,
   setChordId,
-  voicingId,
-  setVoicingId,
+  structureId,
+  setStructureId,
+  inversionIndex,
+  setInversionIndex,
   labelMode,
   setLabelMode,
 }: {
   root: Note;
   chordId: string;
   setChordId: (id: string) => void;
-  voicingId: string;
-  setVoicingId: (id: string) => void;
+  structureId: string;
+  setStructureId: (id: string) => void;
+  inversionIndex: number;
+  setInversionIndex: (i: number) => void;
   labelMode: 'note' | 'degree';
   setLabelMode: (m: 'note' | 'degree') => void;
 }) {
   const chord = CHORDS[chordId];
+  const voiceCount = inversionCount(chord);
 
-  // Voicings that fit this chord = those with the same number of voices as the
-  // chord has tones. Pure data filtering — no per-chord code.
-  const voicings = ALL_VOICINGS.filter(
-    (v) => v.tones.length === chord.intervals.length,
+  // Which structures apply to this chord (Drop 3 needs 4 voices, etc.), and the
+  // chosen one — falling back to the first if the current id doesn't apply.
+  const structures = structuresForChord(chord, STRUCTURES);
+  const structure = structures.find((s) => s.id === structureId) ?? structures[0];
+
+  // Clamp the inversion to this chord's range (triad has 3, a 7th has 4).
+  const inversion = Math.min(inversionIndex, voiceCount - 1);
+
+  const placed = placeVoicing(
+    GUITAR,
+    GUITAR_STANDARD,
+    root,
+    chord,
+    structure,
+    inversion,
   );
-  // The chosen voicing, falling back to the first applicable one if the current
-  // id doesn't belong to this chord (e.g. just switched triad -> seventh).
-  const voicing = voicings.find((v) => v.id === voicingId) ?? voicings[0];
-
-  const placed = placeVoicing(GUITAR, GUITAR_STANDARD, root, chord, voicing);
 
   const strum = () => playChord(placed.map((p) => midiOf(p.note)));
 
@@ -226,37 +248,54 @@ function ChordView({
     <>
       <p className="tagline">
         {noteName(root)}
-        {chord.symbol} — {voicing.name}
+        {chord.symbol} — {structureName(structure, voiceCount)},{' '}
+        {inversionName(inversion)}
       </p>
 
-      <div className="controls-row">
-        <div className="control-group" role="group" aria-label="Chord">
-          {CHORD_LIST.map((c) => (
+      <div className="view-controls">
+        <div className="controls-row">
+          <div className="control-group" role="group" aria-label="Chord">
+            {CHORD_LIST.map((c) => (
+              <button
+                key={c.id}
+                className={c.id === chordId ? 'pill pill--on' : 'pill'}
+                onClick={() => setChordId(c.id)}
+              >
+                {c.name}
+              </button>
+            ))}
+          </div>
+          <LabelToggle labelMode={labelMode} setLabelMode={setLabelMode} />
+          <button className="pill pill--play" onClick={strum}>
+            ▶ Play chord
+          </button>
+        </div>
+
+        {/* Structure: how spread out the voices are. */}
+        <div className="control-group" role="group" aria-label="Structure">
+          {structures.map((s) => (
             <button
-              key={c.id}
-              className={c.id === chordId ? 'pill pill--on' : 'pill'}
-              onClick={() => setChordId(c.id)}
+              key={s.id}
+              className={s.id === structure.id ? 'pill pill--on' : 'pill'}
+              onClick={() => setStructureId(s.id)}
             >
-              {c.name}
+              {structureName(s, voiceCount)}
             </button>
           ))}
         </div>
-        <LabelToggle labelMode={labelMode} setLabelMode={setLabelMode} />
-        <button className="pill pill--play" onClick={strum}>
-          ▶ Play chord
-        </button>
-      </div>
 
-      <div className="control-group" role="group" aria-label="Voicing">
-        {voicings.map((v) => (
-          <button
-            key={v.id}
-            className={v.id === voicing.id ? 'pill pill--on' : 'pill'}
-            onClick={() => setVoicingId(v.id)}
-          >
-            {v.name}
-          </button>
-        ))}
+        {/* Inversion: which chord tone is in the bass (one per chord tone). */}
+        <div className="control-group" role="group" aria-label="Inversion">
+          {Array.from({ length: voiceCount }, (_, i) => (
+            <button
+              key={i}
+              className={i === inversion ? 'pill pill--on' : 'pill'}
+              onClick={() => setInversionIndex(i)}
+            >
+              {inversionName(i)}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="chord-stage">
@@ -271,8 +310,8 @@ function ChordView({
       </div>
 
       <footer className="footnote">
-        A voicing is the same chord tones, rearranged. Tap a note or play the
-        chord.
+        Structure × inversion are independent — the same tones, rearranged. Tap a
+        note or play the chord.
       </footer>
     </>
   );
