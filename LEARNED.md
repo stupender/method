@@ -29,3 +29,22 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   so the whole mood can be retuned in one place.
 - **GitHub Pages deploy** — `vite.config.ts` `base` must equal the repo name;
   `npm run deploy` (the `gh-pages` package) publishes `dist/` to the live site.
+
+## Session 2 — the fretboard engine
+
+- **Pitch class** — every note reduces to a number 0–11 (C=0). "Same note" for
+  lighting the neck = same pitch class. The modulo `((x % 12) + 12) % 12` wraps
+  any number safely into 0–11 (the extra `+12` handles negatives like Cb).
+- **MIDI number** — a pitch-height number where 60 = middle C; one fret = +1.
+  We use it to track octaves up the neck and (next session) to play audio.
+- **Pure theory layer** — `theory/notes.ts` and `theory/fretboard.ts` are plain
+  functions, no React/SVG. `findPositions()` returns every neck spot whose note
+  matches a target set — that's how we "light up notes passed as data".
+- **SVG rendering** — the neck is drawn with `<line>`/`<circle>`/`<text>` placed
+  by coordinates. A `viewBox` makes it scale to any width. Small helper functions
+  (`fretX`, `stringY`, `noteX`) convert string/fret numbers into x/y pixels.
+- **Display convention** — string index 0 (low E) is drawn at the BOTTOM, so
+  higher pitch = higher on screen; frets increase left→right from the nut.
+- **Data → render flow** — App picks instrument+tuning+notes (data), the theory
+  layer finds positions, the Fretboard component draws them. App itself does no
+  theory and no drawing — the layering in action.

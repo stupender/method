@@ -15,6 +15,9 @@ dist-ssr
 # Stu's private reference material — kept local, not pushed to the public repo
 References/
 
+# Local Claude Code harness settings (machine-specific)
+.claude/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -1,0 +1,63 @@
+/* ==========================================================================
+   Fretboard.css — the look of the neck
+   --------------------------------------------------------------------------
+   All colours come from the shared palette (src/index.css). SVG elements are
+   styled by class, just like HTML. The neck stays calm and near-monochrome;
+   the single accent appears on root notes.
+   ========================================================================== */
+
+.fretboard {
+  width: 100%;
+  height: auto;
+  display: block;
+  /* A warm wooden-ish neck tint, kept very subtle. */
+  background: #f3eee4;
+  border-radius: 8px;
+}
+
+/* String lines and fret wires. */
+.fretboard .string {
+  stroke: #b8ad99;
+}
+.fretboard .fret {
+  stroke: var(--line);
+  stroke-width: 2;
+}
+.fretboard .nut {
+  stroke: var(--ink);
+  stroke-width: 5;
+}
+
+/* Position-marker inlays. */
+.fretboard .inlay {
+  fill: #e2d9c6;
+}
+
+/* Open-string names and fret numbers. */
+.fretboard .open-label {
+  fill: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 600;
+  text-anchor: middle;
+}
+.fretboard .fret-number {
+  fill: var(--muted);
+  font-family: var(--sans);
+  font-size: 12px;
+}
+
+/* A lit-up note. */
+.fretboard .note-dot {
+  fill: var(--ink);
+}
+.fretboard .note-dot--root {
+  fill: var(--accent);
+}
+.fretboard .note-label {
+  fill: #fff;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  pointer-events: none;
+}

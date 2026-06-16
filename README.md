@@ -38,6 +38,7 @@ npm run deploy   # publish to GitHub Pages
 
 ## Status
 
-Built across a series of sessions. Currently: **Session 1 — schema &
-foundations** complete (project skeleton, the theory-unit data schema, the
-instrument/tuning model, live deploy). Next: the fretboard engine.
+Built across a series of sessions. Currently: **Session 2 — the fretboard
+engine** complete (an SVG fretboard rendered from tuning data that lights up any
+set of notes passed as data; pure theory functions for pitch classes and neck
+positions). Next: scales + intervals + Web Audio playback.
