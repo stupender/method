@@ -15,7 +15,7 @@
 // ============================================================================
 
 import { useState } from 'react';
-import type { Note, ChordDefinition, PlacedNote } from '../theory/types';
+import type { Note, ChordDefinition } from '../theory/types';
 import { GUITAR } from '../data/instruments';
 import { GUITAR_STANDARD } from '../data/tunings';
 import { STRUCTURES } from '../data/voicings';
@@ -35,6 +35,9 @@ export function ChordExplorer({ root, chord }: { root: Note; chord: ChordDefinit
   const [structureId, setStructureId] = useState('close');
   const [inversionIndex, setInversionIndex] = useState(0);
   const [labelMode, setLabelMode] = useState<'note' | 'degree'>('degree');
+  // Which shape's "constellation" is lit. Shared by the neck and the TABs, so
+  // hovering either one highlights the same shape.
+  const [activeShape, setActiveShape] = useState<number | null>(null);
 
   const voiceCount = inversionCount(chord);
   const structures = structuresForChord(chord, STRUCTURES);
@@ -50,9 +53,6 @@ export function ChordExplorer({ root, chord }: { root: Note; chord: ChordDefinit
     structure,
     inversion,
   );
-
-  // The neck lights up the union of all shapes (deduped by position).
-  const neckNotes = dedupeByPosition(shapes.flat());
 
   // Play the lowest shape (a single grabbable chord), not every note at once.
   const strum = () => {
@@ -112,34 +112,32 @@ export function ChordExplorer({ root, chord }: { root: Note; chord: ChordDefinit
       <Fretboard
         instrument={GUITAR}
         tuning={GUITAR_STANDARD}
-        highlights={neckNotes}
+        shapes={shapes}
+        activeShapeIndex={activeShape}
+        onShapeHover={setActiveShape}
         labelMode={labelMode}
         onNoteTap={(p) => playNote(midiOf(p.note))}
       />
 
-      {/* One TAB per shape, low -> high up the neck. */}
+      {/* One TAB per shape (sorted by string set, low -> high). Hovering a TAB
+          lights that shape's constellation on the neck above. */}
       <div className="tab-shelf">
         {shapes.map((shape, i) => (
-          <TabView
+          <div
             key={i}
-            instrument={GUITAR}
-            tuning={GUITAR_STANDARD}
-            placed={shape}
-            caption={`fr. ${Math.min(...shape.map((p) => p.position.fret))}`}
-          />
+            className={i === activeShape ? 'tab-card tab-card--on' : 'tab-card'}
+            onMouseEnter={() => setActiveShape(i)}
+            onMouseLeave={() => setActiveShape(null)}
+          >
+            <TabView
+              instrument={GUITAR}
+              tuning={GUITAR_STANDARD}
+              placed={shape}
+              caption={`fr. ${Math.min(...shape.map((p) => p.position.fret))}`}
+            />
+          </div>
         ))}
       </div>
     </>
   );
-}
-
-// Collapse notes that land on the same string+fret (shapes overlap on the neck),
-// so the fretboard draws each physical position once.
-function dedupeByPosition(notes: PlacedNote[]): PlacedNote[] {
-  const byPosition = new Map<string, PlacedNote>();
-  for (const note of notes) {
-    const key = `${note.position.stringIndex}:${note.position.fret}`;
-    if (!byPosition.has(key)) byPosition.set(key, note);
-  }
-  return [...byPosition.values()];
 }

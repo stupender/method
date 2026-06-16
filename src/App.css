@@ -136,6 +136,17 @@
   margin-top: 22px;
 }
 
+/* Each TAB is hoverable; hovering it lights that shape on the neck. */
+.tab-card {
+  border: 2px solid transparent;
+  border-radius: 10px;
+  transition: border-color 0.12s ease;
+  cursor: pointer;
+}
+.tab-card--on {
+  border-color: var(--accent);
+}
+
 .footnote {
   margin-top: 8vh;
   text-align: center;

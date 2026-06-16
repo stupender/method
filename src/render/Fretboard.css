@@ -64,6 +64,24 @@
 .fretboard .note-dot--root {
   fill: var(--accent);
 }
+
+/* Faded when another shape is the active constellation. */
+.fretboard .note-dot--dim {
+  opacity: 0.18;
+}
+.fretboard .note-label--dim {
+  opacity: 0.22;
+}
+
+/* The line joining a shape's notes — the "constellation" when it's hovered. */
+.fretboard .constellation {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.8;
+}
 .fretboard .note-label {
   fill: #fff;
   font-family: var(--sans);

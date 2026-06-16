@@ -204,9 +204,20 @@ export function placeVoicingAll(
     }
   }
 
-  // Order shapes low -> high so they read left-to-right up the neck.
+  // Order shapes by STRING SET, lowest strings first (then by fret within a
+  // string set). So all the shapes on the lowest strings come first, then the
+  // next string set up, and so on.
+  const stringsOf = (shape: PlacedNote[]) =>
+    shape.map((p) => p.position.stringIndex).sort((x, y) => x - y);
   const lowestFret = (shape: PlacedNote[]) =>
     Math.min(...shape.map((p) => p.position.fret));
-  shapes.sort((a, b) => lowestFret(a) - lowestFret(b));
+  shapes.sort((a, b) => {
+    const sa = stringsOf(a);
+    const sb = stringsOf(b);
+    for (let i = 0; i < sa.length; i++) {
+      if (sa[i] !== sb[i]) return sa[i] - sb[i];
+    }
+    return lowestFret(a) - lowestFret(b);
+  });
   return shapes;
 }

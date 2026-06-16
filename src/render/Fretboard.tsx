@@ -32,7 +32,16 @@ interface FretboardProps {
   instrument: Instrument;
   tuning: Tuning;
   // Notes to light up. Anything in this list gets a coloured dot + label.
+  // Used in "flat" mode (e.g. a scale) where notes aren't grouped into shapes.
   highlights?: PlacedNote[];
+  // Grouped mode: each inner array is one chord SHAPE. Drawn as constellations —
+  // hovering a shape (or its TAB) lights it and dims the others.
+  shapes?: PlacedNote[][];
+  // Which shape is currently active (highlighted). Controlled by the parent so
+  // the TAB and the neck share one hovered-shape state. null = none.
+  activeShapeIndex?: number | null;
+  // Called when the pointer enters/leaves a shape on the neck (index, or null).
+  onShapeHover?: (index: number | null) => void;
   // What to print inside each dot: the note name ("Bb") or its scale degree
   // ("3"). The data carries both; this just picks which to show.
   labelMode?: 'note' | 'degree';
@@ -44,6 +53,9 @@ export function Fretboard({
   instrument,
   tuning,
   highlights = [],
+  shapes,
+  activeShapeIndex = null,
+  onShapeHover,
   labelMode = 'note',
   onNoteTap,
 }: FretboardProps) {
@@ -141,34 +153,73 @@ export function Fretboard({
         );
       })}
 
-      {/* The lit-up notes. Each highlight becomes a dot + label; roots get the
-          accent colour. This is the data-driven payload — change `highlights`
-          and the neck relights with no other change. Tapping plays the note. */}
-      {highlights.map((h) => {
-        const x = noteX(h.position.fret);
-        const y = stringY(h.position.stringIndex);
-        // Show the note name or the degree, depending on the chosen mode. We use
-        // the spelling carried on the PlacedNote (e.g. "Bb"), not a re-derived
-        // sharp one, so scale spelling stays correct.
-        const label = labelMode === 'degree' ? h.intervalName : noteName(h.note);
-        return (
-          <g
-            key={`hl-${h.position.stringIndex}-${h.position.fret}`}
-            className={onNoteTap ? 'note tappable' : 'note'}
-            onClick={onNoteTap ? () => onNoteTap(h) : undefined}
-          >
-            <circle
-              className={h.isRoot ? 'note-dot note-dot--root' : 'note-dot'}
-              cx={x}
-              cy={y}
-              r={DOT_RADIUS}
-            />
-            <text className="note-label" x={x} y={y} textAnchor="middle" dominantBaseline="central">
-              {label}
-            </text>
-          </g>
+      {/* One lit note: a dot + label; roots take the accent colour. `dim` fades
+          it when another shape is the active constellation. */}
+      {(() => {
+        const renderNote = (h: PlacedNote, key: string, dim: boolean) => {
+          const x = noteX(h.position.fret);
+          const y = stringY(h.position.stringIndex);
+          // Use the spelling carried on the PlacedNote (e.g. "Bb"), not a
+          // re-derived sharp one, so scale/chord spelling stays correct.
+          const label = labelMode === 'degree' ? h.intervalName : noteName(h.note);
+          const dotClass =
+            (h.isRoot ? 'note-dot note-dot--root' : 'note-dot') +
+            (dim ? ' note-dot--dim' : '');
+          return (
+            <g
+              key={key}
+              className={onNoteTap ? 'note tappable' : 'note'}
+              onClick={onNoteTap ? () => onNoteTap(h) : undefined}
+            >
+              <circle className={dotClass} cx={x} cy={y} r={DOT_RADIUS} />
+              <text
+                className={dim ? 'note-label note-label--dim' : 'note-label'}
+                x={x}
+                y={y}
+                textAnchor="middle"
+                dominantBaseline="central"
+              >
+                {label}
+              </text>
+            </g>
+          );
+        };
+
+        // GROUPED MODE: draw each shape as its own constellation. Hovering a
+        // shape (here or via its TAB) makes it active; the rest dim.
+        if (shapes) {
+          return shapes.map((shape, si) => {
+            const isActive = activeShapeIndex === si;
+            const dim = activeShapeIndex !== null && !isActive;
+            // The connecting "constellation" line, drawn through the shape's
+            // notes in string order, only when the shape is active.
+            const points = [...shape]
+              .sort((a, b) => a.position.stringIndex - b.position.stringIndex)
+              .map((h) => `${noteX(h.position.fret)},${stringY(h.position.stringIndex)}`)
+              .join(' ');
+            return (
+              <g
+                key={`shape-${si}`}
+                className="shape"
+                onMouseEnter={() => onShapeHover?.(si)}
+                onMouseLeave={() => onShapeHover?.(null)}
+              >
+                {isActive && shape.length > 1 && (
+                  <polyline className="constellation" points={points} />
+                )}
+                {shape.map((h, ni) =>
+                  renderNote(h, `shape-${si}-note-${ni}`, dim),
+                )}
+              </g>
+            );
+          });
+        }
+
+        // FLAT MODE: a simple list of notes (e.g. a scale).
+        return highlights.map((h) =>
+          renderNote(h, `hl-${h.position.stringIndex}-${h.position.fret}`, false),
         );
-      })}
+      })()}
     </svg>
   );
 }

@@ -127,3 +127,20 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Control priority = visual order** — controls are laid out most-important
   first: globally Key → (Scale type) → Mode; within a chord Roman numeral →
   triad/7th → Inversion → Structure. The UI order encodes the mental model.
+
+## Session 4d — constellations (distinct shapes on hover)
+
+- **Constellations** — with every shape lit at once the neck is busy, so hovering
+  a shape (or its TAB) lights that one and dims the rest, with a line joining its
+  notes — like picking out a constellation on a star map.
+- **Lifted hover state** — the active shape lives in `ChordExplorer` and is passed
+  to both the fretboard and the TABs, so hovering EITHER lights the same shape.
+  (State belongs to the common parent of the things that must agree.)
+- **Grouped vs flat rendering** — the fretboard draws either a flat `highlights`
+  list (scales) or grouped `shapes` (chords); grouped mode adds the hover/dim and
+  the connecting `<polyline>`.
+- **React enter/leave + synthetic events** — `onMouseEnter` is synthesised by
+  React from mouseover/out; dispatching events in a test must enter via a real
+  child element, and state updates are async (read after a re-render).
+- **Sort by string set** — shapes are ordered by their string indices low → high
+  (then by fret), so the TABs read from the lowest strings upward.
