@@ -160,3 +160,7 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **One TAB, two jobs** — `TabView` now lists all frets per string (one for a
   chord, three for a scale box), so the same component serves both.
 - **17 frets** — bumped the guitar's fret count so all 7 positions fit on-screen.
+- **Least-stretch grip** — the same set of notes can be fingered on different
+  string sets (same sound, different grip). `placeVoicingAll` groups placements
+  by their pitch set and keeps only the easiest (least span, then lowest). Notes
+  at different octaves are different pitch sets, so those positions all stay.

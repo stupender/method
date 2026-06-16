@@ -62,6 +62,29 @@ each scale degree (from his teacher Vic Juris' book).
   adds non-tertian construction as another source of "chord tones," then reuses
   inversions / structures / placement unchanged.
 
+### Tasteful instrument voices
+
+A few extremely tasteful, rich default sounds to choose from — each an instrument
+in its own right (the current sound is a single plain triangle synth). Lives in
+`audio/`; the seam (`playNote` / `playChord` / `playSequence`) already isolates
+playback, so this is swap-in work.
+
+### Shuffle / Randomize for practice
+
+A randomize button for the fretboard + TABs themselves (not just ear training):
+shuffle within a chosen set of filters (keys, chord/scale types, intervals,
+voicings) so you stumble onto a new set of intervals or a fresh voicing to
+practise. Shares its filter model with the ear-training randomiser (item I).
+
+### Switchable colour palettes (the "living art book")
+
+Beautiful, contemplative palettes you can switch between — the colours of the
+five elements; bold pairings; gradients; analogue-film filters. The app already
+themes entirely from CSS variables in `index.css`, so a palette is just a named
+set of variable values. The ambition is coffee-table-art-book quality: superb
+typography, sizing and colour pairings. (Basic switching is small; the full art
+direction is an ongoing aesthetic track — best paired with the Session 6 polish.)
+
 ---
 
 ## Later (v2) — the Progression / Song workbench
@@ -118,6 +141,60 @@ built.
 
 ---
 
+## Later (v2) — analysis, practice & expression
+
+### H. Identify a voicing (reverse lookup)
+
+Import or enter your own custom chord voicing (as MIDI, or a sheet-music file) and
+let the app IDENTIFY it — which chord(s), scale(s) and interval-pairings it
+matches — using the **same fingerprint/filter matching the harmony engine already
+uses**. `theory/harmony.ts` already reduces a set of intervals to a quality by
+its semitone "signature"; generalise that into a reverse lookup over all units.
+
+### I. Ear training
+
+Turn any unit — chord, voicing, interval pairing, arpeggio, scale — into an
+ear-training quiz, with difficulty set by filters: key(s), voicing(s), chord
+type(s), scale type(s), interval(s). Shares its filter/randomiser model with
+Shuffle (v1.x).
+
+### J. Negative harmony
+
+Set an axis and swap any note / chord / progression into its negative-harmony
+counterpart (Ernst Levy). At core a pure reflection of pitch classes about the
+axis; then re-spell and re-voice the result.
+
+### K. Search → practice
+
+Search any chord type, scale, voicing or concept and have the app jump straight
+there, set up to practise it. (The "Search Engine" idea applied to navigation.)
+
+### L. Annotations — comments & tags
+
+Add comments or tags onto specific chord types, voicings, interval pairings,
+scales, etc. Needs per-user storage (see Accounts).
+
+---
+
+## Personalization & accounts (v2+)
+
+User accounts so preferences and annotations persist. Preferences include **how
+the modes/positions are fingered** (3-notes-per-string vs varied fingerings) and
+a player's **preferred note position** when the same note sits in several spots
+on the neck. Saved tags/comments (item L) live here too.
+
+---
+
+## Integrations & cultural breadth (v3+)
+
+- **Ableton Live bridge** — pair Method directly with Ableton via their
+  JavaScript Extensions SDK (https://www.ableton.com/en/live/extensions).
+- **Other musical cultures & systems** — Raga Sangeet (characteristic phrases;
+  translate notes into SARGAM for vocalists), Barry Harris' bebop theory, and
+  more, added as data + theory modules alongside the Western defaults.
+
+---
+
 ## Existing data backlog (no new engine code)
 
 Added by dropping in data files that match the schema:
@@ -126,7 +203,7 @@ Added by dropping in data files that match the schema:
   checkpoint), diminished, augmented, and their modes.
 - **Chord qualities:** augmented, dim7, minor-major 7, etc. (needed by the above
   scales' harmony).
-- Slash chords; negative harmony; ear training (per unit).
+- Slash chords.
 - **Instruments/tunings:** alternate tunings (drop-D, DADGAD), ukulele — the
   engine is already instrument/tuning-agnostic.
 

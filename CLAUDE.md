@@ -83,16 +83,22 @@ See [BACKLOG.md](BACKLOG.md) for the triaged, sequenced plan. In short:
 
 - **Soon (v1.x):** interval+direction melodic sequences / paltas (scale = all
   2nds, arpeggio = all 3rds as special cases); interval-pairing chord voicings
-  (Vic Juris, e.g. 4th-2nd-6th through the scale).
-- **Later (v2):** the progression/song workbench — build a progression from
-  chosen chords+voicings (a song can be one bar = a practice tool); a three-layer
-  chord model (neutral chord / open Roman numeral vs key center / chosen
-  voicing); bar+beat timing with chords crossing bar lines and drag editing;
-  **MIDI export and import**; **iReal Pro import**. The progression data model
-  (`Progression`/`Section`/`Bar`/`ChordRef` in `types.ts`) is shaped for these.
+  (Vic Juris, e.g. 4th-2nd-6th through the scale); a few tasteful instrument
+  sounds; shuffle/randomise for practice; switchable colour palettes (art-book
+  aesthetic, paired with Session 6 polish).
+- **Later (v2):** the progression/song workbench (build from chosen
+  chords+voicings; three-layer chord model — neutral / open Roman numeral vs key
+  center / voicing; bar+beat timing across bar lines; drag editing; **MIDI
+  export+import**; **iReal Pro import**; the `Progression`/`Section`/`Bar`/
+  `ChordRef` model is shaped for these). Also: identify/reverse-lookup a custom
+  voicing via the fingerprint filter; ear training; negative harmony (axis swap);
+  search→practice; comments/tags on units.
+- **Personalization (v2+):** user accounts; fingering/note-position preferences;
+  saved tags. **Integrations/cultures (v3+):** Ableton Live JS Extensions bridge;
+  Raga Sangeet & SARGAM, Barry Harris bebop, other cultures.
 - **Data only:** slash chords; more scales/modes (harmonic & melodic minor,
-  harmonic major, diminished/augmented); extra chord qualities; ear training;
-  negative harmony; alternate tunings; ukulele.
+  harmonic major, diminished/augmented); extra chord qualities; alternate
+  tunings; ukulele.
 
 ## Working notes
 

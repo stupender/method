@@ -164,10 +164,15 @@ const MAX_SPAN = 5;
 
 // Step 4 — place the built voicing on the neck, EVERYWHERE it's playable. The
 // voices' relative pitches and order are fixed; the freedom is which string set
-// and which octave. We return one shape per valid (string set × octave) that
-// fits the neck and isn't too wide a stretch — so the UI can show the voicing in
-// all its positions and string sets, not just one spot. Shapes are ordered low
-// (near the nut) to high.
+// and which octave. We collect every valid (string set × octave) that fits the
+// neck and isn't too wide a stretch, so the UI can show the voicing in all its
+// positions up the neck.
+//
+// BUT: the exact same set of notes (same pitches) can often be fingered on more
+// than one string set — same sound, different grip. Those aren't different
+// voicings, so we keep only the EASIEST one (least stretch, then lowest on the
+// neck) per unique set of pitches. Different octaves are different pitches, so
+// those genuinely-different positions all stay. Shapes are ordered low to high.
 export function placeVoicingAll(
   instrument: Instrument,
   tuning: Tuning,
@@ -177,8 +182,12 @@ export function placeVoicingAll(
   inversion: number,
 ): PlacedNote[][] {
   const voices = buildVoices(root, chord, structure, inversion);
-  const shapes: PlacedNote[][] = [];
-  const seen = new Set<string>(); // dedupe identical shapes
+
+  // Best (lowest-score) grip found so far for each unique set of pitches.
+  const bestByPitches = new Map<
+    string,
+    { notes: PlacedNote[]; score: number }
+  >();
 
   for (const set of candidateStringSets(voices.length, instrument.stringCount)) {
     for (let octaveShift = -2; octaveShift <= 4; octaveShift++) {
@@ -187,22 +196,34 @@ export function placeVoicingAll(
           midiOf(v.note) + 12 * octaveShift - openMidi(tuning, set.strings[i]),
       );
       if (!frets.every((f) => f >= 0 && f <= instrument.fretCount)) continue;
-      if (Math.max(...frets) - Math.min(...frets) > MAX_SPAN) continue;
 
-      const key = set.strings.map((s, i) => `${s}:${frets[i]}`).join('|');
-      if (seen.has(key)) continue;
-      seen.add(key);
+      const span = Math.max(...frets) - Math.min(...frets);
+      if (span > MAX_SPAN) continue;
 
-      shapes.push(
-        voices.map((v, i) => ({
-          position: { stringIndex: set.strings[i], fret: frets[i] },
-          note: { ...v.note, octave: (v.note.octave ?? 4) + octaveShift },
-          intervalName: v.degree,
-          isRoot: v.isRoot,
-        })),
-      );
+      // The actual notes sounding (octave applied) — identical across every grip
+      // that plays the same pitches, so it's our grouping key.
+      const notes = voices.map((v, i) => ({
+        position: { stringIndex: set.strings[i], fret: frets[i] },
+        note: { ...v.note, octave: (v.note.octave ?? 4) + octaveShift },
+        intervalName: v.degree,
+        isRoot: v.isRoot,
+      }));
+      const pitchKey = notes
+        .map((n) => midiOf(n.note))
+        .sort((a, b) => a - b)
+        .join(',');
+
+      // Prefer less stretch, then a lower position, then no string-skip.
+      const score = span * 2 + Math.max(...frets) + (set.skipped ? 1 : 0);
+
+      const current = bestByPitches.get(pitchKey);
+      if (!current || score < current.score) {
+        bestByPitches.set(pitchKey, { notes, score });
+      }
     }
   }
+
+  const shapes = [...bestByPitches.values()].map((b) => b.notes);
 
   // Order shapes by STRING SET, lowest strings first (then by fret within a
   // string set). So all the shapes on the lowest strings come first, then the
