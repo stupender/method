@@ -1,81 +1,156 @@
 // ============================================================================
-// ui/SongView.tsx — the Song area (a top-level part of the app)
+// ui/SongView.tsx — the Song area: a multi-chord lead sheet + the GPS reveal
 // ----------------------------------------------------------------------------
-// Song is its own area, separate from the Scales/Harmony study page. Here you
-// lay out a song — eventually a full lead sheet (chords in bars, with rhythm) —
-// and CLICK any chord to reveal everything you could play or practise over it,
-// and where you could go next. A "song" can be a single chord to drone over, a
-// few bars, or a whole repertoire songbook.
+// Lay out a song as a row of chord "bars". Select a bar to edit its chord
+// (root + quality) or to reveal what you can play over it. The reveal shows
+// every key that chord could live in — and as you add more chords, the keys
+// that fit the WHOLE progression stay lit while the rest dim, so the harmonic
+// possibility space narrows visibly as you commit.
 //
-// This first version is the single-chord case (the one-bar "drone"): choose a
-// chord and see every key it could belong to, then drill into a key for its
-// chords. The multi-bar lead sheet grows from here (see BACKLOG.md).
+// A "song" can be one chord (a drone), a few bars, or (later) a whole songbook.
+// Rhythm/timing, import and voice-leading build on top of this (see BACKLOG.md).
 // ============================================================================
 
 import { useState } from 'react';
+import type { Note } from '../theory/types';
 import { CHORDS } from '../data/chords';
 import { SCALES } from '../data/scales';
 import { ROOT_CHOICES } from '../data/roots';
-import { keysContaining, type KeyMatch } from '../theory/keys';
+import {
+  keysContaining,
+  keysContainingAll,
+  type KeyMatch,
+} from '../theory/keys';
 import { diatonicChords } from '../theory/harmony';
-import { noteName } from '../theory/notes';
+import { noteName, pitchClassOf } from '../theory/notes';
 
 const CHORD_LIST = Object.values(CHORDS);
-const SCALE_ORDER = Object.values(SCALES); // groups in a stable order
+const SCALE_ORDER = Object.values(SCALES);
+
+// One chord in the chart — stored as indices so it's easy to edit.
+interface ChartChord {
+  rootIndex: number;
+  chordId: string;
+}
+
+const chordLabel = (c: ChartChord) =>
+  `${noteName(ROOT_CHOICES[c.rootIndex])}${CHORDS[c.chordId].symbol}`;
+
+// A stable key for a (tonic, scale) pair, by pitch class so spelling doesn't matter.
+const keyId = (tonic: Note, scaleId: string) => `${pitchClassOf(tonic)}:${scaleId}`;
 
 export function SongView() {
-  const [rootIndex, setRootIndex] = useState(5); // F, a nice default (Fm)
-  const [chordId, setChordId] = useState('minor-triad');
-  // The candidate key the user has drilled into (to see its chords), or null.
+  const [chords, setChords] = useState<ChartChord[]>([
+    { rootIndex: 5, chordId: 'minor-triad' }, // Fm to start
+  ]);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const [openKey, setOpenKey] = useState<KeyMatch | null>(null);
 
-  const root = ROOT_CHOICES[rootIndex];
-  const chord = CHORDS[chordId];
-  const matches = keysContaining(root, chord);
-  const chordLabel = `${noteName(root)}${chord.symbol}`;
+  const selected = chords[selectedIndex] ?? chords[0];
+  const selRoot = ROOT_CHOICES[selected.rootIndex];
+  const selChord = CHORDS[selected.chordId];
+
+  // The selected chord's keys, and the keys that fit the WHOLE progression.
+  const selectedKeys = keysContaining(selRoot, selChord);
+  const progressionKeys = keysContainingAll(
+    chords.map((c) => ({ root: ROOT_CHOICES[c.rootIndex], chord: CHORDS[c.chordId] })),
+  );
+  const progressionKeyIds = new Set(
+    progressionKeys.map((m) => keyId(m.tonic, m.scale.id)),
+  );
+  const fitCount = selectedKeys.filter((m) =>
+    progressionKeyIds.has(keyId(m.tonic, m.scale.id)),
+  ).length;
+
+  // --- Editing the chart --------------------------------------------------
+  const editSelected = (patch: Partial<ChartChord>) => {
+    setChords((cs) => cs.map((c, i) => (i === selectedIndex ? { ...c, ...patch } : c)));
+    setOpenKey(null);
+  };
+  const addChord = () => {
+    setChords((cs) => [...cs, { ...selected }]); // copy the current chord
+    setSelectedIndex(chords.length);
+    setOpenKey(null);
+  };
+  const removeChord = (i: number) => {
+    if (chords.length === 1) return;
+    setChords((cs) => cs.filter((_, j) => j !== i));
+    setSelectedIndex((s) => (s >= i && s > 0 ? s - 1 : s));
+    setOpenKey(null);
+  };
 
   return (
     <>
-      <p className="tagline">
-        {chordLabel} could live in <strong>{matches.length}</strong> keys.
-      </p>
+      {/* The lead sheet: a row of chord bars. */}
+      <div className="chart">
+        {chords.map((c, i) => (
+          <div
+            key={i}
+            className={i === selectedIndex ? 'chart-bar chart-bar--on' : 'chart-bar'}
+            onClick={() => {
+              setSelectedIndex(i);
+              setOpenKey(null);
+            }}
+          >
+            <span className="chart-bar__label">{chordLabel(c)}</span>
+            {chords.length > 1 && (
+              <button
+                className="chart-bar__remove"
+                aria-label="Remove chord"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeChord(i);
+                }}
+              >
+                ×
+              </button>
+            )}
+          </div>
+        ))}
+        <button className="chart-add" onClick={addChord}>
+          + Add chord
+        </button>
+      </div>
 
-      {/* Build the chord: its root, then its quality. (A multi-chord lead sheet
-          replaces this single-chord entry later.) */}
+      {/* Edit the selected chord: its root, then its quality. */}
       <div className="control-group" role="group" aria-label="Chord root">
         {ROOT_CHOICES.map((note, i) => (
           <button
             key={`${note.letter}${note.accidental}`}
-            className={i === rootIndex ? 'pill pill--on' : 'pill'}
-            onClick={() => {
-              setRootIndex(i);
-              setOpenKey(null);
-            }}
+            className={i === selected.rootIndex ? 'pill pill--on' : 'pill'}
+            onClick={() => editSelected({ rootIndex: i })}
           >
             {noteName(note)}
           </button>
         ))}
       </div>
-
       <div className="control-group control-group--wrap" role="group" aria-label="Chord quality">
         {CHORD_LIST.map((c) => (
           <button
             key={c.id}
-            className={c.id === chordId ? 'pill pill--on' : 'pill'}
-            onClick={() => {
-              setChordId(c.id);
-              setOpenKey(null);
-            }}
+            className={c.id === selected.chordId ? 'pill pill--on' : 'pill'}
+            onClick={() => editSelected({ chordId: c.id })}
           >
             {c.name}
           </button>
         ))}
       </div>
 
-      {/* The possibility space: candidate keys grouped by scale system. */}
+      <p className="tagline">
+        Over <strong>{chordLabel(selected)}</strong> — {selectedKeys.length} keys
+        {chords.length > 1 && (
+          <>
+            , <strong>{fitCount}</strong> fit the whole progression
+          </>
+        )}
+        .
+      </p>
+
+      {/* The possibility space for the selected chord. Keys that also fit the
+          whole progression stay lit; the rest dim — the narrowing in place. */}
       <div className="reveal">
         {SCALE_ORDER.map((scale) => {
-          const inSystem = matches.filter((m) => m.scale.id === scale.id);
+          const inSystem = selectedKeys.filter((m) => m.scale.id === scale.id);
           if (inSystem.length === 0) return null;
           return (
             <div className="reveal-group" key={scale.id}>
@@ -89,10 +164,17 @@ export function SongView() {
                       openKey?.scale.id === m.scale.id &&
                       noteName(openKey.tonic) === noteName(m.tonic) &&
                       openKey.degree === m.degree;
+                    const fits =
+                      chords.length === 1 ||
+                      progressionKeyIds.has(keyId(m.tonic, m.scale.id));
+                    const cls =
+                      'key-chip' +
+                      (isOpen ? ' key-chip--on' : '') +
+                      (fits ? '' : ' key-chip--faded');
                     return (
                       <button
                         key={`${noteName(m.tonic)}-${m.degree}`}
-                        className={isOpen ? 'key-chip key-chip--on' : 'key-chip'}
+                        className={cls}
                         onClick={() => setOpenKey(isOpen ? null : m)}
                       >
                         <span className="key-chip__roman">{m.roman}</span>
@@ -108,16 +190,14 @@ export function SongView() {
         })}
       </div>
 
-      {/* Drill-down: the chosen key's diatonic chords — where to go next. */}
       {openKey && <KeyDetail match={openKey} />}
     </>
   );
 }
 
-// Shows every diatonic chord of a chosen key, with the entered chord's slot lit.
+// Shows every diatonic chord of a chosen key, with the selected chord's slot lit.
 function KeyDetail({ match }: { match: KeyMatch }) {
   const chords = diatonicChords(match.tonic, match.scale, false);
-
   return (
     <div className="key-detail">
       <p className="key-detail__title">

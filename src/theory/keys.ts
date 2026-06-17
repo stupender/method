@@ -58,3 +58,53 @@ export function keysContaining(
 
   return matches;
 }
+
+// A key in which an ENTIRE progression fits: every chord is diatonic. `romans`
+// gives the Roman numeral each chord plays, in order.
+export interface ProgressionKeyMatch {
+  tonic: Note;
+  scale: ScaleDefinition;
+  romans: string[];
+}
+
+// Every key that contains ALL of the given chords (the intersection). Adding
+// more chords can only shrink this list — that's the "narrowing" of the
+// possibility space. Chords may mix triads and sevenths.
+export function keysContainingAll(
+  chords: { root: Note; chord: ChordDefinition }[],
+): ProgressionKeyMatch[] {
+  if (chords.length === 0) return [];
+  const matches: ProgressionKeyMatch[] = [];
+
+  for (const scale of Object.values(SCALES)) {
+    for (const tonic of ROOT_CHOICES) {
+      // Compute the key's diatonic triads AND sevenths once, then match each
+      // chord against the set of its own size.
+      let triads, sevenths;
+      try {
+        triads = diatonicChords(tonic, scale, false);
+        sevenths = diatonicChords(tonic, scale, true);
+      } catch {
+        continue;
+      }
+
+      const romans: string[] = [];
+      let allFit = true;
+      for (const { root, chord } of chords) {
+        const set = chord.intervals.length === 4 ? sevenths : triads;
+        const rootPc = pitchClassOf(root);
+        const hit = set.find(
+          (c) => pitchClassOf(c.chordRoot) === rootPc && c.chord.id === chord.id,
+        );
+        if (!hit) {
+          allFit = false;
+          break;
+        }
+        romans.push(hit.roman);
+      }
+      if (allFit) matches.push({ tonic, scale, romans });
+    }
+  }
+
+  return matches;
+}

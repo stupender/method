@@ -226,3 +226,16 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Self-contained Song** — `SongView` holds its own chord root + quality + the
   reveal, rather than borrowing the Study page's global Key. The single-chord
   reveal is the one-bar "drone" case of the coming lead-sheet workbench.
+
+## Session 5c — multi-chord chart + narrowing
+
+- **Intersection = narrowing** — `keysContainingAll(chords)` keeps only keys where
+  EVERY chord is diatonic. Adding a chord can only shrink the set; that shrinking
+  IS the GPS idea ("fewer commitments = more freedom"). Handles mixed triads/7ths
+  by matching each chord against the key's chords of its own size.
+- **Narrowing shown in place** — clicking a chord shows ITS keys; the ones that
+  also fit the whole progression stay lit, the rest dim (`key-chip--faded`). So a
+  ii–V–I collapses to one key (Fm 9 → +Bb7 3 → +Ebmaj7 1 = Eb Major), visibly.
+- **A tiny editable chart** — chords stored as `{rootIndex, chordId}[]`; the
+  selected bar is edited live by the root/quality pills; add copies the current
+  chord, remove drops it. Derive everything (reveals, counts) from that array.

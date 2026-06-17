@@ -173,6 +173,73 @@
   border-color: var(--accent);
 }
 
+/* --- Song: the lead-sheet chart ----------------------------------------- */
+.chart {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+/* A bar holding a chord. */
+.chart-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 84px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line); /* the bar line */
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.12s ease;
+}
+.chart-bar:hover {
+  border-color: var(--muted);
+}
+.chart-bar--on {
+  border-color: var(--accent);
+  border-left-color: var(--accent);
+}
+.chart-bar__label {
+  font-family: var(--serif);
+  font-size: 22px;
+  color: var(--ink);
+}
+.chart-bar__remove {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px;
+}
+.chart-bar__remove:hover {
+  color: var(--accent);
+}
+
+/* The "add chord" affordance. */
+.chart-add {
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  padding: 0 16px;
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.chart-add:hover {
+  color: var(--ink);
+  border-color: var(--muted);
+}
+
 /* --- Songwriter / GPS reveal -------------------------------------------- */
 .reveal {
   margin-top: 28px;
@@ -233,6 +300,11 @@
 }
 .key-chip--on .key-chip__key {
   color: #cfcabf;
+}
+
+/* A key that does NOT fit the whole progression — dimmed, still clickable. */
+.key-chip--faded {
+  opacity: 0.32;
 }
 
 /* In the drill-down, the slot the entered chord occupies. */
