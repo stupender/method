@@ -133,18 +133,17 @@ Each bar's chord is understood in **three layers**, most open → most specific:
   `ChordRef` carries the three layers (see seam refinement).
 - **ui:** a progression strip you append the current chord+voicing to.
 
-### D. Rhythm — bar/beat timing + chords across bar lines
+### D. Rhythm — bar/beat timing + chords across bar lines (MVP done)
 
 The key departure from iReal Pro: **exact rhythms**, not "the chord fills a bar"
-approximations. iReal only lets a chord take a whole bar (or a few even
-subdivisions); Method should let chords land on precise beats/subdivisions and
-**extend across bar lines**.
+approximations. MVP done: chords have a duration in beats, lay on a timeline with
+bar lines from the time signature, **cross bar lines**, and play back in time.
 
-- Bar lines, but chords that **extend beyond them**.
-- Notate the **rhythm of the chords** — enter a chord's start/end by bar + beat.
-- A **drag** interaction to set/resize a chord's span on a timeline.
-- **data:** `ChordRef` carries start/end in beats (seam already in `types.ts`).
-- **ui:** a timeline/piano-roll-ish editor; the drag layer is the bulk of the work.
+Remaining refinements:
+- **Drag** to set/resize a chord's span (currently set via beat buttons).
+- Line-wrapping into systems (lead-sheet rows) for long songs (now one scroll row).
+- Rests/gaps and pickup bars; tempo control; finer subdivisions / tuplets.
+- Sections (A/B, repeats, endings, codas) — the `Section` type is seeded for this.
 
 ### E. MIDI export
 

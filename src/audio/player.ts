@@ -87,3 +87,18 @@ export function playChord(midis: number[], strum = 0.022): void {
   const start = ctx.currentTime;
   midis.forEach((midi, i) => scheduleNote(ctx, midi, start + i * strum, 1.6));
 }
+
+// Play a progression: each chord strummed at its own time, lasting its own
+// duration (both in SECONDS, relative to now). Scheduled on the audio clock so
+// the rhythm is tight. Returns nothing; nothing to stop for these short notes.
+export function playProgression(
+  events: { midis: number[]; atSec: number; durSec: number }[],
+): void {
+  const ctx = getContext();
+  const start = ctx.currentTime + 0.08; // tiny lead-in
+  for (const e of events) {
+    e.midis.forEach((midi, i) =>
+      scheduleNote(ctx, midi, start + e.atSec + i * 0.018, e.durSec),
+    );
+  }
+}

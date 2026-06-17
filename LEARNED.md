@@ -239,3 +239,18 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **A tiny editable chart** — chords stored as `{rootIndex, chordId}[]`; the
   selected bar is edited live by the root/quality pills; add copies the current
   chord, remove drops it. Derive everything (reveals, counts) from that array.
+
+## Session 5d — rhythm (the lead-sheet timeline)
+
+- **Chords have a duration in beats** — chords lay end to end; each chord's start
+  is the running sum of durations before it. Bar lines come from the time
+  signature (beats per bar), so a chord whose span doesn't align to a bar simply
+  **crosses the bar line** — exact rhythm, not iReal's bar-filling.
+- **A timeline, not a grid** — the chart is now absolutely-positioned blocks:
+  `left = startBeat × pxPerBeat`, `width = durationBeats × pxPerBeat`, with bar
+  lines behind. Durations can be fractional (½, 1½) for subdivisions.
+- **Progression playback** — `playProgression` schedules each chord's strum on
+  the audio clock at `startBeat × 60/bpm` seconds, lasting its own duration; the
+  rhythm is audible, tightly timed.
+- **Rhythm is representation, not harmony** — durations don't change which keys
+  fit; the GPS reveal still derives from the chord sequence alone.
