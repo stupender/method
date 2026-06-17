@@ -11,7 +11,7 @@
 // Rhythm/timing, import and voice-leading build on top of this (see BACKLOG.md).
 // ============================================================================
 
-import { useState } from 'react';
+import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import type { Note } from '../theory/types';
 import { CHORDS } from '../data/chords';
 import { SCALES } from '../data/scales';
@@ -35,17 +35,54 @@ const TIME_SIGS = [
   { label: '2/4', beatsPerBar: 2 },
   { label: '5/4', beatsPerBar: 5 },
 ];
-// Chord durations in beats, with friendly labels (incl. dotted + the eighth).
-const DURATIONS = [
-  { label: '½', beats: 0.5 },
-  { label: '1', beats: 1 },
-  { label: '1½', beats: 1.5 },
-  { label: '2', beats: 2 },
-  { label: '3', beats: 3 },
-  { label: '4', beats: 4 },
-];
+// A friendly beat count, e.g. 2.5 -> "2½ beats", 1 -> "1 beat".
+function formatBeats(b: number): string {
+  const whole = Math.floor(b);
+  const frac = ({ 0.25: '¼', 0.5: '½', 0.75: '¾' } as Record<number, string>)[
+    Math.round((b - whole) * 100) / 100
+  ] ?? '';
+  const num = whole === 0 ? frac : `${whole}${frac}`;
+  return `${num} ${b === 1 ? 'beat' : 'beats'}`;
+}
 const BPM = 100; // playback tempo
 const PX_PER_BEAT = 46; // timeline scale
+const SNAP = 0.25; // drag snaps to a sixteenth note
+const MIN_DUR = 0.25; // a chord must last at least this
+
+// Resize a chord by dragging one of its edges by `delta` beats. An edge sits on
+// the boundary with a neighbour, so dragging it TRADES time between the two
+// chords (one grows, the other shrinks). The exception is the very last chord's
+// right edge, which has no neighbour, so it just extends the song. Pure: takes
+// the durations at drag-start and returns the new durations.
+function resizeAtEdge(
+  origDurs: number[],
+  index: number,
+  edge: 'left' | 'right',
+  delta: number,
+): number[] {
+  const durs = origDurs.slice();
+  // The two chords sharing this edge's boundary.
+  const a = edge === 'right' ? index : index - 1; // chord ending at the boundary
+  const b = a + 1; // chord starting at the boundary (may not exist)
+
+  if (b >= durs.length) {
+    durs[a] = Math.max(MIN_DUR, durs[a] + delta); // last edge: extend the song
+    return durs;
+  }
+  let newA = durs[a] + delta;
+  let newB = durs[b] - delta;
+  if (newA < MIN_DUR) {
+    newB -= MIN_DUR - newA;
+    newA = MIN_DUR;
+  }
+  if (newB < MIN_DUR) {
+    newA -= MIN_DUR - newB;
+    newB = MIN_DUR;
+  }
+  durs[a] = newA;
+  durs[b] = newB;
+  return durs;
+}
 
 // One chord in the chart — stored as indices so it's easy to edit, plus how long
 // it lasts (in beats). Chords lay end to end; bar lines come from the time sig.
@@ -118,6 +155,36 @@ export function SongView() {
     setChords((cs) => cs.filter((_, j) => j !== i));
     setSelectedIndex((s) => (s >= i && s > 0 ? s - 1 : s));
     setOpenKey(null);
+  };
+
+  // --- Dragging a chord edge to resize it ---------------------------------
+  const drag = useRef<{ index: number; edge: 'left' | 'right'; startX: number; origDurs: number[] } | null>(null);
+
+  const onEdgeDown = (e: ReactPointerEvent, index: number, edge: 'left' | 'right') => {
+    e.stopPropagation(); // don't also select the chord
+    try {
+      (e.target as Element).setPointerCapture(e.pointerId);
+    } catch {
+      /* capture is best-effort */
+    }
+    drag.current = {
+      index,
+      edge,
+      startX: e.clientX,
+      origDurs: chords.map((c) => c.durationBeats),
+    };
+  };
+  const onEdgeMove = (e: ReactPointerEvent) => {
+    const d = drag.current;
+    if (!d) return;
+    const delta = Math.round((e.clientX - d.startX) / PX_PER_BEAT / SNAP) * SNAP;
+    const newDurs = resizeAtEdge(d.origDurs, d.index, d.edge, delta);
+    setChords((cs) => cs.map((c, j) => ({ ...c, durationBeats: newDurs[j] })));
+  };
+  const onEdgeUp = (e: ReactPointerEvent) => {
+    if (!drag.current) return;
+    (e.target as Element).releasePointerCapture?.(e.pointerId);
+    drag.current = null;
   };
 
   // Strum the progression in time at BPM (chords sustain for their duration).
@@ -194,6 +261,22 @@ export function SongView() {
                 ×
               </button>
             )}
+            {/* Drag handles: the left edge (trades with the previous chord) and
+                the right edge (trades with the next, or extends the song). */}
+            {i > 0 && (
+              <div
+                className="tl-handle tl-handle--left"
+                onPointerDown={(e) => onEdgeDown(e, i, 'left')}
+                onPointerMove={onEdgeMove}
+                onPointerUp={onEdgeUp}
+              />
+            )}
+            <div
+              className="tl-handle tl-handle--right"
+              onPointerDown={(e) => onEdgeDown(e, i, 'right')}
+              onPointerMove={onEdgeMove}
+              onPointerUp={onEdgeUp}
+            />
           </div>
         ))}
       </div>
@@ -223,19 +306,11 @@ export function SongView() {
         ))}
       </div>
 
-      {/* How long the selected chord lasts, in beats. */}
-      <div className="control-group" role="group" aria-label="Duration">
-        <span className="control-label">Beats</span>
-        {DURATIONS.map((d) => (
-          <button
-            key={d.beats}
-            className={d.beats === selected.durationBeats ? 'pill pill--on' : 'pill'}
-            onClick={() => editSelected({ durationBeats: d.beats })}
-          >
-            {d.label}
-          </button>
-        ))}
-      </div>
+      {/* Duration is set by dragging the chord's edges on the timeline. */}
+      <p className="control-hint">
+        {chordLabel(selected)} lasts {formatBeats(selected.durationBeats)} — drag
+        its edges on the timeline to resize.
+      </p>
 
       <p className="tagline">
         Over <strong>{chordLabel(selected)}</strong> — {selectedKeys.length} keys

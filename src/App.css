@@ -237,9 +237,50 @@
   font-size: 13px;
   line-height: 1;
   cursor: pointer;
+  z-index: 2;
 }
 .tl-chord__remove:hover {
   color: var(--accent);
+}
+
+/* Draggable resize grips on a chord's edges. */
+.tl-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  cursor: ew-resize;
+  z-index: 1;
+  touch-action: none; /* let pointer drags work on touch */
+}
+.tl-handle--left {
+  left: -5px;
+}
+.tl-handle--right {
+  right: -5px;
+}
+/* A faint grip line that brightens on hover. */
+.tl-handle::after {
+  content: '';
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+  background: var(--line);
+  border-radius: 1px;
+  transition: background 0.12s ease;
+}
+.tl-handle:hover::after {
+  background: var(--accent);
+}
+
+/* A small hint line under the editor. */
+.control-hint {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 14px 0 0;
 }
 
 /* The "add chord" button (sits in the transport row). */

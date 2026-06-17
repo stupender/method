@@ -254,3 +254,10 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   rhythm is audible, tightly timed.
 - **Rhythm is representation, not harmony** — durations don't change which keys
   fit; the GPS reveal still derives from the chord sequence alone.
+- **Drag-to-resize (pointer events + capture)** — a chord's edges are thin
+  handles; `onPointerDown` calls `setPointerCapture` so move/up keep firing even
+  off the element. Drag delta = `(clientX − startX) / pxPerBeat`, snapped to 0.25
+  beat. Dragging an edge TRADES time at that boundary (grow one chord, shrink the
+  neighbour); the last chord's right edge extends the song. Computed from the
+  durations captured at drag-start, so it's not cumulative/jittery. Replaced the
+  too-coarse 6-button picker; default stays one bar.
