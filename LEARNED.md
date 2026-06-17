@@ -285,3 +285,16 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   neighbour. The anchor is the selected chord; its structure/inversion seed it.
 - **Reuse over reinvention** — candidates come straight from `placeVoicingAll`
   over every structure × inversion; VL is just a chooser on top.
+
+## Session 5g — the score (timeline + TAB as one)
+
+- **The chart IS a score** — Stu's insight: the timeline "bar" with the chord
+  name is the chord symbol above a staff; the TAB is the staff. So each row is a
+  SYSTEM: a chord-symbol lane on top, a TAB staff below, bar lines through both.
+- **Aligned in time** — the voiced frets are absolutely positioned at each
+  chord's start x (the same x as its symbol), on its string line — so notation
+  lines up under the symbol. One coordinate system (beats × pxPerBeat) drives the
+  symbol blocks, the bar lines, and the staff together.
+- **Reused the voicing data** — the staff just renders `voicedShapes[i]`
+  (PlacedNote string/fret) at the chord's x; no new theory. Heading toward a full
+  score with rhythm notation later.

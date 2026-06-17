@@ -35,7 +35,6 @@ import {
 import { voiceLeadProgression } from '../theory/voiceLeading';
 import { noteName, pitchClassOf, spellNoteFromInterval, midiOf } from '../theory/notes';
 import { playProgression } from '../audio/player';
-import { TabView } from '../render/TabView';
 
 const CHORD_LIST = Object.values(CHORDS);
 const SCALE_ORDER = Object.values(SCALES);
@@ -60,6 +59,8 @@ const BPM = 100; // playback tempo
 const PX_PER_BEAT = 46; // timeline scale
 const SNAP = 0.25; // drag snaps to a sixteenth note
 const MIN_DUR = 0.25; // a chord must last at least this
+const CHORD_LANE_H = 40; // height of the chord-symbol lane (top of a system)
+const STRING_GAP = 15; // vertical gap between TAB staff string lines
 
 // Resize a chord by dragging one of its edges by `delta` beats. An edge sits on
 // the boundary with a neighbour, so dragging it TRADES time between the two
@@ -164,6 +165,8 @@ export function SongView() {
   const barsPerRow = 4;
   const rowBeats = barsPerRow * beatsPerBar;
   const rowCount = Math.ceil(barCount / barsPerRow);
+  // A "system" (row) is the chord lane plus, when voiced, a TAB staff under it.
+  const staffHeight = (GUITAR.stringCount - 1) * STRING_GAP;
 
   // The selected chord's keys, and the keys that fit the WHOLE progression.
   const selectedKeys = keysContaining(selRoot, selChord);
@@ -280,36 +283,38 @@ export function SongView() {
         </button>
       </div>
 
-      {/* The lead sheet, wrapped into rows of bars. Each chord is drawn as one
-          segment per row it touches, so a chord crossing a bar line — or a row
-          break — simply spans it. Labels + handles sit on the chord's true
-          start/end; continuation segments are unlabelled. */}
-      <div className="timeline-rows">
+      {/* The lead sheet as a SCORE: chord symbols on top, an aligned TAB staff
+          below (when voiced), bar lines running through both — wrapped into rows
+          (systems) of bars. The chord block IS where the chord name goes above a
+          staff; the staff under it is the notation. */}
+      <div className="score">
         {Array.from({ length: rowCount }, (_, r) => {
           const barsInRow = Math.min(barsPerRow, barCount - r * barsPerRow);
           const rowStart = r * rowBeats;
           const rowSpanBeats = barsInRow * beatsPerBar;
+          const systemH = CHORD_LANE_H + (voiceLead ? staffHeight + 14 : 0);
           return (
             <div
               key={`row-${r}`}
-              className="timeline"
-              style={{ width: rowSpanBeats * PX_PER_BEAT }}
+              className="system"
+              style={{ width: rowSpanBeats * PX_PER_BEAT, height: systemH }}
             >
-              {/* Bar lines for this row. */}
+              {/* Bar lines, full system height. */}
               {Array.from({ length: barsInRow + 1 }, (_, b) => (
                 <div
                   key={`bar-${b}`}
-                  className="timeline-bar"
+                  className="system-bar"
                   style={{ left: b * beatsPerBar * PX_PER_BEAT }}
                 />
               ))}
-              {/* Chord segments that fall in this row. */}
+
+              {/* Chord-symbol lane: one block per chord segment in this row. */}
               {chords.map((c, i) => {
                 const start = starts[i];
                 const end = start + c.durationBeats;
                 const segStart = Math.max(start, rowStart);
                 const segEnd = Math.min(end, rowStart + rowSpanBeats);
-                if (segEnd <= segStart) return null; // not in this row
+                if (segEnd <= segStart) return null;
                 const isStart = segStart === start;
                 const isEnd = segEnd === end;
                 return (
@@ -342,7 +347,6 @@ export function SongView() {
                         ×
                       </button>
                     )}
-                    {/* Handles only on the chord's real edges. */}
                     {isStart && i > 0 && (
                       <div
                         className="tl-handle tl-handle--left"
@@ -362,6 +366,40 @@ export function SongView() {
                   </div>
                 );
               })}
+
+              {/* TAB staff: string lines + each chord's voiced frets, placed at
+                  the chord's start, directly under its symbol. */}
+              {voiceLead && (
+                <div className="staff" style={{ top: CHORD_LANE_H, height: staffHeight }}>
+                  {Array.from({ length: GUITAR.stringCount }, (_, line) => (
+                    <div
+                      key={`line-${line}`}
+                      className="staff-line"
+                      style={{ top: line * STRING_GAP }}
+                    />
+                  ))}
+                  {chords.map((_c, i) => {
+                    const start = starts[i];
+                    // Draw the voicing only where the chord starts (in this row).
+                    if (start < rowStart || start >= rowStart + rowSpanBeats) return null;
+                    const x = (start - rowStart) * PX_PER_BEAT + 7;
+                    return (voicedShapes[i] ?? []).map((p, k) => {
+                      const tabRow = GUITAR.stringCount - 1 - p.position.stringIndex;
+                      return (
+                        <span
+                          key={`${i}-${k}`}
+                          className={
+                            'staff-fret' + (i === selectedIndex ? ' staff-fret--on' : '')
+                          }
+                          style={{ left: x, top: tabRow * STRING_GAP }}
+                        >
+                          {p.position.fret}
+                        </span>
+                      );
+                    });
+                  })}
+                </div>
+              )}
             </div>
           );
         })}
@@ -427,23 +465,7 @@ export function SongView() {
               </button>
             ))}
           </div>
-          {/* One TAB per chord, in order — the voice-led shapes. */}
-          <div className="tab-shelf">
-            {chords.map((c, i) => (
-              <div
-                key={i}
-                className={i === selectedIndex ? 'tab-card tab-card--on' : 'tab-card'}
-                onClick={() => setSelectedIndex(i)}
-              >
-                <TabView
-                  instrument={GUITAR}
-                  tuning={GUITAR_STANDARD}
-                  placed={voicedShapes[i] ?? []}
-                  caption={chordLabel(c)}
-                />
-              </div>
-            ))}
-          </div>
+          {/* The voiced shapes appear on the TAB staff in the score above. */}
         </div>
       )}
 

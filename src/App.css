@@ -182,25 +182,22 @@
   margin-right: 4px;
 }
 
-/* The chart wraps into rows of bars, like a lead sheet. */
-.timeline-rows {
+/* The score wraps into rows (systems), like a lead sheet. */
+.score {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 22px;
   margin: 18px 0 24px;
 }
 
-/* One row of the lead sheet: bar lines + chord blocks. Width is set inline from
-   how many bars are in the row. */
-.timeline {
+/* One system: a chord-symbol lane on top and (when voiced) a TAB staff below,
+   with bar lines through both. Width + height are set inline. */
+.system {
   position: relative;
-  height: 60px;
-  border-bottom: 1px solid var(--line);
-  overflow: visible;
 }
 
-/* A bar line (drawn at each bar boundary, behind the chords). */
-.timeline-bar {
+/* A bar line — full system height, behind everything. */
+.system-bar {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -208,14 +205,42 @@
   background: var(--line);
 }
 
+/* The TAB staff under the chord lane. */
+.staff {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+.staff-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #d8d0c0;
+}
+/* A fret number sitting on its string line. */
+.staff-fret {
+  position: absolute;
+  transform: translateY(-50%);
+  background: var(--bg);
+  padding: 0 3px;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.staff-fret--on {
+  color: var(--accent);
+}
+
 /* A chord block — left edge is its start (a heavier "bar line" of its own),
    width is its duration, so it can stretch across the faint bar lines. */
 .tl-chord {
   position: absolute;
   top: 0;
-  height: 60px;
+  height: 40px;
   box-sizing: border-box;
-  padding: 8px 8px 0 10px;
+  padding: 7px 8px 0 10px;
   border-left: 3px solid var(--ink);
   background: rgba(0, 0, 0, 0.015);
   cursor: pointer;
