@@ -1,19 +1,21 @@
 // ============================================================================
-// ui/SongwriterView.tsx — the "GPS reveal" (Session 5)
+// ui/SongView.tsx — the Song area (a top-level part of the app)
 // ----------------------------------------------------------------------------
-// Enter a chord (its root is the global Key pill; pick a quality here). Click it
-// and every key it could belong to appears, grouped by scale system, each
-// showing the Roman numeral the chord plays there. Click a candidate key to see
-// that key's full diatonic chords — "where to go next".
+// Song is its own area, separate from the Scales/Harmony study page. Here you
+// lay out a song — eventually a full lead sheet (chords in bars, with rhythm) —
+// and CLICK any chord to reveal everything you could play or practise over it,
+// and where you could go next. A "song" can be a single chord to drone over, a
+// few bars, or a whole repertoire songbook.
 //
-// This is the seed of the progression / playback view: today it's one chord;
-// next it grows to a bar/progression whose candidate keys intersect and narrow.
+// This first version is the single-chord case (the one-bar "drone"): choose a
+// chord and see every key it could belong to, then drill into a key for its
+// chords. The multi-bar lead sheet grows from here (see BACKLOG.md).
 // ============================================================================
 
 import { useState } from 'react';
-import type { Note } from '../theory/types';
 import { CHORDS } from '../data/chords';
 import { SCALES } from '../data/scales';
+import { ROOT_CHOICES } from '../data/roots';
 import { keysContaining, type KeyMatch } from '../theory/keys';
 import { diatonicChords } from '../theory/harmony';
 import { noteName } from '../theory/notes';
@@ -21,14 +23,15 @@ import { noteName } from '../theory/notes';
 const CHORD_LIST = Object.values(CHORDS);
 const SCALE_ORDER = Object.values(SCALES); // groups in a stable order
 
-export function SongwriterView({ root }: { root: Note }) {
+export function SongView() {
+  const [rootIndex, setRootIndex] = useState(5); // F, a nice default (Fm)
   const [chordId, setChordId] = useState('minor-triad');
   // The candidate key the user has drilled into (to see its chords), or null.
   const [openKey, setOpenKey] = useState<KeyMatch | null>(null);
 
+  const root = ROOT_CHOICES[rootIndex];
   const chord = CHORDS[chordId];
   const matches = keysContaining(root, chord);
-
   const chordLabel = `${noteName(root)}${chord.symbol}`;
 
   return (
@@ -37,7 +40,23 @@ export function SongwriterView({ root }: { root: Note }) {
         {chordLabel} could live in <strong>{matches.length}</strong> keys.
       </p>
 
-      {/* Pick the chord quality (root comes from the global Key pill). */}
+      {/* Build the chord: its root, then its quality. (A multi-chord lead sheet
+          replaces this single-chord entry later.) */}
+      <div className="control-group" role="group" aria-label="Chord root">
+        {ROOT_CHOICES.map((note, i) => (
+          <button
+            key={`${note.letter}${note.accidental}`}
+            className={i === rootIndex ? 'pill pill--on' : 'pill'}
+            onClick={() => {
+              setRootIndex(i);
+              setOpenKey(null);
+            }}
+          >
+            {noteName(note)}
+          </button>
+        ))}
+      </div>
+
       <div className="control-group control-group--wrap" role="group" aria-label="Chord quality">
         {CHORD_LIST.map((c) => (
           <button
@@ -97,10 +116,6 @@ export function SongwriterView({ root }: { root: Note }) {
 
 // Shows every diatonic chord of a chosen key, with the entered chord's slot lit.
 function KeyDetail({ match }: { match: KeyMatch }) {
-  // Triads if the chord we came from was a triad; sevenths if a seventh. We
-  // recover that from the Roman numeral length isn't reliable, so just show both
-  // sizes by reading the degree's chord at triad size here (the "where to go"
-  // vocabulary reads most clearly as triads).
   const chords = diatonicChords(match.tonic, match.scale, false);
 
   return (

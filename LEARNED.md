@@ -216,3 +216,13 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Mode-specific global controls** — Scale type is hidden in Songwriter (you're
   there to DISCOVER the scale, not pick it); the shared root pill is the chord's
   root there instead of a key.
+
+## Session 5b — Study / Song as top-level areas
+
+- **A higher separation** — the app now has two top-level AREAS (Study vs Song),
+  switched by a nav under the title, above the Scales/Harmony "mode" level. Study
+  is for learning the materials; Song is for using them (lead sheets + the GPS
+  reveal). Each area owns its own state; App just picks which to render.
+- **Self-contained Song** — `SongView` holds its own chord root + quality + the
+  reveal, rather than borrowing the Study page's global Key. The single-chord
+  reveal is the one-bar "drone" case of the coming lead-sheet workbench.

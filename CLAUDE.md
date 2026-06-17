@@ -73,9 +73,11 @@ must match the repo name (`/method/`).
 3. **Scales + intervals + Web Audio playback.** ← done.
 4. **Chords (triads + 7ths) with voicings + TAB.** ← done.
 5. **The "Search Engine / GPS" reveal** — chord → all keys it could live in →
-   their chords. The signature interaction. ← MVP done (Songwriter view); next:
-   multi-chord progressions that intersect/narrow the candidate keys, then
-   timing/import/voice-leading.
+   their chords. The signature interaction. ← MVP done. It lives in the **Song**
+   area, a top-level part of the app (peer to **Study** = Scales/Harmony). Song
+   grows into a lead-sheet workbench (chords in bars, with rhythm; click a chord
+   to reveal where to go). Next: multi-chord charts that intersect/narrow the
+   candidate keys, then rhythm/timing, import (iReal/MIDI), voice-leading.
 6. VexFlow notation + polish + case study.
 7. Study guide (teaching pass, after ship).
 

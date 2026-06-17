@@ -56,6 +56,32 @@
   margin: 24px 0 0;
 }
 
+/* Top-level area switch (Study / Song) — a higher-level nav than the pills. */
+.topnav {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  margin-top: 18px;
+}
+.topnav-item {
+  font-family: var(--serif);
+  font-size: 22px;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  padding: 4px 2px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.topnav-item:hover {
+  color: var(--ink);
+}
+.topnav-item--on {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+}
+
 /* --- Controls ------------------------------------------------------------ */
 .controls {
   display: flex;

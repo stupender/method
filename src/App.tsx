@@ -1,13 +1,11 @@
 // ============================================================================
 // App.tsx — the top of the React component tree
 // ----------------------------------------------------------------------------
-// Three modes share one root chooser:
-//   - Scales:  a scale across the neck, playable (Session 3).
-//   - Chords:  any chord quality, explored as voicings (Session 4).
-//   - Harmony: the chords OF a key — diatonic harmony with Roman numerals.
-// Chords and Harmony both hand a (root, chord) to <ChordExplorer>, which owns
-// the shared voicing/inversion/TAB/play UI. App just wires data -> theory ->
-// the views.
+// Two top-level AREAS, switched by the nav under the title:
+//   - Study: explore the materials — Scales (and Harmony) on the neck.
+//   - Song:  lay out a song / lead sheet and reveal what to play over each chord.
+// They're separate but connected: Study is for learning the materials, Song is
+// for using them. Within Study, a Mode picks Scales vs Harmony.
 // ============================================================================
 
 import { useState } from 'react';
@@ -20,15 +18,43 @@ import { diatonicChords } from './theory/harmony';
 import { noteName } from './theory/notes';
 import { ChordExplorer } from './ui/ChordExplorer';
 import { ScaleExplorer } from './ui/ScaleExplorer';
-import { SongwriterView } from './ui/SongwriterView';
+import { SongView } from './ui/SongView';
 import './App.css';
 
 const SCALE_LIST = Object.values(SCALES);
 const CHORD_LIST = Object.values(CHORDS);
 
-type Mode = 'scale' | 'chord' | 'harmony' | 'songwriter';
+type Area = 'study' | 'song';
+type Mode = 'scale' | 'chord' | 'harmony';
 
 function App() {
+  const [area, setArea] = useState<Area>('study');
+
+  return (
+    <main className="page page--wide">
+      <header className="masthead masthead--compact">
+        <h1 className="title title--sm">Method</h1>
+        {/* Top-level areas: a higher separation than the modes within Study. */}
+        <nav className="topnav" role="group" aria-label="Area">
+          {(['study', 'song'] as Area[]).map((a) => (
+            <button
+              key={a}
+              className={area === a ? 'topnav-item topnav-item--on' : 'topnav-item'}
+              onClick={() => setArea(a)}
+            >
+              {a === 'study' ? 'Study' : 'Song'}
+            </button>
+          ))}
+        </nav>
+      </header>
+
+      {area === 'study' ? <StudyArea /> : <SongView />}
+    </main>
+  );
+}
+
+// --- Study: explore Scales / Harmony on the neck ---------------------------
+function StudyArea() {
   const [mode, setMode] = useState<Mode>('scale');
   const [rootIndex, setRootIndex] = useState(0); // the Key
   const [scaleId, setScaleId] = useState(SCALE_LIST[0].id); // the Scale type
@@ -37,13 +63,8 @@ function App() {
   const scale = SCALES[scaleId];
 
   return (
-    <main className="page page--wide">
-      <header className="masthead masthead--compact">
-        <h1 className="title title--sm">Method</h1>
-      </header>
-
-      {/* Global controls, in priority order: Key → Scale type → Mode.
-          (Scale type drives the Scales and Harmony views; Chords is absolute.) */}
+    <>
+      {/* Controls in priority order: Key → Scale type → Mode. */}
       <div className="controls">
         <div className="control-group" role="group" aria-label="Key">
           {ROOT_CHOICES.map((note, i) => (
@@ -57,34 +78,30 @@ function App() {
           ))}
         </div>
 
-        {/* Scale type drives Scales & Harmony; it's irrelevant in Songwriter
-            (the whole point there is to DISCOVER the keys), so we hide it. */}
-        {mode !== 'songwriter' && (
-          <div className="control-group control-group--wrap" role="group" aria-label="Scale type">
-            {SCALE_LIST.map((s) => (
-              <button
-                key={s.id}
-                className={s.id === scaleId ? 'pill pill--on' : 'pill'}
-                onClick={() => setScaleId(s.id)}
-              >
-                {s.name}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="control-group control-group--wrap" role="group" aria-label="Scale type">
+          {SCALE_LIST.map((s) => (
+            <button
+              key={s.id}
+              className={s.id === scaleId ? 'pill pill--on' : 'pill'}
+              onClick={() => setScaleId(s.id)}
+            >
+              {s.name}
+            </button>
+          ))}
+        </div>
 
         {/* 'chord' (the absolute, key-less chord explorer) is intentionally NOT
             offered here — it isn't useful on this key-oriented page yet. The
             view + ChordExplorer are kept below for a future, less key-centric
             section (e.g. Ear Training); re-add 'chord' to this list to show it. */}
         <div className="control-group" role="group" aria-label="Mode">
-          {(['scale', 'harmony', 'songwriter'] as Mode[]).map((m) => (
+          {(['scale', 'harmony'] as Mode[]).map((m) => (
             <button
               key={m}
               className={mode === m ? 'pill pill--on' : 'pill'}
               onClick={() => setMode(m)}
             >
-              {m === 'scale' ? 'Scales' : m === 'harmony' ? 'Harmony' : 'Songwriter'}
+              {m === 'scale' ? 'Scales' : 'Harmony'}
             </button>
           ))}
         </div>
@@ -93,8 +110,7 @@ function App() {
       {mode === 'scale' && <ScaleView root={root} scale={scale} />}
       {mode === 'chord' && <ChordView root={root} />}
       {mode === 'harmony' && <HarmonyView root={root} scale={scale} />}
-      {mode === 'songwriter' && <SongwriterView root={root} />}
-    </main>
+    </>
   );
 }
 

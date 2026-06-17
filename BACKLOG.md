@@ -87,18 +87,38 @@ direction is an ongoing aesthetic track — best paired with the Session 6 polis
 
 ---
 
-## Later (v2) — the Progression / Song workbench
+## The SONG area — lead sheets + the GPS reveal (in progress)
 
-A bigger subsystem: assemble chosen chords/voicings into songs, with timing, and
-move MIDI in and out. The data-model seam exists in `types.ts` (Section 7) and is
-refined now (see "Done now" below); the behaviour is v2.
+Song is its own **top-level area** (peer to Study), already in the app. Today it
+holds the single-chord reveal (the one-bar "drone" case). It grows into a full
+**lead-sheet workbench**: chords laid out in bars like a jazz chart, where
+clicking any chord reveals everything you can play/practise over it and where to
+go next. A "song" ranges from one chord to drone over → a few bars → a whole
+repertoire songbook. iReal Pro (irealpro.com) is the visual reference.
 
-### C. Progression builder + the three-layer chord model
+Build order from here:
 
-Arrive at a specific chord + voicing and **add it to a progression**. A "song"
-can be:
-- a **single bar** — a practice tool to blow over one chord, or
-- a **full progression** (hand-entered or imported).
+### C. Multi-chord lead sheet + the three-layer chord model
+
+Lay out chords in bars; **click any chord** to run the GPS reveal on it. Adding
+more chords lets their candidate keys **intersect and narrow** the space.
+
+Each chord is understood in **three layers**, most open → most specific:
+1. **Neutral chord** — what the chord literally is (e.g. `Dm7`).
+2. **Roman numeral relative to a key center** — e.g. `ii7 in C`. Crucially this
+   can stay **open / not fixed to one interpretation**: the same `Dm7` is `ii in
+   C`, `vi in F`, `iii in Bb`… and that multiplicity is exactly the harmonic
+   "possibility space" the GPS reveal is about. Keep this layer plural where the
+   user hasn't committed to a key center.
+3. **Chosen voicing** — the specific structure/inversion/shape to play.
+
+- **data/theory:** `Progression`/`Section`/`Bar`/`ChordRef` (already seeded);
+  `ChordRef` carries the three layers (see seam refinement).
+- **ui:** a lead-sheet grid of bars you enter chords into.
+
+### "song" sizes
+- a **single chord** — a drone to practise over (today's Song view), or
+- a **few bars**, or a **whole repertoire songbook** (many charts).
 
 Each bar's chord is understood in **three layers**, most open → most specific:
 1. **Neutral chord** — what the chord literally is (e.g. `Dm7`).
@@ -113,12 +133,17 @@ Each bar's chord is understood in **three layers**, most open → most specific:
   `ChordRef` carries the three layers (see seam refinement).
 - **ui:** a progression strip you append the current chord+voicing to.
 
-### D. Bar/beat timing + chords across bar lines
+### D. Rhythm — bar/beat timing + chords across bar lines
+
+The key departure from iReal Pro: **exact rhythms**, not "the chord fills a bar"
+approximations. iReal only lets a chord take a whole bar (or a few even
+subdivisions); Method should let chords land on precise beats/subdivisions and
+**extend across bar lines**.
 
 - Bar lines, but chords that **extend beyond them**.
-- Enter a chord's **start and end by bar + beat**.
+- Notate the **rhythm of the chords** — enter a chord's start/end by bar + beat.
 - A **drag** interaction to set/resize a chord's span on a timeline.
-- **data:** `ChordRef` carries start/end in beats (seam refinement below).
+- **data:** `ChordRef` carries start/end in beats (seam already in `types.ts`).
 - **ui:** a timeline/piano-roll-ish editor; the drag layer is the bulk of the work.
 
 ### E. MIDI export
