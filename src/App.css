@@ -293,6 +293,16 @@
   margin: 14px 0 0;
 }
 
+/* The auto voice-leading panel. */
+.vl-panel {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 /* The "add chord" button (sits in the transport row). */
 .chart-add {
   border: 1px dashed var(--line);

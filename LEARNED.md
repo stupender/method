@@ -270,3 +270,18 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   edge handles sit only on the chord's true start/end; carried-over segments are
   unlabelled with a dashed left edge (a tie/continuation).
 - **Tempo** — a BPM value (–/+); playback uses `60/bpm` seconds per beat.
+
+## Session 5f — auto voice-leading
+
+- **Shape-based voice leading** — pick one anchor voicing (a real guitar shape),
+  then for every other chord choose the playable shape that moves least from its
+  neighbour. Working in actual shapes (from the voicing engine) keeps results
+  TAB-able, not abstract note-stacks.
+- **Distance metric** — `voiceLeadDistance` sums, for every note of each shape,
+  the nearest note of the other (symmetric). Common tones cost ~0, big leaps cost
+  a lot; the symmetry keeps the next chord in the same register.
+- **Propagate from the anchor** — fix the anchor's shape, then walk outward in
+  both directions, each step keeping the closest candidate to the already-chosen
+  neighbour. The anchor is the selected chord; its structure/inversion seed it.
+- **Reuse over reinvention** — candidates come straight from `placeVoicingAll`
+  over every structure × inversion; VL is just a chooser on top.

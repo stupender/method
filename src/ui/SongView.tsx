@@ -12,18 +12,30 @@
 // ============================================================================
 
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
-import type { Note } from '../theory/types';
+import type { Note, PlacedNote } from '../theory/types';
 import { CHORDS } from '../data/chords';
 import { SCALES } from '../data/scales';
 import { ROOT_CHOICES } from '../data/roots';
+import { STRUCTURES } from '../data/voicings';
+import { GUITAR } from '../data/instruments';
+import { GUITAR_STANDARD } from '../data/tunings';
 import {
   keysContaining,
   keysContainingAll,
   type KeyMatch,
 } from '../theory/keys';
 import { diatonicChords } from '../theory/harmony';
+import {
+  placeVoicingAll,
+  structuresForChord,
+  structureName,
+  inversionCount,
+  inversionName,
+} from '../theory/chord';
+import { voiceLeadProgression } from '../theory/voiceLeading';
 import { noteName, pitchClassOf, spellNoteFromInterval, midiOf } from '../theory/notes';
 import { playProgression } from '../audio/player';
+import { TabView } from '../render/TabView';
 
 const CHORD_LIST = Object.values(CHORDS);
 const SCALE_ORDER = Object.values(SCALES);
@@ -112,10 +124,32 @@ export function SongView() {
   ]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [openKey, setOpenKey] = useState<KeyMatch | null>(null);
+  // Voice leading: when on, the SELECTED chord is the anchor; its voicing
+  // (structure + inversion) seeds smooth voicings for the rest.
+  const [voiceLead, setVoiceLead] = useState(false);
+  const [anchorStructureId, setAnchorStructureId] = useState('close');
+  const [anchorInversion, setAnchorInversion] = useState(0);
 
   const selected = chords[selectedIndex] ?? chords[0];
   const selRoot = ROOT_CHOICES[selected.rootIndex];
   const selChord = CHORDS[selected.chordId];
+
+  // --- Voice-leading: pick the anchor's voicing, lead the rest around it ----
+  const anchorStructures = structuresForChord(selChord, STRUCTURES);
+  const anchorStructure = anchorStructures.find((s) => s.id === anchorStructureId) ?? anchorStructures[0];
+  const anchorInv = Math.min(anchorInversion, inversionCount(selChord) - 1);
+  let voicedShapes: PlacedNote[][] = [];
+  if (voiceLead) {
+    const anchorShape =
+      placeVoicingAll(GUITAR, GUITAR_STANDARD, selRoot, selChord, anchorStructure, anchorInv)[0] ?? [];
+    voicedShapes = voiceLeadProgression(
+      GUITAR,
+      GUITAR_STANDARD,
+      chords.map((c) => ({ root: ROOT_CHOICES[c.rootIndex], chord: CHORDS[c.chordId] })),
+      selectedIndex,
+      anchorShape,
+    );
+  }
 
   // --- Timing: where each chord starts, and how many bars the song spans -----
   const starts: number[] = [];
@@ -192,11 +226,15 @@ export function SongView() {
   };
 
   // Strum the progression in time at BPM (chords sustain for their duration).
+  // When voice-leading is on, play the voice-led shapes; otherwise close root.
   const playSong = () => {
     const secPerBeat = 60 / bpm;
     playProgression(
       chords.map((c, i) => ({
-        midis: chordMidis(c),
+        midis:
+          voiceLead && voicedShapes[i]
+            ? voicedShapes[i].map((p) => midiOf(p.note))
+            : chordMidis(c),
         atSec: starts[i] * secPerBeat,
         durSec: c.durationBeats * secPerBeat,
       })),
@@ -233,6 +271,12 @@ export function SongView() {
         </div>
         <button className="chart-add" onClick={addChord}>
           + Add chord
+        </button>
+        <button
+          className={voiceLead ? 'pill pill--on' : 'pill'}
+          onClick={() => setVoiceLead((v) => !v)}
+        >
+          Voice-lead
         </button>
       </div>
 
@@ -352,6 +396,56 @@ export function SongView() {
         {chordLabel(selected)} lasts {formatBeats(selected.durationBeats)} — drag
         its edges on the timeline to resize.
       </p>
+
+      {/* Auto voice-leading: the selected chord is the anchor; pick its voicing
+          and the rest follow with the smoothest playable shapes. */}
+      {voiceLead && (
+        <div className="vl-panel">
+          <p className="control-hint">
+            Anchor: <strong>{chordLabel(selected)}</strong> — pick its voicing; the
+            rest voice-lead to the nearest shapes.
+          </p>
+          <div className="control-group" role="group" aria-label="Anchor structure">
+            {anchorStructures.map((s) => (
+              <button
+                key={s.id}
+                className={s.id === anchorStructure.id ? 'pill pill--on' : 'pill'}
+                onClick={() => setAnchorStructureId(s.id)}
+              >
+                {structureName(s, inversionCount(selChord))}
+              </button>
+            ))}
+          </div>
+          <div className="control-group" role="group" aria-label="Anchor inversion">
+            {Array.from({ length: inversionCount(selChord) }, (_, i) => (
+              <button
+                key={i}
+                className={i === anchorInv ? 'pill pill--on' : 'pill'}
+                onClick={() => setAnchorInversion(i)}
+              >
+                {inversionName(i)}
+              </button>
+            ))}
+          </div>
+          {/* One TAB per chord, in order — the voice-led shapes. */}
+          <div className="tab-shelf">
+            {chords.map((c, i) => (
+              <div
+                key={i}
+                className={i === selectedIndex ? 'tab-card tab-card--on' : 'tab-card'}
+                onClick={() => setSelectedIndex(i)}
+              >
+                <TabView
+                  instrument={GUITAR}
+                  tuning={GUITAR_STANDARD}
+                  placed={voicedShapes[i] ?? []}
+                  caption={chordLabel(c)}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <p className="tagline">
         Over <strong>{chordLabel(selected)}</strong> — {selectedKeys.length} keys
