@@ -261,3 +261,12 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   neighbour); the last chord's right edge extends the song. Computed from the
   durations captured at drag-start, so it's not cumulative/jittery. Replaced the
   too-coarse 6-button picker; default stays one bar.
+
+## Session 5e — line-wrapping + tempo
+
+- **Wrapped rows (lead-sheet systems)** — the chart wraps into rows of N bars. A
+  chord is drawn as one SEGMENT per row it touches: clamp its [start, end] to
+  each row's beat range and render the overlap. The label, remove × and the real
+  edge handles sit only on the chord's true start/end; carried-over segments are
+  unlabelled with a dashed left edge (a tie/continuation).
+- **Tempo** — a BPM value (–/+); playback uses `60/bpm` seconds per beat.

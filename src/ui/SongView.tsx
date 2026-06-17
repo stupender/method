@@ -106,6 +106,7 @@ const keyId = (tonic: Note, scaleId: string) => `${pitchClassOf(tonic)}:${scaleI
 
 export function SongView() {
   const [beatsPerBar, setBeatsPerBar] = useState(4);
+  const [bpm, setBpm] = useState(BPM);
   const [chords, setChords] = useState<ChartChord[]>([
     { rootIndex: 5, chordId: 'minor-triad', durationBeats: 4 }, // Fm, one bar
   ]);
@@ -125,7 +126,10 @@ export function SongView() {
   }
   const totalBeats = acc;
   const barCount = Math.max(1, Math.ceil(totalBeats / beatsPerBar));
-  const timelineBeats = barCount * beatsPerBar; // round up to whole bars
+  // Wrap the chart into rows of bars, like a real lead sheet.
+  const barsPerRow = 4;
+  const rowBeats = barsPerRow * beatsPerBar;
+  const rowCount = Math.ceil(barCount / barsPerRow);
 
   // The selected chord's keys, and the keys that fit the WHOLE progression.
   const selectedKeys = keysContaining(selRoot, selChord);
@@ -189,7 +193,7 @@ export function SongView() {
 
   // Strum the progression in time at BPM (chords sustain for their duration).
   const playSong = () => {
-    const secPerBeat = 60 / BPM;
+    const secPerBeat = 60 / bpm;
     playProgression(
       chords.map((c, i) => ({
         midis: chordMidis(c),
@@ -217,69 +221,106 @@ export function SongView() {
         <button className="pill pill--play" onClick={playSong}>
           ▶ Play
         </button>
+        {/* Tempo. */}
+        <div className="tempo" role="group" aria-label="Tempo">
+          <button className="pill pill--tiny" onClick={() => setBpm((b) => Math.max(40, b - 5))}>
+            –
+          </button>
+          <span className="tempo__value">♩ = {bpm}</span>
+          <button className="pill pill--tiny" onClick={() => setBpm((b) => Math.min(280, b + 5))}>
+            +
+          </button>
+        </div>
         <button className="chart-add" onClick={addChord}>
           + Add chord
         </button>
       </div>
 
-      {/* The lead sheet as a timeline: bar lines from the time signature, each
-          chord a block as wide as its duration — so chords cross bar lines. */}
-      <div className="timeline-scroll">
-      <div className="timeline" style={{ width: timelineBeats * PX_PER_BEAT }}>
-        {/* Bar lines (one per bar boundary, behind the chords). */}
-        {Array.from({ length: barCount + 1 }, (_, b) => (
-          <div
-            key={`bar-${b}`}
-            className="timeline-bar"
-            style={{ left: b * beatsPerBar * PX_PER_BEAT }}
-          />
-        ))}
-        {/* Chord blocks, positioned and sized by their start + duration. */}
-        {chords.map((c, i) => (
-          <div
-            key={i}
-            className={i === selectedIndex ? 'tl-chord tl-chord--on' : 'tl-chord'}
-            style={{
-              left: starts[i] * PX_PER_BEAT,
-              width: c.durationBeats * PX_PER_BEAT,
-            }}
-            onClick={() => {
-              setSelectedIndex(i);
-              setOpenKey(null);
-            }}
-          >
-            <span className="tl-chord__label">{chordLabel(c)}</span>
-            {chords.length > 1 && (
-              <button
-                className="tl-chord__remove"
-                aria-label="Remove chord"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  removeChord(i);
-                }}
-              >
-                ×
-              </button>
-            )}
-            {/* Drag handles: the left edge (trades with the previous chord) and
-                the right edge (trades with the next, or extends the song). */}
-            {i > 0 && (
-              <div
-                className="tl-handle tl-handle--left"
-                onPointerDown={(e) => onEdgeDown(e, i, 'left')}
-                onPointerMove={onEdgeMove}
-                onPointerUp={onEdgeUp}
-              />
-            )}
+      {/* The lead sheet, wrapped into rows of bars. Each chord is drawn as one
+          segment per row it touches, so a chord crossing a bar line — or a row
+          break — simply spans it. Labels + handles sit on the chord's true
+          start/end; continuation segments are unlabelled. */}
+      <div className="timeline-rows">
+        {Array.from({ length: rowCount }, (_, r) => {
+          const barsInRow = Math.min(barsPerRow, barCount - r * barsPerRow);
+          const rowStart = r * rowBeats;
+          const rowSpanBeats = barsInRow * beatsPerBar;
+          return (
             <div
-              className="tl-handle tl-handle--right"
-              onPointerDown={(e) => onEdgeDown(e, i, 'right')}
-              onPointerMove={onEdgeMove}
-              onPointerUp={onEdgeUp}
-            />
-          </div>
-        ))}
-      </div>
+              key={`row-${r}`}
+              className="timeline"
+              style={{ width: rowSpanBeats * PX_PER_BEAT }}
+            >
+              {/* Bar lines for this row. */}
+              {Array.from({ length: barsInRow + 1 }, (_, b) => (
+                <div
+                  key={`bar-${b}`}
+                  className="timeline-bar"
+                  style={{ left: b * beatsPerBar * PX_PER_BEAT }}
+                />
+              ))}
+              {/* Chord segments that fall in this row. */}
+              {chords.map((c, i) => {
+                const start = starts[i];
+                const end = start + c.durationBeats;
+                const segStart = Math.max(start, rowStart);
+                const segEnd = Math.min(end, rowStart + rowSpanBeats);
+                if (segEnd <= segStart) return null; // not in this row
+                const isStart = segStart === start;
+                const isEnd = segEnd === end;
+                return (
+                  <div
+                    key={i}
+                    className={
+                      'tl-chord' +
+                      (i === selectedIndex ? ' tl-chord--on' : '') +
+                      (isStart ? '' : ' tl-chord--cont')
+                    }
+                    style={{
+                      left: (segStart - rowStart) * PX_PER_BEAT,
+                      width: (segEnd - segStart) * PX_PER_BEAT,
+                    }}
+                    onClick={() => {
+                      setSelectedIndex(i);
+                      setOpenKey(null);
+                    }}
+                  >
+                    {isStart && <span className="tl-chord__label">{chordLabel(c)}</span>}
+                    {isStart && chords.length > 1 && (
+                      <button
+                        className="tl-chord__remove"
+                        aria-label="Remove chord"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeChord(i);
+                        }}
+                      >
+                        ×
+                      </button>
+                    )}
+                    {/* Handles only on the chord's real edges. */}
+                    {isStart && i > 0 && (
+                      <div
+                        className="tl-handle tl-handle--left"
+                        onPointerDown={(e) => onEdgeDown(e, i, 'left')}
+                        onPointerMove={onEdgeMove}
+                        onPointerUp={onEdgeUp}
+                      />
+                    )}
+                    {isEnd && (
+                      <div
+                        className="tl-handle tl-handle--right"
+                        onPointerDown={(e) => onEdgeDown(e, i, 'right')}
+                        onPointerMove={onEdgeMove}
+                        onPointerUp={onEdgeUp}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
 
       {/* Edit the selected chord: its root, then its quality. */}

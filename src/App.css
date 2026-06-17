@@ -182,13 +182,19 @@
   margin-right: 4px;
 }
 
-/* The timeline: bar lines + chord blocks, scrolls if long. Width is set inline
-   from the song length. */
+/* The chart wraps into rows of bars, like a lead sheet. */
+.timeline-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 18px 0 24px;
+}
+
+/* One row of the lead sheet: bar lines + chord blocks. Width is set inline from
+   how many bars are in the row. */
 .timeline {
   position: relative;
   height: 60px;
-  min-width: 100%;
-  margin: 18px 0 24px;
   border-bottom: 1px solid var(--line);
   overflow: visible;
 }
@@ -220,6 +226,10 @@
 .tl-chord--on {
   border-left-color: var(--accent);
   background: var(--accent-bg, rgba(224, 112, 91, 0.08));
+}
+/* A continuation segment (a chord carried over a row break): no start edge. */
+.tl-chord--cont {
+  border-left: 2px dashed var(--line);
 }
 .tl-chord__label {
   font-family: var(--serif);
@@ -299,9 +309,24 @@
   border-color: var(--muted);
 }
 
-/* Let the timeline scroll horizontally on small screens. */
-.timeline-scroll {
-  overflow-x: auto;
+/* Tempo control in the transport row. */
+.tempo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tempo__value {
+  font-size: 14px;
+  color: var(--ink);
+  min-width: 64px;
+  text-align: center;
+}
+.pill--tiny {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1;
 }
 
 /* --- Songwriter / GPS reveal -------------------------------------------- */
