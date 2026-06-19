@@ -170,13 +170,14 @@ function placeOnStringSets(
   tuning: Tuning,
   voices: Voice[],
   stringSets: number[][],
+  maxSpan = MAX_SPAN,
 ): PlacedNote[][] {
   const shapes: PlacedNote[][] = [];
   for (const strings of stringSets) {
     const baseFrets = voices.map(
       (v, i) => midiOf(v.note) - openMidi(tuning, strings[i]),
     );
-    if (Math.max(...baseFrets) - Math.min(...baseFrets) > MAX_SPAN) continue;
+    if (Math.max(...baseFrets) - Math.min(...baseFrets) > maxSpan) continue;
 
     const minShift = Math.ceil(-Math.min(...baseFrets) / 12);
     const maxShift = Math.floor(
@@ -228,6 +229,27 @@ export function placeVoicingAll(
       voices,
       skipStringSets(voices.length, instrument.stringCount),
     );
+  }
+  // Last resort: some voicings (e.g. certain 7th-chord inversions) don't fit ANY
+  // string set within a comfortable span. Rather than show nothing, place it on
+  // every string set ignoring the span limit and keep the single least-stretch
+  // one — the most playable version (the UI flags it as a difficult stretch).
+  if (shapes.length === 0) {
+    const all = placeOnStringSets(
+      instrument,
+      tuning,
+      voices,
+      [
+        ...contiguousStringSets(voices.length, instrument.stringCount),
+        ...skipStringSets(voices.length, instrument.stringCount),
+      ],
+      Infinity,
+    );
+    const span = (s: PlacedNote[]) =>
+      Math.max(...s.map((p) => p.position.fret)) -
+      Math.min(...s.map((p) => p.position.fret));
+    all.sort((a, b) => span(a) - span(b));
+    if (all.length) shapes = [all[0]];
   }
 
   // Order shapes by STRING SET, lowest strings first (then by fret within a

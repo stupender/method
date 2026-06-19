@@ -6,8 +6,8 @@
   display: inline-flex;
   flex-direction: column;
   gap: 0;
-  padding: 14px 18px;
-  background: #f3eee4;
+  padding: 12px 16px;
+  background: transparent;
   border-radius: 8px;
   font-family: var(--sans);
 }
@@ -28,30 +28,27 @@
   margin-right: 10px;
 }
 
-/* The horizontal string line each fret marker sits on. */
+/* The horizontal string line each fret marker sits on — matches the Song staff. */
 .tab-line {
   position: relative;
   width: 120px;
-  border-bottom: 1px solid #b8ad99;
+  border-bottom: 1px solid #d8d0c0;
   display: flex;
   justify-content: center;
   gap: 6px;
 }
 
-/* The fret number (or mute mark), centred and lifted onto the line. */
+/* The fret number (or mute mark): a plain number sitting on the line, like the
+   Song score's staff, so the two TAB views read identically. */
 .tab-mark {
   position: relative;
   top: 10px;
-  background: var(--ink);
-  color: #fff;
-  font-size: 13px;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 12px;
   font-weight: 600;
-  min-width: 22px;
-  height: 22px;
-  line-height: 22px;
   text-align: center;
-  border-radius: 11px;
-  padding: 0 4px;
+  padding: 0 3px;
 }
 
 /* Muted strings: a quiet "x" rather than a filled marker. */

@@ -42,7 +42,7 @@ function App() {
               className={area === a ? 'topnav-item topnav-item--on' : 'topnav-item'}
               onClick={() => setArea(a)}
             >
-              {a === 'study' ? 'Study' : 'Song'}
+              {a === 'study' ? 'Possibility' : 'Play'}
             </button>
           ))}
         </nav>

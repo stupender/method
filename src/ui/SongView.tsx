@@ -39,13 +39,6 @@ import { playProgression } from '../audio/player';
 const CHORD_LIST = Object.values(CHORDS);
 const SCALE_ORDER = Object.values(SCALES);
 
-// Time signatures we offer (top number = beats per bar, quarter-note beats).
-const TIME_SIGS = [
-  { label: '4/4', beatsPerBar: 4 },
-  { label: '3/4', beatsPerBar: 3 },
-  { label: '2/4', beatsPerBar: 2 },
-  { label: '5/4', beatsPerBar: 5 },
-];
 // A friendly beat count, e.g. 2.5 -> "2½ beats", 1 -> "1 beat".
 function formatBeats(b: number): string {
   const whole = Math.floor(b);
@@ -119,7 +112,8 @@ const chordLabel = (c: ChartChord) =>
 const keyId = (tonic: Note, scaleId: string) => `${pitchClassOf(tonic)}:${scaleId}`;
 
 export function SongView() {
-  const [beatsPerBar, setBeatsPerBar] = useState(4);
+  const [beatsPerBar, setBeatsPerBar] = useState(4); // time-sig numerator
+  const [denominator, setDenominator] = useState(4); // time-sig bottom number
   const [bpm, setBpm] = useState(BPM);
   const [chords, setChords] = useState<ChartChord[]>([
     { rootIndex: 5, chordId: 'minor-triad', durationBeats: 4 }, // Fm, one bar
@@ -232,7 +226,8 @@ export function SongView() {
   // Strum the progression in time at BPM (chords sustain for their duration).
   // When voice-leading is on, play the voice-led shapes; otherwise close root.
   const playSong = () => {
-    const secPerBeat = 60 / bpm;
+    // A "beat" is the time-signature's bottom note; tempo (♩) is the quarter.
+    const secPerBeat = (60 / bpm) * (4 / denominator);
     playProgression(
       chords.map((c, i) => ({
         midis:
@@ -249,16 +244,29 @@ export function SongView() {
     <>
       {/* Transport: time signature + play. */}
       <div className="controls-row">
-        <div className="control-group" role="group" aria-label="Time signature">
-          {TIME_SIGS.map((t) => (
-            <button
-              key={t.label}
-              className={t.beatsPerBar === beatsPerBar ? 'pill pill--on' : 'pill'}
-              onClick={() => setBeatsPerBar(t.beatsPerBar)}
-            >
-              {t.label}
-            </button>
-          ))}
+        <div className="timesig" role="group" aria-label="Time signature">
+          <input
+            type="number"
+            min={1}
+            max={32}
+            value={beatsPerBar}
+            onChange={(e) =>
+              setBeatsPerBar(Math.max(1, Math.min(32, Number(e.target.value) || 1)))
+            }
+            aria-label="Beats per bar"
+          />
+          <span>/</span>
+          <select
+            value={denominator}
+            onChange={(e) => setDenominator(Number(e.target.value))}
+            aria-label="Beat unit"
+          >
+            {[2, 4, 8, 16].map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </select>
         </div>
         <button className="pill pill--play" onClick={playSong}>
           ▶ Play
@@ -471,7 +479,7 @@ export function SongView() {
       )}
 
       <p className="tagline">
-        Over <strong>{chordLabel(selected)}</strong> — {selectedKeys.length} keys
+        <strong>{chordLabel(selected)}</strong> exists in {selectedKeys.length} keys
         {chords.length > 1 && (
           <>
             , <strong>{fitCount}</strong> fit the whole progression

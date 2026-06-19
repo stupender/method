@@ -298,3 +298,18 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Reused the voicing data** — the staff just renders `voicedShapes[i]`
   (PlacedNote string/fret) at the chord's x; no new theory. Heading toward a full
   score with rhythm notation later.
+
+## Session 6a — quick wins
+
+- **Never-blank voicings** — `placeVoicingAll` now has a last-resort pass: if a
+  voicing fits no string set within MAX_SPAN, place it on every set ignoring the
+  span and keep the least-stretch one. ChordExplorer flags it (span > 4) with a
+  "wide stretch — try Drop 2/3" note instead of showing nothing.
+- **Flexible time signature** — a typed numerator + denominator dropdown; a
+  "beat" is the bottom note, so `secPerBeat = (60/bpm)·(4/denominator)`.
+- **Consistent heading spacing** — `.tagline` now has margin BELOW as well as
+  above, so headings don't butt against the controls under them.
+- **Unified TAB look** — the Study TabView marks are now plain numbers on light
+  string lines, matching the Song score's staff.
+- Renamed the areas Study → **Possibility**, Song → **Play**; copy "Over Fm — N
+  keys" → "Fm exists in N keys".

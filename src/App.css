@@ -53,7 +53,7 @@
 .tagline {
   color: var(--muted);
   font-size: 18px;
-  margin: 24px 0 0;
+  margin: 26px 0 18px; /* consistent breathing room above AND below the heading */
 }
 
 /* Top-level area switch (Study / Song) — a higher-level nav than the pills. */
@@ -316,6 +316,38 @@
   color: var(--muted);
   font-size: 13px;
   margin: 14px 0 0;
+}
+.control-hint--warn {
+  color: var(--accent);
+}
+
+/* Time-signature input in the transport. */
+.timesig {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.timesig input,
+.timesig select {
+  width: 42px;
+  height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--ink);
+  text-align: center;
+  -moz-appearance: textfield;
+}
+.timesig input::-webkit-outer-spin-button,
+.timesig input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.timesig span {
+  color: var(--muted);
+  font-size: 18px;
 }
 
 /* The auto voice-leading panel. */

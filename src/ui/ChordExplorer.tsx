@@ -57,6 +57,16 @@ export function ChordExplorer({ root, chord }: { root: Note; chord: ChordDefinit
     inversion,
   );
 
+  // If even the easiest shape is a wide stretch, this voicing is hard to grab —
+  // flag it and suggest a drop voicing instead of leaving it blank.
+  const span = (s: (typeof shapes)[number]) =>
+    s.length === 0
+      ? 0
+      : Math.max(...s.map((p) => p.position.fret)) -
+        Math.min(...s.map((p) => p.position.fret));
+  const tightestSpan = shapes.length ? Math.min(...shapes.map(span)) : 0;
+  const isDifficult = tightestSpan > 4;
+
   // Play a chord shape (its notes, strummed).
   const playShape = (shape: (typeof shapes)[number]) =>
     playChord(shape.map((p) => midiOf(p.note)));
@@ -115,6 +125,13 @@ export function ChordExplorer({ root, chord }: { root: Note; chord: ChordDefinit
           </div>
         </div>
       </div>
+
+      {isDifficult && (
+        <p className="control-hint control-hint--warn">
+          This voicing is a wide stretch — a Drop 2 or Drop 3 voicing is much
+          easier to grab.
+        </p>
+      )}
 
       <Fretboard
         instrument={GUITAR}
