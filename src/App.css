@@ -173,6 +173,14 @@
   border-color: var(--accent);
 }
 
+/* The chord editor (root row + quality row): stack them with breathing room so
+   the chord-quality names don't butt against the note names above. */
+.chord-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 /* --- Song: the lead-sheet timeline -------------------------------------- */
 /* A small inline label inside a control row (e.g. "Beats"). */
 .control-label {

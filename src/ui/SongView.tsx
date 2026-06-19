@@ -11,7 +11,13 @@
 // Rhythm/timing, import and voice-leading build on top of this (see BACKLOG.md).
 // ============================================================================
 
-import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import {
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
 import type { Note, PlacedNote } from '../theory/types';
 import { CHORDS } from '../data/chords';
 import { SCALES } from '../data/scales';
@@ -93,7 +99,9 @@ function resizeAtEdge(
 
 // One chord in the chart — stored as indices so it's easy to edit, plus how long
 // it lasts (in beats). Chords lay end to end; bar lines come from the time sig.
-interface ChartChord {
+// Exported because the SONG itself (the chord list) lives up in App, so it
+// persists when you switch areas and so Possibility can append to it.
+export interface ChartChord {
   rootIndex: number;
   chordId: string;
   durationBeats: number;
@@ -111,13 +119,20 @@ const chordLabel = (c: ChartChord) =>
 // A stable key for a (tonic, scale) pair, by pitch class so spelling doesn't matter.
 const keyId = (tonic: Note, scaleId: string) => `${pitchClassOf(tonic)}:${scaleId}`;
 
-export function SongView() {
+// The song's chord list (`chords`) is owned by App and handed in, so it persists
+// across area switches and Possibility can add to it. Everything else here —
+// tempo, time signature, which chord is selected, voice-leading — is view state
+// local to this screen.
+export function SongView({
+  chords,
+  setChords,
+}: {
+  chords: ChartChord[];
+  setChords: Dispatch<SetStateAction<ChartChord[]>>;
+}) {
   const [beatsPerBar, setBeatsPerBar] = useState(4); // time-sig numerator
   const [denominator, setDenominator] = useState(4); // time-sig bottom number
   const [bpm, setBpm] = useState(BPM);
-  const [chords, setChords] = useState<ChartChord[]>([
-    { rootIndex: 5, chordId: 'minor-triad', durationBeats: 4 }, // Fm, one bar
-  ]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [openKey, setOpenKey] = useState<KeyMatch | null>(null);
   // Voice leading: when on, the SELECTED chord is the anchor; its voicing
@@ -414,7 +429,9 @@ export function SongView() {
         })}
       </div>
 
-      {/* Edit the selected chord: its root, then its quality. */}
+      {/* Edit the selected chord: its root, then its quality. The two rows are
+          stacked with a gap so the chord-quality names don't touch the roots. */}
+      <div className="chord-editor">
       <div className="control-group" role="group" aria-label="Chord root">
         {ROOT_CHOICES.map((note, i) => (
           <button
@@ -436,6 +453,7 @@ export function SongView() {
             {c.name}
           </button>
         ))}
+      </div>
       </div>
 
       {/* Duration is set by dragging the chord's edges on the timeline. */}

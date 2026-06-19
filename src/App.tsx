@@ -15,10 +15,10 @@ import { CHORDS } from './data/chords';
 import { ROOT_CHOICES } from './data/roots';
 import { realizeScale } from './theory/scale';
 import { diatonicChords } from './theory/harmony';
-import { noteName } from './theory/notes';
+import { noteName, pitchClassOf } from './theory/notes';
 import { ChordExplorer } from './ui/ChordExplorer';
 import { ScaleExplorer } from './ui/ScaleExplorer';
-import { SongView } from './ui/SongView';
+import { SongView, type ChartChord } from './ui/SongView';
 import './App.css';
 
 const SCALE_LIST = Object.values(SCALES);
@@ -29,6 +29,16 @@ type Mode = 'scale' | 'chord' | 'harmony';
 
 function App() {
   const [area, setArea] = useState<Area>('study');
+
+  // The SONG (the chord list) lives here, above both areas, so it survives
+  // switching to Possibility and back, and so the "Add to Play" button in
+  // Possibility can append to it. Tempo / time-sig / selection stay inside Play.
+  const [songChords, setSongChords] = useState<ChartChord[]>([
+    { rootIndex: 5, chordId: 'minor-triad', durationBeats: 4 }, // Fm, one bar
+  ]);
+  // Add a chord (root + quality) to the end of the song, one bar long by default.
+  const addToSong = (rootIndex: number, chordId: string) =>
+    setSongChords((cs) => [...cs, { rootIndex, chordId, durationBeats: 4 }]);
 
   return (
     <main className="page page--wide">
@@ -48,13 +58,26 @@ function App() {
         </nav>
       </header>
 
-      {area === 'study' ? <StudyArea /> : <SongView />}
+      {/* Both areas stay mounted (just hidden) so each keeps its own state when
+          you switch — the song, and Possibility's key/scale/mode choices. */}
+      <div hidden={area !== 'study'}>
+        <StudyArea onAddChord={addToSong} songLength={songChords.length} />
+      </div>
+      <div hidden={area !== 'song'}>
+        <SongView chords={songChords} setChords={setSongChords} />
+      </div>
     </main>
   );
 }
 
 // --- Study: explore Scales / Harmony on the neck ---------------------------
-function StudyArea() {
+function StudyArea({
+  onAddChord,
+  songLength,
+}: {
+  onAddChord: (rootIndex: number, chordId: string) => void;
+  songLength: number;
+}) {
   const [mode, setMode] = useState<Mode>('scale');
   const [rootIndex, setRootIndex] = useState(0); // the Key
   const [scaleId, setScaleId] = useState(SCALE_LIST[0].id); // the Scale type
@@ -109,7 +132,14 @@ function StudyArea() {
 
       {mode === 'scale' && <ScaleView root={root} scale={scale} />}
       {mode === 'chord' && <ChordView root={root} />}
-      {mode === 'harmony' && <HarmonyView root={root} scale={scale} />}
+      {mode === 'harmony' && (
+        <HarmonyView
+          root={root}
+          scale={scale}
+          onAddChord={onAddChord}
+          songLength={songLength}
+        />
+      )}
     </>
   );
 }
@@ -169,7 +199,17 @@ function ChordView({ root }: { root: Note }) {
 }
 
 // --- Harmony view: the chords OF a key (diatonic harmony) ------------------
-function HarmonyView({ root, scale }: { root: Note; scale: ScaleDefinition }) {
+function HarmonyView({
+  root,
+  scale,
+  onAddChord,
+  songLength,
+}: {
+  root: Note;
+  scale: ScaleDefinition;
+  onAddChord: (rootIndex: number, chordId: string) => void;
+  songLength: number;
+}) {
   const [seventh, setSeventh] = useState(false);
   const [degree, setDegree] = useState(0);
 
@@ -177,6 +217,16 @@ function HarmonyView({ root, scale }: { root: Note; scale: ScaleDefinition }) {
   // global scale type (major, harmonic minor, ...) changes the whole harmony set.
   const chords = diatonicChords(root, scale, seventh);
   const selected = chords[degree] ?? chords[0];
+
+  // To add this chord to the Play song we need its root as an index into the
+  // shared root list (Play stores roots that way). Match by pitch class, so the
+  // diatonic spelling (e.g. Bb vs A#) doesn't matter.
+  const selectedRootIndex = ROOT_CHOICES.findIndex(
+    (n) => pitchClassOf(n) === pitchClassOf(selected.chordRoot),
+  );
+  const addThisChord = () => {
+    if (selectedRootIndex >= 0) onAddChord(selectedRootIndex, selected.chord.id);
+  };
 
   return (
     <>
@@ -212,6 +262,17 @@ function HarmonyView({ root, scale }: { root: Note; scale: ScaleDefinition }) {
           >
             Sevenths
           </button>
+        </div>
+
+        {/* Send this chord over to the Play song (it persists across areas). */}
+        <div className="controls-row">
+          <button className="chart-add" onClick={addThisChord}>
+            + Add {noteName(selected.chordRoot)}
+            {selected.chord.symbol} to Play
+          </button>
+          <span className="control-label">
+            {songLength} chord{songLength === 1 ? '' : 's'} in Play
+          </span>
         </div>
       </div>
 

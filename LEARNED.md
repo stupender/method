@@ -313,3 +313,18 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   string lines, matching the Song score's staff.
 - Renamed the areas Study → **Possibility**, Song → **Play**; copy "Over Fm — N
   keys" → "Fm exists in N keys".
+
+## Session 6b — "Add to Play" from Possibility
+
+- **Lifting state to the common parent** — the SONG (the chord list) now lives in
+  App, above both areas, because two screens need it: Play edits it, and
+  Possibility's "Add to Play" appends to it. State belongs with the lowest
+  component that contains everyone who uses it. SongView is now CONTROLLED: it
+  takes `chords` + `setChords` as props instead of owning them.
+- **Keeping both areas mounted** — App renders Possibility and Play together and
+  just `hidden`s the inactive one, so each keeps its own view-state (tempo, time
+  signature, selection; the key/scale/mode) when you switch back and forth.
+  Unmounting would reset all of that.
+- **Match by pitch class, not spelling** — to turn a diatonic chord's root into a
+  root-list index, compare pitch classes, so an enharmonic spelling (Bb vs A#)
+  still finds the right entry.
