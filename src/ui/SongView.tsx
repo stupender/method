@@ -60,6 +60,7 @@ const PX_PER_BEAT = 46; // timeline scale
 const SNAP = 0.25; // drag snaps to a sixteenth note
 const MIN_DUR = 0.25; // a chord must last at least this
 const CHORD_LANE_H = 40; // height of the chord-symbol lane (top of a system)
+const STAFF_GAP = 16; // breathing room between the chord lane and the TAB staff
 const STRING_GAP = 15; // vertical gap between TAB staff string lines
 
 // Resize a chord by dragging one of its edges by `delta` beats. An edge sits on
@@ -292,7 +293,7 @@ export function SongView() {
           const barsInRow = Math.min(barsPerRow, barCount - r * barsPerRow);
           const rowStart = r * rowBeats;
           const rowSpanBeats = barsInRow * beatsPerBar;
-          const systemH = CHORD_LANE_H + (voiceLead ? staffHeight + 14 : 0);
+          const systemH = CHORD_LANE_H + (voiceLead ? STAFF_GAP + staffHeight + 14 : 0);
           return (
             <div
               key={`row-${r}`}
@@ -370,7 +371,7 @@ export function SongView() {
               {/* TAB staff: string lines + each chord's voiced frets, placed at
                   the chord's start, directly under its symbol. */}
               {voiceLead && (
-                <div className="staff" style={{ top: CHORD_LANE_H, height: staffHeight }}>
+                <div className="staff" style={{ top: CHORD_LANE_H + STAFF_GAP, height: staffHeight }}>
                   {Array.from({ length: GUITAR.stringCount }, (_, line) => (
                     <div
                       key={`line-${line}`}
