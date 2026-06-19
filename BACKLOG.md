@@ -1,243 +1,286 @@
 # BACKLOG.md — triaged feature plan
 
 How to read this: features are grouped by **when**, not just **what**. The rule
-from [CLAUDE.md](CLAUDE.md) holds — most of these arrive as DATA + small pure
-functions on the existing engine, not as rearchitecting. Nothing below preempts
-finishing **v1** (the GPS reveal, then VexFlow + polish, then the study guide).
+from [CLAUDE.md](CLAUDE.md) holds — most arrive as DATA + small pure functions on
+the existing engine, not as rearchitecting. Each item notes roughly where it
+plugs into the layers (`data → theory → render → audio → ui`).
 
-Each item notes roughly where it plugs into the layers
-(`data → theory → render → audio → ui`).
-
----
-
-## In progress — finish v1 first
-
-These come before anything in this file (see the build plan in CLAUDE.md):
-
-1. **Session 5 — the Search Engine / GPS reveal** (the signature interaction).
-2. **Session 6 — VexFlow notation + polish + case study.**
-3. **Session 7 — study guide.**
+**Where we are now (built & live):** two top-level areas —
+**Study** (Scales as position boxes / modes; Harmony = diatonic chords with Roman
+numerals; chord voicings as constellations + TAB across all string sets) and
+**Song** (lead-sheet score: chords in bars with rhythm, drag-resize, line-wrap,
+tempo, playback; the GPS "possibility" reveal that narrows as you add chords;
+auto voice-leading from an anchor; the TAB staff integrated under the chords).
+Everything below is the forward plan.
 
 ---
 
-## Soon (v1.x) — melodic & harmonic generators
+## Quick wins / near-term polish (small, do soon)
 
-These are clean extensions of the existing scale/chord engine and embody
-Method's "one transferable pattern" thesis. Self-contained; good first additions
-after v1 ships.
+- **Rename the two areas to "Possibility" & "Play"** (from Study & Song)? Stu's
+  proposal — fits the philosophy better. One nav rename if confirmed.
+- **Copy:** "Over Fm — 9 keys" → **"Fm exists in 9 keys"** (more accurate).
+- **Never show a blank voicing.** Some 7th-chord inversions render blank because
+  no playable shape fits. Rule: only DROP a voicing when a better alternative
+  exists (same notes, less stretch). If there's no alternative, still show the
+  most-playable version, with a small **"very difficult — try Drop 2/3"**
+  disclaimer rather than nothing. (Fix in `placeVoicingAll` + ChordExplorer.)
+- **Flexible time signature** in Song — type it in, or a dropdown per side of the
+  `/`, instead of a few fixed options.
+- **Unify the TAB look** between Study and Song so they read identically.
+
+---
+
+## Study / "Possibility" — restructure & additions
+
+### Roman numerals as the top-level degree selector
+
+Lift the Roman numeral / scale-degree above the Scale-vs-Harmony choice, so it
+**stays selected when you switch** between them. Then:
+- In **Scale**, the Roman numeral selects the **mode** (e.g. picking `5` gives
+  Mixolydian) — replacing today's separate scale-type-then-mode controls. The
+  bottom TAB then explores the **positions** of that mode.
+- In **Harmony**, it selects the **chord degree** in the chord-scale (as now).
+
+### Click a note → the scale/mode from that degree, in position
+
+Instead of the 3nps-vs-positional rules and exceptions, let the user **click any
+note on the neck** and generate the scale/mode starting on that **degree**, in
+the appropriate position. Bonus: see **all the places a mode lives** (e.g. every
+Mixolydian box) by clicking `5` anywhere. Still honour the "first string starts
+with 2 or 3 notes" idea — that choice sets which position the whole shape lands
+in (3-on-first-string sits at/above the first note's fret; 2-on-first-string sits
+a little below).
+
+### Positional fingering, refined
+
+In positional mode you still can't skip scale notes, but rather than 3 notes on
+the low E, the **3rd note moves to the A string**, continuing 2–3 per string and
+generally staying in one position. (Refine `positionalBoxes`.)
+
+### String sets are a first-class choice
+
+Let the user choose the **string set** for any chord voicing — a key step,
+including in Voice Leading. Also a **"whole chord scale" button** next to the
+Harmony Roman numerals that lays out the entire chord-scale (chord by chord, all
+string sets); you can still then pick inversion / voicing per chord.
+
+### Horizontal TAB for scales & patterns
+
+Chords read vertically (stacked); **scales/arpeggios/patterns should read
+horizontally**, note by note, like a sheet of music — **ascending**, with options
+for **descending**, octave/position shifts (Jon Gordon's "every scale up & down,
+two octaves, every key"). Then the **Add +** button can drop a scale/pattern into
+Song as a practice exercise.
+
+### More voicing shapes
+
+**Barre chords, open chords, fuller 6-string guitar-specific shapes/voicings** —
+added as voicing data + placement.
+
+### Smaller display options
+
+- **Finger numbers** on the fretboard (alongside scale degrees / note names /
+  open strings).
+
+---
+
+## Song / "Play" — remaining build
+
+### Add chords (and other units) from Study; persistent songs
+
+- **Add + from Study** — with a chord/voicing selected in Study, append it to the
+  open song. Requires **lifting the song state up** so it survives switching
+  areas. Also unlocks full **per-chord manual voicing** via the Study expansion.
+- **Multiple songs / songbooks & setlists** — hold many charts; (later) sync with
+  Spotify / Apple Music playlists to auto-generate a song or find a chart for it.
+
+### Per-bar UNIT type
+
+A bar can hold not just a chord but a **Scale / Arpeggio / Interval-Pattern /
+Phrase / Harmony**, and the Song view plays the chosen unit per bar. So a "song"
+could be an **arpeggio exercise that shifts keys**, or an interval exercise. Ties
+directly to the palta generator (item A).
+
+### Text chord entry & paste import
+
+- **+ Add chord → type its name** (e.g. "F-7"), with recognition / filter-search
+  to confirm — as an alternative to the root + chord-type selectors.
+- **Paste a text progression** (from Guitar Pro, Apple Notes, or typed) and have
+  the app read it into bars; a `,` or `|` denotes a bar line.
+
+### Playback / transport
+
+- **Play → Pause** toggle; a **playhead** (vertical scrub line) on the current
+  beat.
+- **Metronome** option, and a **mute toggle for chord audio** — some practise
+  with metronome only, some want the chords too.
+
+### Rhythm, refined
+
+- **Rests / pickups**, finer **tuplets** / subdivisions.
+- **Sections** (A / B / intro, repeats, endings, codas) — the `Section` type is
+  seeded for this.
+
+### Voice leading, refined
+
+For guitar/ukulele specifically (not piano), prefer staying in the **same string
+set / same position**, keeping as many notes the same / the **shortest distance**.
+(Tighten `voiceLeadDistance` with a string-set/position bias.)
+
+### Heat map of harmonic possibilities
+
+A visual **heat map** over the reveal that highlights which harmonic choices are
+most crucial to the flow of the song (vs interchangeable). Extends the GPS reveal.
+
+---
+
+## v1.x generators (clean extensions of the engine)
 
 ### A. Interval + direction melodic sequences ("paltas")
 
 Set a **series of notes** by repeating a pattern of **interval + direction**
-through a scale. Examples Stu gave:
+through a scale (e.g. `↑3 ↑2`, or `↓4 ↓2 ↑4 ↓2`). Key insight: a **scale is `↑2`
+repeated**, an **arpeggio is `↑3` repeated** — special cases of one generator.
 
-- `↑3 ↑2` repeated through all scale tones.
-- `↓4 ↓2 ↑4 ↓2` repeated.
-
-Key insight to build around: **a plain scale and an arpeggio are special cases.**
-- Scale = `↑2` repeated (all 2nds).
-- Arpeggio = `↑3` repeated (all 3rds).
-So this generalises what `theory/scale.ts` already does — likely we reframe the
-scale as the simplest pattern and the generator produces an ordered list of
-scale-degree positions to light up / play in sequence.
-
-- **data:** a `Sequence` definition = an ordered list of steps, each `{ interval
-  (in scale-degrees), direction (up/down) }`, plus a starting degree.
-- **theory:** pure function `(root, scale, sequence) → ordered PlacedNote[]`
-  (walk the scale by the pattern, wrapping octaves).
-- **render/audio/ui:** reuse the fretboard + `playSequence`; add a sequence
-  picker. The playback path already exists.
+- **data:** a `Sequence` = ordered `{ interval (scale-degrees), direction }` steps
+  + a starting degree.
+- **theory:** `(root, scale, sequence) → ordered PlacedNote[]`.
+- **render/audio/ui:** reuse the fretboard + `playSequence`. Feeds the Song
+  per-bar "unit type" above, and the horizontal scale/pattern TAB.
 
 ### B. Interval-pairing chord voicings (Vic Juris)
 
-Build chords by stacking a **specified set of intervals through the scale**,
-rather than tertian (every-third) stacks. Stu's example: `4th–2nd–6th` built on
-each scale degree (from his teacher Vic Juris' book).
-
-- **data:** a "voicing recipe" = a list of scale-step intervals to stack from
-  each degree (e.g. `[4th, 2nd, 6th]`), diatonic to the current scale.
-- **theory:** extends the chord/voicing engine — instead of tertian chord tones,
-  gather tones by the recipe, then the existing `placeVoicingAll` lays them out.
-- Relationship to current work: today chords are tertian (stacked 3rds). This
-  adds non-tertian construction as another source of "chord tones," then reuses
-  inversions / structures / placement unchanged.
+Build voicings by stacking a **specified interval set through the scale** (e.g.
+`4th–2nd–6th` on each degree), not tertian thirds. A "voicing recipe" → gather
+tones → reuse `placeVoicingAll`.
 
 ### Tasteful instrument voices
 
-A few extremely tasteful, rich default sounds to choose from — each an instrument
-in its own right (the current sound is a single plain triangle synth). Lives in
-`audio/`; the seam (`playNote` / `playChord` / `playSequence`) already isolates
-playback, so this is swap-in work.
+A few rich default sounds (the current one is a plain triangle synth). The audio
+seam (`playNote`/`playChord`/`playSequence`) already isolates this — swap-in work.
 
 ### Shuffle / Randomize for practice
 
-A randomize button for the fretboard + TABs themselves (not just ear training):
-shuffle within a chosen set of filters (keys, chord/scale types, intervals,
-voicings) so you stumble onto a new set of intervals or a fresh voicing to
-practise. Shares its filter model with the ear-training randomiser (item I).
-
-### Switchable colour palettes (the "living art book")
-
-Beautiful, contemplative palettes you can switch between — the colours of the
-five elements; bold pairings; gradients; analogue-film filters. The app already
-themes entirely from CSS variables in `index.css`, so a palette is just a named
-set of variable values. The ambition is coffee-table-art-book quality: superb
-typography, sizing and colour pairings. (Basic switching is small; the full art
-direction is an ongoing aesthetic track — best paired with the Session 6 polish.)
+A randomise button for the fretboard + TABs within chosen filters (keys,
+chord/scale types, intervals, voicings), to discover a new set. Shares its filter
+model with ear training.
 
 ---
 
-## The SONG area — lead sheets + the GPS reveal (in progress)
+## Import / DAW
 
-Song is its own **top-level area** (peer to Study), already in the app. Today it
-holds the single-chord reveal (the one-bar "drone" case). It grows into a full
-**lead-sheet workbench**: chords laid out in bars like a jazz chart, where
-clicking any chord reveals everything you can play/practise over it and where to
-go next. A "song" ranges from one chord to drone over → a few bars → a whole
-repertoire songbook. iReal Pro (irealpro.com) is the visual reference.
-
-Build order from here:
-
-### C. Multi-chord lead sheet + the three-layer chord model
-
-Lay out chords in bars; **click any chord** to run the GPS reveal on it. Adding
-more chords lets their candidate keys **intersect and narrow** the space.
-
-Each chord is understood in **three layers**, most open → most specific:
-1. **Neutral chord** — what the chord literally is (e.g. `Dm7`).
-2. **Roman numeral relative to a key center** — e.g. `ii7 in C`. Crucially this
-   can stay **open / not fixed to one interpretation**: the same `Dm7` is `ii in
-   C`, `vi in F`, `iii in Bb`… and that multiplicity is exactly the harmonic
-   "possibility space" the GPS reveal is about. Keep this layer plural where the
-   user hasn't committed to a key center.
-3. **Chosen voicing** — the specific structure/inversion/shape to play.
-
-- **data/theory:** `Progression`/`Section`/`Bar`/`ChordRef` (already seeded);
-  `ChordRef` carries the three layers (see seam refinement).
-- **ui:** a lead-sheet grid of bars you enter chords into.
-
-### "song" sizes
-- a **single chord** — a drone to practise over (today's Song view), or
-- a **few bars**, or a **whole repertoire songbook** (many charts).
-
-Each bar's chord is understood in **three layers**, most open → most specific:
-1. **Neutral chord** — what the chord literally is (e.g. `Dm7`).
-2. **Roman numeral relative to a key center** — e.g. `ii7 in C`. Crucially this
-   can stay **open / not fixed to one interpretation**: the same `Dm7` is `ii in
-   C`, `vi in F`, `iii in Bb`… and that multiplicity is exactly the harmonic
-   "possibility space" the GPS reveal is about. Keep this layer plural where the
-   user hasn't committed to a key center.
-3. **Chosen voicing** — the specific structure/inversion/shape to play.
-
-- **data/theory:** `Progression`/`Section`/`Bar`/`ChordRef` (already seeded);
-  `ChordRef` carries the three layers (see seam refinement).
-- **ui:** a progression strip you append the current chord+voicing to.
-
-### D. Rhythm — bar/beat timing + chords across bar lines (MVP done)
-
-The key departure from iReal Pro: **exact rhythms**, not "the chord fills a bar"
-approximations. MVP done: chords have a duration in beats, lay on a timeline with
-bar lines from the time signature, **cross bar lines**, and play back in time.
-
-Remaining refinements:
-- **Drag** to set/resize a chord's span (currently set via beat buttons).
-- Line-wrapping into systems (lead-sheet rows) for long songs (now one scroll row).
-- Rests/gaps and pickup bars; tempo control; finer subdivisions / tuplets.
-- Sections (A/B, repeats, endings, codas) — the `Section` type is seeded for this.
-
-### E. MIDI export
-
-After voicings are chosen, **export the progression as a MIDI file** to drop into
-a DAW.
-- **audio/export:** a small MIDI-file writer from the placed notes + timing. Pure
-  data → bytes; no playback dependency. (Standard MIDI File format is simple.)
-
-### F. MIDI import + editing
-
-- **Import** MIDI files; **edit** the resulting progression (chords, timing).
-- Inverse of E plus the editing UI from C/D.
-
-### G. iReal Pro import (already planned)
-
-Parse iReal charts (title, key, time signature, measures, repeats/endings) into
-the `Progression` model, feeding C/D. The model is shaped for this; importer not
-built.
+- **iReal Pro import** — parse charts (title, key, time sig, measures,
+  repeats/endings) into the `Progression` model. Big public library of standards.
+- **MIDI export / import** — write/read Standard MIDI Files (the model carries
+  timing); edit imported progressions.
+- **Ableton Live bridge** — pair directly via Ableton's JavaScript Extensions SDK
+  (https://www.ableton.com/en/live/extensions) — a bridge / VST-like interface.
 
 ---
 
 ## Later (v2) — analysis, practice & expression
 
-### H. Identify a voicing (reverse lookup)
+- **Identify a voicing (reverse lookup)** — import/enter a custom voicing (MIDI or
+  sheet) and have the app name which chords/scales/interval-pairings it matches,
+  via the same fingerprint matcher `theory/harmony.ts` already uses.
+- **Ear training** — quiz any unit (chord/voicing/interval/arpeggio/scale): "what
+  was that?" with difficulty filters (always triads in root position; always F in
+  F major; key/voicing/chord/scale/interval sets). Shares the Shuffle filter model.
+- **Negative harmony** — set an axis, reflect notes/chords/progressions to their
+  Levy counterpart; then re-spell and re-voice.
+- **Search → practice** — search any chord/scale/voicing/concept and jump there,
+  set up to practise.
+- **Annotations, tags & emotional tagging** — text tags on chords/voicings/etc.,
+  including **mood/emotion** associations ("this chord feels like blue"), to build
+  personal associations. Needs per-user storage.
 
-Import or enter your own custom chord voicing (as MIDI, or a sheet-music file) and
-let the app IDENTIFY it — which chord(s), scale(s) and interval-pairings it
-matches — using the **same fingerprint/filter matching the harmony engine already
-uses**. `theory/harmony.ts` already reduces a set of intervals to a quality by
-its semitone "signature"; generalise that into a reverse lookup over all units.
+---
 
-### I. Ear training
+## AI / ML (v3) — a small, mostly-local layer
 
-Turn any unit — chord, voicing, interval pairing, arpeggio, scale — into an
-ear-training quiz, with difficulty set by filters: key(s), voicing(s), chord
-type(s), scale type(s), interval(s). Shares its filter/randomiser model with
-Shuffle (v1.x).
-
-### J. Negative harmony
-
-Set an axis and swap any note / chord / progression into its negative-harmony
-counterpart (Ernst Levy). At core a pure reflection of pitch classes about the
-axis; then re-spell and re-voice the result.
-
-### K. Search → practice
-
-Search any chord type, scale, voicing or concept and have the app jump straight
-there, set up to practise it. (The "Search Engine" idea applied to navigation.)
-
-### L. Annotations — comments & tags
-
-Add comments or tags onto specific chord types, voicings, interval pairings,
-scales, etc. Needs per-user storage (see Accounts).
+- **Weakness detection** — a lightweight local model reads ear-training results,
+  finds weak spots, tailors the practice.
+- **Mood / tagging assistance** — help generate or find mood associations for
+  chords (Spotify-audio-features style), feeding the emotional tagging above.
+- **Audio-to-chord detection** — listen to an audio file and write out its chord
+  progression. Plus **live** input (mic / live MIDI) with live suggestions.
 
 ---
 
 ## Personalization & accounts (v2+)
 
-User accounts so preferences and annotations persist. Preferences include **how
-the modes/positions are fingered** (3-notes-per-string vs varied fingerings) and
-a player's **preferred note position** when the same note sits in several spots
-on the neck. Saved tags/comments (item L) live here too.
+User accounts so preferences and annotations persist: **fingering style** (3nps
+vs positional/varied), **preferred note position** when a note has several spots,
+saved tags/comments, and personal **songbooks/setlists**.
 
 ---
 
-## Integrations & cultural breadth (v3+)
+## Content & guided experience
 
-- **Ableton Live bridge** — pair Method directly with Ableton via their
-  JavaScript Extensions SDK (https://www.ableton.com/en/live/extensions).
-- **Other musical cultures & systems** — Raga Sangeet (characteristic phrases;
-  translate notes into SARGAM for vocalists), Barry Harris' bebop theory, and
-  more, added as data + theory modules alongside the Western defaults.
+- **Soundscapes / guided practices** — pre-recorded, especially contemplative ones
+  to *open* a session.
+- **Songbooks** — encourage songwriters/producers to release a songbook alongside
+  a release.
+- **Bridge to Archive** (Stu's earlier app) — connect voice memos, project audio,
+  voice notes, lyrics. Likely a late step.
 
 ---
 
-## Existing data backlog (no new engine code)
+## Onboarding & user flows (important UX direction)
 
-Added by dropping in data files that match the schema:
+As-is, the app is **overwhelming for an average user** — too much at once. Design
+around **user types and user flows**, and consider a **course-style progressive
+disclosure**: reveal sounds/possibilities gradually, in increasing complexity,
+rather than every option at once. This is the "living textbook" pedagogy applied
+to the product shell, and should shape how features are surfaced.
+
+---
+
+## Aesthetic / theming (the "living art book")
+
+- Switchable **colour palettes** — five elements; bold pairings; gradients;
+  analogue-film filters. The app themes from CSS variables, so a palette is a
+  named set of values.
+- An **analog / craft-paper** look for page and text.
+- **Constellations + bioluminescence**; rainbow light refracting onto paper.
+- Coffee-table-art-book quality: typography, sizing, colour pairings. (Pairs with
+  the Session 6 polish pass.)
+
+---
+
+## Other cultures & systems (v3+)
+
+Raga Sangeet (characteristic phrases; translate notes into **SARGAM** for
+vocalists), Barry Harris' bebop theory, and more — as data + theory modules
+beside the Western defaults.
+
+---
+
+## Data backlog (no new engine code)
 
 - **Scales/modes:** ~~harmonic minor, melodic minor, harmonic major~~ (done) —
-  remaining: diminished, augmented (whole-tone), bebop scales, and their modes.
+  remaining: diminished, augmented/whole-tone, bebop scales, and their modes.
 - **Chord qualities:** ~~augmented, dim7, m(maj7), maj7♯5~~ (done) — remaining:
-  6ths, 9/11/13 extensions, altered dominants, etc.
+  6ths, 9/11/13 extensions, altered dominants.
 - Slash chords.
 - **Instruments/tunings:** alternate tunings (drop-D, DADGAD), ukulele — the
   engine is already instrument/tuning-agnostic.
 
 ---
 
+## Business / launch (non-engineering)
+
+- **Protect the IP** before any public offering.
+- Define the **distribution strategy**.
+
+---
+
 ## Design note — open Roman numerals ↔ the GPS reveal
 
-Stu's point that a chord's Roman numeral should stay **open** (a `Dm7` is `ii/iii/
-vi…` depending on key center) is the same idea as the **GPS reveal** (Session 5):
-fewer fixed commitments = larger possibility space, each commitment narrows it.
-Build the progression's "function" layer (C, layer 2) to hold a *set* of possible
-interpretations, not a single fixed one, so it can share machinery with the GPS
-reveal.
+A chord's Roman numeral should stay **open** (a `Dm7` is `ii/iii/vi…` depending on
+key center) — the same idea as the GPS reveal: fewer fixed commitments = larger
+possibility space, each commitment narrows it. The progression's "function" layer
+(`ChordRef.romanNumerals[]`) holds a *set* of interpretations, sharing machinery
+with the reveal. This also motivates lifting the Roman numeral to a top-level
+selector in Study (above).

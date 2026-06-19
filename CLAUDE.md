@@ -81,28 +81,39 @@ must match the repo name (`/method/`).
 6. VexFlow notation + polish + case study.
 7. Study guide (teaching pass, after ship).
 
-## Backlog — added later as DATA, not new code (leave clean seams)
+Note: the app now has two top-level AREAS — **Study** (Scales/Harmony) and
+**Song** (lead-sheet score). Stu may rename them **Possibility** & **Play**.
 
-See [BACKLOG.md](BACKLOG.md) for the triaged, sequenced plan. In short:
+## Backlog — see [BACKLOG.md](BACKLOG.md) for the full triaged plan. In short:
 
-- **Soon (v1.x):** interval+direction melodic sequences / paltas (scale = all
-  2nds, arpeggio = all 3rds as special cases); interval-pairing chord voicings
-  (Vic Juris, e.g. 4th-2nd-6th through the scale); a few tasteful instrument
-  sounds; shuffle/randomise for practice; switchable colour palettes (art-book
-  aesthetic, paired with Session 6 polish).
-- **Later (v2):** the progression/song workbench (build from chosen
-  chords+voicings; three-layer chord model — neutral / open Roman numeral vs key
-  center / voicing; bar+beat timing across bar lines; drag editing; **MIDI
-  export+import**; **iReal Pro import**; the `Progression`/`Section`/`Bar`/
-  `ChordRef` model is shaped for these). Also: identify/reverse-lookup a custom
-  voicing via the fingerprint filter; ear training; negative harmony (axis swap);
-  search→practice; comments/tags on units.
-- **Personalization (v2+):** user accounts; fingering/note-position preferences;
-  saved tags. **Integrations/cultures (v3+):** Ableton Live JS Extensions bridge;
-  Raga Sangeet & SARGAM, Barry Harris bebop, other cultures.
-- **Data only:** slash chords; more scales/modes (diminished, augmented/whole-
-  tone, bebop — harmonic & melodic minor and harmonic major are done); extra
+- **Quick wins:** rename areas to Possibility/Play?; "Fm exists in 9 keys" copy;
+  never render a blank voicing (show the most-playable with a "very difficult"
+  note instead); flexible time-signature input; unify the Study/Song TAB look.
+- **Study restructure:** lift the Roman numeral above Scale/Harmony so it persists
+  (in Scale it picks the MODE, the TAB then explores its positions; in Harmony the
+  chord degree); click a note to generate the scale/mode from that degree in
+  position; string-set as a first-class voicing choice; horizontal scale/pattern
+  TAB (ascending/descending, octave/position shift); barre/open/6-string voicings.
+- **Song build:** Add+ from Study + persistent state + multiple songs/songbooks;
+  per-bar UNIT type (scale/arpeggio/interval-pattern/harmony, so songs can be
+  exercises); text chord entry + paste-a-progression import; Play/Pause + playhead
+  + metronome + chord-mute; rests/pickups/tuplets; sections; voice-leading that
+  favours same string-set/position; a harmonic heat map.
+- **v1.x generators:** paltas (interval+direction sequences); interval-pairing
+  voicings (Vic Juris); tasteful sounds; shuffle/randomise.
+- **Import/DAW:** iReal Pro import; MIDI export+import; Ableton JS Extensions bridge.
+- **v2:** identify/reverse-lookup a voicing; ear training (parameterised);
+  negative harmony; search→practice; annotations incl. mood/emotional tagging.
+- **AI (v3, mostly local):** weakness detection from quiz results; mood-tag
+  assistance; audio-to-chord (and live input) detection.
+- **Personalization (v2+):** accounts; fingering/note-position prefs; saved tags.
+- **Content/UX:** soundscapes/guided practices; Archive bridge; an onboarding /
+  course-style **progressive disclosure** so it isn't overwhelming.
+- **Aesthetic:** craft-paper/analog look; constellations + bioluminescence; art-
+  book palettes. **Cultures (v3+):** Raga/SARGAM, Barry Harris bebop.
+- **Data only:** slash chords; more scales (diminished/whole-tone/bebop); extra
   chord qualities (6ths, extensions); alternate tunings; ukulele.
+- **Business:** protect IP before launch; distribution strategy.
 
 ## Working notes
 
