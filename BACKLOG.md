@@ -29,14 +29,16 @@ Everything below is the forward plan.
 
 ## Study / "Possibility" — restructure & additions
 
-### Roman numerals as the top-level degree selector
+### Roman numerals as the top-level degree selector ✓ (done)
 
-Lift the Roman numeral / scale-degree above the Scale-vs-Harmony choice, so it
-**stays selected when you switch** between them. Then:
-- In **Scale**, the Roman numeral selects the **mode** (e.g. picking `5` gives
-  Mixolydian) — replacing today's separate scale-type-then-mode controls. The
-  bottom TAB then explores the **positions** of that mode.
-- In **Harmony**, it selects the **chord degree** in the chord-scale (as now).
+~~Lift the Roman numeral / scale-degree above the Scale-vs-Harmony choice, so it
+stays selected when you switch.~~ Done (`theory/mode.ts` + StudyArea):
+- In **Scale**, the Roman numeral selects the **mode** (picking `V` gives
+  Mixolydian); the neck/TAB explore its positions. ✓
+- In **Harmony**, it selects the **chord degree** (as before). ✓
+- Persists across the Scales/Harmony switch. ✓
+- Still to come: a **"whole chord scale" / all-positions** view, and a primary
+  "Major" label at degree 0 instead of "Ionian" if that reads better.
 
 ### Click a note → the scale/mode from that degree, in position
 
