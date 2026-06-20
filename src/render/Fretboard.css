@@ -82,6 +82,11 @@
   stroke-linejoin: round;
   opacity: 0.8;
 }
+/* When showing every box at once, the lines are quieter so they don't tangle. */
+.fretboard .constellation--all {
+  stroke-width: 1.5;
+  opacity: 0.32;
+}
 .fretboard .note-label {
   fill: #fff;
   font-family: var(--sans);

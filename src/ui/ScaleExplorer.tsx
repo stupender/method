@@ -38,6 +38,8 @@ export function ScaleExplorer({
   const [labelMode, setLabelMode] = useState<'note' | 'degree'>('degree');
   // Which fingering system: three-notes-per-string, or the in-position "box".
   const [fingering, setFingering] = useState<'3nps' | 'box'>('3nps');
+  // Show every position's box outlined at once (see the whole mode tile the neck).
+  const [showAll, setShowAll] = useState(false);
   // Pinned (clicked, stays lit) vs hovered (temporary preview). Hover wins while
   // over a box; otherwise the pinned one shows. Click the empty neck to unpin.
   const [pinnedShape, setPinnedShape] = useState<number | null>(null);
@@ -114,6 +116,16 @@ export function ScaleExplorer({
               Positional
             </button>
           </div>
+          {/* See every position's box at once, or focus one. */}
+          <button
+            className={showAll ? 'pill pill--on' : 'pill'}
+            onClick={() => {
+              setShowAll((v) => !v);
+              setPinnedShape(null);
+            }}
+          >
+            All positions
+          </button>
           <div className="control-group" role="group" aria-label="Labels">
             <button
               className={labelMode === 'degree' ? 'pill pill--on' : 'pill'}
@@ -145,7 +157,15 @@ export function ScaleExplorer({
         onShapeHover={setHoveredShape}
         onShapeTap={selectShape}
         onBackgroundClick={() => setPinnedShape(null)}
-        onNoteTap={onPickRoot}
+        onNoteTap={
+          onPickRoot
+            ? (p) => {
+                setShowAll(false); // focusing a position exits the all-boxes view
+                onPickRoot(p);
+              }
+            : undefined
+        }
+        showAllShapes={showAll}
         labelMode={labelMode}
       />
 

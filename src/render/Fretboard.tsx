@@ -52,6 +52,8 @@ interface FretboardProps {
   labelMode?: 'note' | 'degree';
   // Called when a single lit note is tapped (flat mode, e.g. a scale).
   onNoteTap?: (placed: PlacedNote) => void;
+  // Draw EVERY shape's constellation at once (none dimmed) — "see all the boxes".
+  showAllShapes?: boolean;
 }
 
 export function Fretboard({
@@ -65,6 +67,7 @@ export function Fretboard({
   onBackgroundClick,
   labelMode = 'note',
   onNoteTap,
+  showAllShapes = false,
 }: FretboardProps) {
   const { stringCount, fretCount } = instrument;
 
@@ -207,7 +210,10 @@ export function Fretboard({
         if (shapes) {
           return shapes.map((shape, si) => {
             const isActive = activeShapeIndex === si;
-            const dim = activeShapeIndex !== null && !isActive;
+            // "Show all" lights every box equally; otherwise the active one wins
+            // and the rest dim.
+            const dim = showAllShapes ? false : activeShapeIndex !== null && !isActive;
+            const drawLine = showAllShapes ? shape.length > 1 : isActive && shape.length > 1;
             // The connecting "constellation" line, drawn through the shape's
             // notes in string order, only when the shape is active.
             const points = [...shape]
@@ -234,8 +240,11 @@ export function Fretboard({
                     : undefined
                 }
               >
-                {isActive && shape.length > 1 && (
-                  <polyline className="constellation" points={points} />
+                {drawLine && (
+                  <polyline
+                    className={showAllShapes ? 'constellation constellation--all' : 'constellation'}
+                    points={points}
+                  />
                 )}
                 {shape.map((h, ni) =>
                   renderNote(h, `shape-${si}-note-${ni}`, dim),
