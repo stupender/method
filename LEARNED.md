@@ -366,3 +366,21 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Count-in** — schedule one bar of clicks before the chords, offset everything
   by that bar, and hold the playhead at the start until the count-in elapses (the
   rAF subtracts the count-in seconds before converting clock time to a beat).
+
+## Session 6e — text & paste chord entry
+
+- **Parsing is the inverse of display** — we already turn a chord into text (root
+  note + symbol); `parseChordSymbol` runs it backwards: peel off the root letter +
+  accidentals, then match the remaining QUALITY against an alias table.
+- **Case matters for chord quality** — "M7" is a major seventh, "m7" a minor one.
+  So the alias table is case-SENSITIVE; normalization folds symbols (Δ→maj, °→o,
+  ø→m7b5, ♭→b) and strips spaces/parens, but never changes the m/M case.
+- **Enharmonic in, one spelling out** — the root is matched by PITCH CLASS, so
+  "A#" and "Bb" both land on the same stored root (displayed Bb). Same trade-off
+  as the root pills, which only offer one spelling per pitch class.
+- **A forgiving progression grammar** — bars split on `|`, `,` or newlines; chords
+  inside a bar share its beats; with NO separators, each chord is its own bar (the
+  common case). Unknown tokens are skipped; an all-empty parse is rejected so a bad
+  paste can't silently wipe the chart.
+- **Progressive disclosure** — the paste box is a `<details>` so it stays out of
+  the way until wanted, matching the backlog's "don't show everything at once".

@@ -181,6 +181,61 @@
   gap: 14px;
 }
 
+/* Type-a-chord field: a text box + a Set button, with an inline error if needed. */
+.chord-input {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.chord-input input {
+  width: 240px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--ink);
+}
+.chord-input input:focus {
+  outline: none;
+  border-color: var(--muted);
+}
+
+/* The "Paste a progression" disclosure. */
+.paste-box {
+  margin-top: 18px;
+}
+.paste-box summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 14px;
+  width: fit-content;
+}
+.paste-box summary:hover {
+  color: var(--ink);
+}
+.paste-box textarea {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  margin: 12px 0 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  font-family: var(--mono, monospace);
+  font-size: 14px;
+  color: var(--ink);
+  resize: vertical;
+}
+.paste-box textarea:focus {
+  outline: none;
+  border-color: var(--muted);
+}
+
 /* --- Song: the lead-sheet timeline -------------------------------------- */
 /* A small inline label inside a control row (e.g. "Beats"). */
 .control-label {

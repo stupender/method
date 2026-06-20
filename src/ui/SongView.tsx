@@ -40,6 +40,7 @@ import {
   inversionName,
 } from '../theory/chord';
 import { voiceLeadProgression } from '../theory/voiceLeading';
+import { parseChordSymbol, parseProgression } from '../theory/chordParser';
 import { noteName, pitchClassOf, spellNoteFromInterval, midiOf } from '../theory/notes';
 import { startPlayback, getAudioContext, type Playback } from '../audio/player';
 
@@ -145,6 +146,11 @@ export function SongView({
   // The playhead doubles as a CURSOR: while stopped it marks where Play will start
   // from (click the score to move it); while playing it sweeps. null = the top.
   const [playheadBeat, setPlayheadBeat] = useState<number | null>(null);
+  // Text entry: type one chord by name, or paste a whole progression.
+  const [chordText, setChordText] = useState('');
+  const [chordTextError, setChordTextError] = useState(false);
+  const [pasteText, setPasteText] = useState('');
+  const [pasteError, setPasteError] = useState(false);
   // Voice leading: when on, the SELECTED chord is the anchor; its voicing
   // (structure + inversion) seeds smooth voicings for the rest.
   const [voiceLead, setVoiceLead] = useState(false);
@@ -351,6 +357,37 @@ export function SongView({
     } else {
       setPlayheadBeat(b);
     }
+  };
+
+  // --- Text entry: type one chord, or paste a whole progression ------------
+  // Type a chord by name -> set the selected chord's root + quality.
+  const applyChordText = () => {
+    const parsed = parseChordSymbol(chordText);
+    if (!parsed) {
+      setChordTextError(true);
+      return;
+    }
+    editSelected({ rootIndex: parsed.rootIndex, chordId: parsed.chordId });
+    setChordText('');
+    setChordTextError(false);
+  };
+
+  // Paste a progression -> replace the whole chart, or append to it.
+  const applyPaste = (mode: 'replace' | 'append') => {
+    const parsed = parseProgression(pasteText, beatsPerBar);
+    if (parsed.length === 0) {
+      setPasteError(true);
+      return;
+    }
+    setPasteError(false);
+    if (mode === 'replace') {
+      setChords(parsed);
+      setSelectedIndex(0);
+    } else {
+      setSelectedIndex(chords.length); // select the first appended chord
+      setChords((cs) => [...cs, ...parsed]);
+    }
+    setOpenKey(null);
   };
 
   // Clean up the transport if this view ever unmounts mid-playback.
@@ -574,6 +611,31 @@ export function SongView({
       {/* Edit the selected chord: its root, then its quality. The two rows are
           stacked with a gap so the chord-quality names don't touch the roots. */}
       <div className="chord-editor">
+      {/* Type a chord by name as a shortcut for the root + quality pills. */}
+      <form
+        className="chord-input"
+        onSubmit={(e) => {
+          e.preventDefault();
+          applyChordText();
+        }}
+      >
+        <input
+          type="text"
+          value={chordText}
+          placeholder="Type a chord — e.g. F-7, Cmaj7, Bø"
+          aria-label="Type a chord"
+          onChange={(e) => {
+            setChordText(e.target.value);
+            setChordTextError(false);
+          }}
+        />
+        <button type="submit" className="pill">
+          Set
+        </button>
+        {chordTextError && (
+          <span className="control-hint control-hint--warn">Didn't recognise that chord.</span>
+        )}
+      </form>
       <div className="control-group" role="group" aria-label="Chord root">
         {ROOT_CHOICES.map((note, i) => (
           <button
@@ -597,6 +659,39 @@ export function SongView({
         ))}
       </div>
       </div>
+
+      {/* Paste a whole progression as text — tucked away in a disclosure so it
+          doesn't crowd the editor. Bars split on "|", "," or new lines. */}
+      <details className="paste-box">
+        <summary>Paste a progression</summary>
+        <textarea
+          value={pasteText}
+          placeholder={'e.g.  Dm7 | G7 | Cmaj7\nor    Am7  D7  | Gmaj7'}
+          aria-label="Paste a progression"
+          rows={3}
+          onChange={(e) => {
+            setPasteText(e.target.value);
+            setPasteError(false);
+          }}
+        />
+        <div className="controls-row">
+          <button className="pill" onClick={() => applyPaste('replace')}>
+            Replace chart
+          </button>
+          <button className="pill" onClick={() => applyPaste('append')}>
+            Append
+          </button>
+          {pasteError && (
+            <span className="control-hint control-hint--warn">
+              Couldn't read any chords from that.
+            </span>
+          )}
+        </div>
+        <p className="control-hint">
+          Bars split on <strong>|</strong>, <strong>,</strong> or a new line. Chords
+          in the same bar share it. With no bar lines, each chord is its own bar.
+        </p>
+      </details>
 
       {/* Duration is set by dragging the chord's edges on the timeline. */}
       <p className="control-hint">
