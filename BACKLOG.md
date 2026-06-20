@@ -17,17 +17,13 @@ Everything below is the forward plan.
 
 ## Quick wins / near-term polish (small, do soon)
 
-- **Rename the two areas to "Possibility" & "Play"** (from Study & Song)? Stu's
-  proposal — fits the philosophy better. One nav rename if confirmed.
-- **Copy:** "Over Fm — 9 keys" → **"Fm exists in 9 keys"** (more accurate).
-- **Never show a blank voicing.** Some 7th-chord inversions render blank because
-  no playable shape fits. Rule: only DROP a voicing when a better alternative
-  exists (same notes, less stretch). If there's no alternative, still show the
-  most-playable version, with a small **"very difficult — try Drop 2/3"**
-  disclaimer rather than nothing. (Fix in `placeVoicingAll` + ChordExplorer.)
-- **Flexible time signature** in Song — type it in, or a dropdown per side of the
-  `/`, instead of a few fixed options.
-- **Unify the TAB look** between Study and Song so they read identically.
+- ~~**Rename the two areas to "Possibility" & "Play"**~~ (done).
+- ~~**Copy:** "Over Fm — 9 keys" → **"Fm exists in 9 keys"**~~ (done).
+- ~~**Never show a blank voicing.**~~ (done — `placeVoicingAll` last-resort pass +
+  ChordExplorer "wide stretch — try Drop 2/3" disclaimer.)
+- ~~**Flexible time signature** in Song~~ (done — typed numerator + `/` dropdown).
+- ~~**Unify the TAB look** between Study and Song~~ (done — plain numbers on light
+  string lines in both).
 
 ---
 
@@ -51,6 +47,13 @@ Mixolydian box) by clicking `5` anywhere. Still honour the "first string starts
 with 2 or 3 notes" idea — that choice sets which position the whole shape lands
 in (3-on-first-string sits at/above the first note's fret; 2-on-first-string sits
 a little below).
+
+**Add the diatonic chord from a Scales degree.** Same family: in the Scales view,
+clicking a scale degree/note should offer to **Add the diatonic chord built on
+that degree** to Play (the chord-on-a-degree machinery already exists in Harmony
+via `diatonicChords`). Today "Add to Play" lives only in the Harmony sub-mode
+because that's the view with a single selected chord; this brings the same Add
+affordance to Scales once notes are individually selectable. Its own step.
 
 ### Positional fingering, refined
 
@@ -89,9 +92,11 @@ added as voicing data + placement.
 
 ### Add chords (and other units) from Study; persistent songs
 
-- **Add + from Study** — with a chord/voicing selected in Study, append it to the
-  open song. Requires **lifting the song state up** so it survives switching
-  areas. Also unlocks full **per-chord manual voicing** via the Study expansion.
+- ~~**Add + from Study**~~ (done for Harmony) — the song state now lives in App and
+  persists across area switches; a "+ Add <chord> to Play" button in Possibility's
+  Harmony view appends the selected diatonic chord. Still to come: the same Add
+  from the **Scales** view (see Possibility → "click a note" above), and full
+  **per-chord manual voicing** via the Study expansion.
 - **Multiple songs / songbooks & setlists** — hold many charts; (later) sync with
   Spotify / Apple Music playlists to auto-generate a song or find a chart for it.
 
