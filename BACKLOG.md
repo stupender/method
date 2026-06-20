@@ -52,8 +52,9 @@ a little below).
 
 ~~**Click a note → the mode from that degree, in position.**~~ (done — clicking any
 note in the Scales view re-roots the mode to start there AND pins the position
-that sits at the clicked fret; the degree selector follows.) Still to come: see
-**all the places a mode lives** at once (a "show every box" toggle).
+that sits at the clicked fret; the degree selector follows.)
+~~**See all the places a mode lives at once.**~~ (done — an "All positions" toggle
+draws every box's constellation together.)
 
 **Add the diatonic chord from a Scales degree.** Same family: in the Scales view,
 clicking a scale degree/note should offer to **Add the diatonic chord built on
@@ -78,9 +79,10 @@ string sets); you can still then pick inversion / voicing per chord.
 
 ~~Chords read vertically (stacked); scales/arpeggios/patterns should read
 horizontally, note by note, ascending.~~ (done — `render/TabSequence.tsx`; each
-scale position reads left-to-right like real TAB.) Still to come: a **descending**
-option, octave/position shifts (Jon Gordon's "every scale up & down, two octaves,
-every key"), and then the **Add +** button dropping a scale/pattern into Play as a
+scale position reads left-to-right like real TAB.) ~~a **descending** option~~ (done
+— Ascending/Descending toggle reverses the TAB + playback). Still to come:
+octave/position shifts (Jon Gordon's "every scale up & down, two octaves, every
+key"), and then the **Add +** button dropping a scale/pattern into Play as a
 practice exercise.
 
 ### More voicing shapes
@@ -104,11 +106,11 @@ added as voicing data + placement.
   Harmony view appends the selected diatonic chord. Still to come: the same Add
   from the **Scales** view (see Possibility → "click a note" above), and full
   **per-chord manual voicing** via the Study expansion.
-- ~~**Multiple songs / songbooks**~~ (done — a songbook of named songs: switch
-  tabs, + New song, inline rename, Delete; the open song feeds Play). Still to
-  come: **persistence** (localStorage/accounts — currently in-memory, lost on
-  reload), **per-song tempo/time-sig** (shared for now), setlists, and (later)
-  Spotify / Apple Music playlist sync.
+- ~~**Multiple songs / songbooks**~~ (done — named songs: switch tabs, + New song,
+  inline rename, Delete; the open song feeds Play). ~~**persistence**~~ (done —
+  saved to localStorage, survives reload) and ~~**per-song tempo/time-sig**~~ (done
+  — each song carries its own meter). Still to come: setlists, accounts/cloud sync,
+  and (later) Spotify / Apple Music playlist sync.
 
 ### Per-bar UNIT type
 
