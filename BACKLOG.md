@@ -50,12 +50,16 @@ with 2 or 3 notes" idea — that choice sets which position the whole shape land
 in (3-on-first-string sits at/above the first note's fret; 2-on-first-string sits
 a little below).
 
+~~**Click a note → the mode from that degree.**~~ (done — clicking any note in the
+Scales view re-roots the mode to start there; the degree selector follows.) Still
+to come: land the re-rooted mode **in the position you clicked** (right now it
+shows all positions), and see **all the places a mode lives**.
+
 **Add the diatonic chord from a Scales degree.** Same family: in the Scales view,
 clicking a scale degree/note should offer to **Add the diatonic chord built on
 that degree** to Play (the chord-on-a-degree machinery already exists in Harmony
-via `diatonicChords`). Today "Add to Play" lives only in the Harmony sub-mode
-because that's the view with a single selected chord; this brings the same Add
-affordance to Scales once notes are individually selectable. Its own step.
+via `diatonicChords`). Now that notes are individually clickable (re-root), a
+modifier/secondary action could add that degree's chord. Its own step.
 
 ### Positional fingering, refined
 
@@ -72,11 +76,12 @@ string sets); you can still then pick inversion / voicing per chord.
 
 ### Horizontal TAB for scales & patterns
 
-Chords read vertically (stacked); **scales/arpeggios/patterns should read
-horizontally**, note by note, like a sheet of music — **ascending**, with options
-for **descending**, octave/position shifts (Jon Gordon's "every scale up & down,
-two octaves, every key"). Then the **Add +** button can drop a scale/pattern into
-Song as a practice exercise.
+~~Chords read vertically (stacked); scales/arpeggios/patterns should read
+horizontally, note by note, ascending.~~ (done — `render/TabSequence.tsx`; each
+scale position reads left-to-right like real TAB.) Still to come: a **descending**
+option, octave/position shifts (Jon Gordon's "every scale up & down, two octaves,
+every key"), and then the **Add +** button dropping a scale/pattern into Play as a
+practice exercise.
 
 ### More voicing shapes
 
