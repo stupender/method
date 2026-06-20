@@ -50,10 +50,10 @@ with 2 or 3 notes" idea — that choice sets which position the whole shape land
 in (3-on-first-string sits at/above the first note's fret; 2-on-first-string sits
 a little below).
 
-~~**Click a note → the mode from that degree.**~~ (done — clicking any note in the
-Scales view re-roots the mode to start there; the degree selector follows.) Still
-to come: land the re-rooted mode **in the position you clicked** (right now it
-shows all positions), and see **all the places a mode lives**.
+~~**Click a note → the mode from that degree, in position.**~~ (done — clicking any
+note in the Scales view re-roots the mode to start there AND pins the position
+that sits at the clicked fret; the degree selector follows.) Still to come: see
+**all the places a mode lives** at once (a "show every box" toggle).
 
 **Add the diatonic chord from a Scales degree.** Same family: in the Scales view,
 clicking a scale degree/note should offer to **Add the diatonic chord built on
