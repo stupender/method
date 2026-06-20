@@ -116,10 +116,14 @@ directly to the palta generator (item A).
 
 ### Playback / transport
 
-- **Play → Pause** toggle; a **playhead** (vertical scrub line) on the current
-  beat.
-- **Metronome** option, and a **mute toggle for chord audio** — some practise
-  with metronome only, some want the chords too.
+- ~~**Play → Pause** toggle; a **playhead** (vertical scrub line) on the current
+  beat.~~ (done — `startPlayback` transport + a playhead animated off the audio
+  clock that rewinds at the end.)
+- ~~**Metronome** option, and a **mute toggle for chord audio**~~ (done — a click
+  per beat accented on the downbeat; Mute sends an empty chord list so the
+  playhead + metronome still run.)
+- Still to come: **click-to-scrub / set the playhead** by clicking the score, and
+  a **count-in**.
 
 ### Rhythm, refined
 
