@@ -348,3 +348,21 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Gotcha (both areas mounted):** the hidden area's buttons are still in the DOM,
   so `querySelector('.pill--play')` can grab the WRONG one. Scope DOM lookups to
   the visible area (the wrapper without the `hidden` attribute).
+
+## Session 6d — scrub the playhead + count-in
+
+- **The playhead doubles as a cursor** — one piece of state (`playheadBeat`) is
+  both the line that sweeps while playing and the mark you set while stopped. Click
+  the score to move it; Play starts from there; Pause leaves it put so Play
+  resumes. End-of-song clears it. A quieter `--cursor` style distinguishes the two.
+- **Click → beat** — read the click's x relative to the row
+  (`e.clientX - rect.left`), divide by pixels-per-beat, add the row's start beat,
+  then snap to the grid. The same coordinate math as drawing, run backwards.
+- **Event bubbling decides what a click means** — a chord's click selects it AND
+  bubbles to the row to scrub; the resize handles call `stopPropagation()` so
+  finishing a drag doesn't also scrub.
+- **Seeking while playing** — re-start the transport from the new beat (the audio
+  can't be re-pointed once scheduled, so we stop and reschedule from there).
+- **Count-in** — schedule one bar of clicks before the chords, offset everything
+  by that bar, and hold the playhead at the start until the count-in elapses (the
+  rAF subtracts the count-in seconds before converting clock time to a beat).

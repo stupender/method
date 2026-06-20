@@ -224,6 +224,16 @@
   pointer-events: none;
   z-index: 3;
 }
+/* At rest the playhead is a CURSOR — where Play will start from. Quieter than the
+   solid line that sweeps during playback, so the two states read differently. */
+.playhead--cursor {
+  opacity: 0.45;
+}
+
+/* The score rows invite a click (to place the playhead). */
+.system {
+  cursor: pointer;
+}
 
 /* The TAB staff under the chord lane. */
 .staff {

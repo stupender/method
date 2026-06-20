@@ -128,10 +128,17 @@ export interface ChordEvent {
   durSec: number;
 }
 
+// One metronome click: when it sounds (seconds from beat 0) and whether it's an
+// accented downbeat. Caller builds the list, so it can do count-ins, partial
+// bars, etc. — the transport just plays whatever times it's handed.
+export interface ClickEvent {
+  atSec: number;
+  accent: boolean;
+}
+
 export interface PlaybackOptions {
   chordEvents: ChordEvent[]; // the chords to strum (empty if chord audio is muted)
-  clickSecs?: number[]; // metronome click times in seconds from beat 0 (empty = off)
-  accentEvery?: number; // accent every Nth click (the downbeat); 0 = no accent
+  clicks?: ClickEvent[]; // metronome clicks (empty = metronome off)
   leadInSec?: number; // a beat of silence before beat 0, so playback starts clean
 }
 
@@ -160,9 +167,8 @@ export function startPlayback(opts: PlaybackOptions): Playback {
       oscs.push(scheduleNote(ctx, midi, start + e.atSec + i * 0.018, e.durSec, master)),
     );
   }
-  (opts.clickSecs ?? []).forEach((t, i) => {
-    const accent = opts.accentEvery ? i % opts.accentEvery === 0 : false;
-    oscs.push(scheduleClick(ctx, start + t, accent, master));
+  (opts.clicks ?? []).forEach((c) => {
+    oscs.push(scheduleClick(ctx, start + c.atSec, c.accent, master));
   });
 
   const stop = () => {

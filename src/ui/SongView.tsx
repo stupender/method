@@ -141,6 +141,9 @@ export function SongView({
   const [isPlaying, setIsPlaying] = useState(false);
   const [metronome, setMetronome] = useState(false);
   const [muteChords, setMuteChords] = useState(false);
+  const [countIn, setCountIn] = useState(false);
+  // The playhead doubles as a CURSOR: while stopped it marks where Play will start
+  // from (click the score to move it); while playing it sweeps. null = the top.
   const [playheadBeat, setPlayheadBeat] = useState<number | null>(null);
   // Voice leading: when on, the SELECTED chord is the anchor; its voicing
   // (structure + inversion) seeds smooth voicings for the rest.
@@ -250,61 +253,104 @@ export function SongView({
   const playback = useRef<Playback | null>(null);
   const raf = useRef<number | null>(null);
 
-  // Stop everything: cut the audio, cancel the animation, reset the playhead.
-  const stopPlayback = () => {
+  // Cut the audio and stop the animation, without touching the playhead.
+  const stopAudio = () => {
     playback.current?.stop();
     playback.current = null;
     if (raf.current != null) cancelAnimationFrame(raf.current);
     raf.current = null;
+  };
+  // Pause: stop, but LEAVE the playhead where it is so Play resumes from there.
+  const pause = () => {
+    stopAudio();
+    setIsPlaying(false);
+  };
+  // Reset: stop and rewind the cursor to the top (used when the song ends).
+  const reset = () => {
+    stopAudio();
     setIsPlaying(false);
     setPlayheadBeat(null);
   };
 
-  // Start the song from the top: schedule the audio, then animate the playhead
-  // off the audio clock so the line and the sound stay locked together.
-  const startSong = () => {
+  // Start playing from `fromBeat`, optionally with a one-bar count-in. Schedules
+  // the audio, then animates the playhead off the audio clock so the line and the
+  // sound stay locked together (the clock is the single source of truth).
+  const startSong = (fromBeat: number, withCountIn: boolean) => {
     // A "beat" is the time-signature's bottom note; tempo (♩) is the quarter.
     const secPerBeat = (60 / bpm) * (4 / denominator);
+    const countInBeats = withCountIn ? beatsPerBar : 0;
+    const countInSec = countInBeats * secPerBeat;
+
+    // Chords whose tail is still ahead of the cursor — clipped to start at the
+    // cursor, and pushed back by the count-in.
     const chordEvents = muteChords
       ? []
-      : chords.map((c, i) => ({
-          midis:
-            voiceLead && voicedShapes[i]
-              ? voicedShapes[i].map((p) => midiOf(p.note))
-              : chordMidis(c),
-          atSec: starts[i] * secPerBeat,
-          durSec: c.durationBeats * secPerBeat,
-        }));
-    // Metronome: one click on every beat of the song, accented on the downbeat.
-    const clickSecs = metronome
-      ? Array.from({ length: Math.ceil(totalBeats) }, (_, b) => b * secPerBeat)
-      : [];
+      : chords.flatMap((c, i) => {
+          const end = starts[i] + c.durationBeats;
+          if (end <= fromBeat) return [];
+          const from = Math.max(starts[i], fromBeat);
+          return [
+            {
+              midis:
+                voiceLead && voicedShapes[i]
+                  ? voicedShapes[i].map((p) => midiOf(p.note))
+                  : chordMidis(c),
+              atSec: countInSec + (from - fromBeat) * secPerBeat,
+              durSec: (end - from) * secPerBeat,
+            },
+          ];
+        });
 
-    const pb = startPlayback({
-      chordEvents,
-      clickSecs,
-      accentEvery: metronome ? beatsPerBar : 0,
-      leadInSec: 0.12,
-    });
+    // Clicks: the count-in bar (always audible when counting in), then — if the
+    // metronome is on — a click on every remaining beat, accented on downbeats.
+    const clicks: { atSec: number; accent: boolean }[] = [];
+    for (let b = 0; b < countInBeats; b++) {
+      clicks.push({ atSec: b * secPerBeat, accent: b % beatsPerBar === 0 });
+    }
+    if (metronome) {
+      for (let gb = Math.ceil(fromBeat - 1e-6); gb < totalBeats; gb++) {
+        clicks.push({
+          atSec: countInSec + (gb - fromBeat) * secPerBeat,
+          accent: gb % beatsPerBar === 0,
+        });
+      }
+    }
+
+    const pb = startPlayback({ chordEvents, clicks, leadInSec: 0.12 });
     playback.current = pb;
     setIsPlaying(true);
 
     const ctx = getAudioContext();
     const tick = () => {
-      const beat = (ctx.currentTime - pb.startTime) / secPerBeat;
+      // Elapsed since the song proper began (after the count-in).
+      const songElapsed = ctx.currentTime - pb.startTime - countInSec;
+      const beat = fromBeat + songElapsed / secPerBeat;
       if (beat >= totalBeats) {
-        stopPlayback(); // reached the end — rewind to stopped
+        reset(); // reached the end — rewind to the top
         return;
       }
-      setPlayheadBeat(Math.max(0, beat)); // clamp the lead-in to the start
+      setPlayheadBeat(Math.max(fromBeat, beat)); // hold at the start during count-in
       raf.current = requestAnimationFrame(tick);
     };
     raf.current = requestAnimationFrame(tick);
   };
 
   const togglePlay = () => {
-    if (isPlaying) stopPlayback();
-    else startSong();
+    if (isPlaying) pause();
+    else startSong(playheadBeat ?? 0, countIn);
+  };
+
+  // Click the score to move the playhead (a scrub). While playing, this seeks:
+  // restart from the new spot (no count-in on a seek). While stopped, it just
+  // parks the cursor there, ready for Play.
+  const scrubTo = (beat: number) => {
+    const b = Math.max(0, Math.min(totalBeats, Math.round(beat / SNAP) * SNAP));
+    if (isPlaying) {
+      stopAudio();
+      startSong(b, false);
+    } else {
+      setPlayheadBeat(b);
+    }
   };
 
   // Clean up the transport if this view ever unmounts mid-playback.
@@ -369,6 +415,12 @@ export function SongView({
         >
           Mute chords
         </button>
+        <button
+          className={countIn ? 'pill pill--on' : 'pill'}
+          onClick={() => setCountIn((c) => !c)}
+        >
+          Count-in
+        </button>
         <button className="chart-add" onClick={addChord}>
           + Add chord
         </button>
@@ -395,6 +447,11 @@ export function SongView({
               key={`row-${r}`}
               className="system"
               style={{ width: rowSpanBeats * PX_PER_BEAT, height: systemH }}
+              onClick={(e) => {
+                // Click anywhere on the row to move the playhead there (scrub).
+                const rect = e.currentTarget.getBoundingClientRect();
+                scrubTo(rowStart + (e.clientX - rect.left) / PX_PER_BEAT);
+              }}
             >
               {/* Bar lines, full system height. */}
               {Array.from({ length: barsInRow + 1 }, (_, b) => (
@@ -410,7 +467,7 @@ export function SongView({
                 playheadBeat >= rowStart &&
                 playheadBeat < rowStart + rowSpanBeats && (
                   <div
-                    className="playhead"
+                    className={'playhead' + (isPlaying ? '' : ' playhead--cursor')}
                     style={{ left: (playheadBeat - rowStart) * PX_PER_BEAT }}
                   />
                 )}
@@ -460,6 +517,7 @@ export function SongView({
                         onPointerDown={(e) => onEdgeDown(e, i, 'left')}
                         onPointerMove={onEdgeMove}
                         onPointerUp={onEdgeUp}
+                        onClick={(e) => e.stopPropagation()}
                       />
                     )}
                     {isEnd && (
@@ -468,6 +526,7 @@ export function SongView({
                         onPointerDown={(e) => onEdgeDown(e, i, 'right')}
                         onPointerMove={onEdgeMove}
                         onPointerUp={onEdgeUp}
+                        onClick={(e) => e.stopPropagation()}
                       />
                     )}
                   </div>
