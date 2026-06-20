@@ -12,6 +12,7 @@
 // ============================================================================
 
 import {
+  useEffect,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
@@ -40,7 +41,7 @@ import {
 } from '../theory/chord';
 import { voiceLeadProgression } from '../theory/voiceLeading';
 import { noteName, pitchClassOf, spellNoteFromInterval, midiOf } from '../theory/notes';
-import { playProgression } from '../audio/player';
+import { startPlayback, getAudioContext, type Playback } from '../audio/player';
 
 const CHORD_LIST = Object.values(CHORDS);
 const SCALE_ORDER = Object.values(SCALES);
@@ -135,6 +136,12 @@ export function SongView({
   const [bpm, setBpm] = useState(BPM);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [openKey, setOpenKey] = useState<KeyMatch | null>(null);
+  // Transport state: whether the song is playing, plus the metronome and chord-
+  // mute toggles, and where the playhead is (in beats; null when stopped).
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [metronome, setMetronome] = useState(false);
+  const [muteChords, setMuteChords] = useState(false);
+  const [playheadBeat, setPlayheadBeat] = useState<number | null>(null);
   // Voice leading: when on, the SELECTED chord is the anchor; its voicing
   // (structure + inversion) seeds smooth voicings for the rest.
   const [voiceLead, setVoiceLead] = useState(false);
@@ -238,22 +245,75 @@ export function SongView({
     drag.current = null;
   };
 
-  // Strum the progression in time at BPM (chords sustain for their duration).
-  // When voice-leading is on, play the voice-led shapes; otherwise close root.
-  const playSong = () => {
+  // --- Transport: Play / Pause, the playhead, metronome, chord mute ---------
+  // The running playback handle, and the animation-frame id driving the playhead.
+  const playback = useRef<Playback | null>(null);
+  const raf = useRef<number | null>(null);
+
+  // Stop everything: cut the audio, cancel the animation, reset the playhead.
+  const stopPlayback = () => {
+    playback.current?.stop();
+    playback.current = null;
+    if (raf.current != null) cancelAnimationFrame(raf.current);
+    raf.current = null;
+    setIsPlaying(false);
+    setPlayheadBeat(null);
+  };
+
+  // Start the song from the top: schedule the audio, then animate the playhead
+  // off the audio clock so the line and the sound stay locked together.
+  const startSong = () => {
     // A "beat" is the time-signature's bottom note; tempo (♩) is the quarter.
     const secPerBeat = (60 / bpm) * (4 / denominator);
-    playProgression(
-      chords.map((c, i) => ({
-        midis:
-          voiceLead && voicedShapes[i]
-            ? voicedShapes[i].map((p) => midiOf(p.note))
-            : chordMidis(c),
-        atSec: starts[i] * secPerBeat,
-        durSec: c.durationBeats * secPerBeat,
-      })),
-    );
+    const chordEvents = muteChords
+      ? []
+      : chords.map((c, i) => ({
+          midis:
+            voiceLead && voicedShapes[i]
+              ? voicedShapes[i].map((p) => midiOf(p.note))
+              : chordMidis(c),
+          atSec: starts[i] * secPerBeat,
+          durSec: c.durationBeats * secPerBeat,
+        }));
+    // Metronome: one click on every beat of the song, accented on the downbeat.
+    const clickSecs = metronome
+      ? Array.from({ length: Math.ceil(totalBeats) }, (_, b) => b * secPerBeat)
+      : [];
+
+    const pb = startPlayback({
+      chordEvents,
+      clickSecs,
+      accentEvery: metronome ? beatsPerBar : 0,
+      leadInSec: 0.12,
+    });
+    playback.current = pb;
+    setIsPlaying(true);
+
+    const ctx = getAudioContext();
+    const tick = () => {
+      const beat = (ctx.currentTime - pb.startTime) / secPerBeat;
+      if (beat >= totalBeats) {
+        stopPlayback(); // reached the end — rewind to stopped
+        return;
+      }
+      setPlayheadBeat(Math.max(0, beat)); // clamp the lead-in to the start
+      raf.current = requestAnimationFrame(tick);
+    };
+    raf.current = requestAnimationFrame(tick);
   };
+
+  const togglePlay = () => {
+    if (isPlaying) stopPlayback();
+    else startSong();
+  };
+
+  // Clean up the transport if this view ever unmounts mid-playback.
+  useEffect(() => {
+    return () => {
+      playback.current?.stop();
+      if (raf.current != null) cancelAnimationFrame(raf.current);
+    };
+  }, []);
 
   return (
     <>
@@ -283,8 +343,8 @@ export function SongView({
             ))}
           </select>
         </div>
-        <button className="pill pill--play" onClick={playSong}>
-          ▶ Play
+        <button className="pill pill--play" onClick={togglePlay}>
+          {isPlaying ? '⏸ Pause' : '▶ Play'}
         </button>
         {/* Tempo. */}
         <div className="tempo" role="group" aria-label="Tempo">
@@ -296,6 +356,19 @@ export function SongView({
             +
           </button>
         </div>
+        {/* A click track, and the option to hear it WITHOUT the chords. */}
+        <button
+          className={metronome ? 'pill pill--on' : 'pill'}
+          onClick={() => setMetronome((m) => !m)}
+        >
+          Metronome
+        </button>
+        <button
+          className={muteChords ? 'pill pill--on' : 'pill'}
+          onClick={() => setMuteChords((m) => !m)}
+        >
+          Mute chords
+        </button>
         <button className="chart-add" onClick={addChord}>
           + Add chord
         </button>
@@ -331,6 +404,16 @@ export function SongView({
                   style={{ left: b * beatsPerBar * PX_PER_BEAT }}
                 />
               ))}
+
+              {/* The playhead — a line sweeping in time, only in the row it's in. */}
+              {playheadBeat != null &&
+                playheadBeat >= rowStart &&
+                playheadBeat < rowStart + rowSpanBeats && (
+                  <div
+                    className="playhead"
+                    style={{ left: (playheadBeat - rowStart) * PX_PER_BEAT }}
+                  />
+                )}
 
               {/* Chord-symbol lane: one block per chord segment in this row. */}
               {chords.map((c, i) => {

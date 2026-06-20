@@ -328,3 +328,23 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Match by pitch class, not spelling** — to turn a diatonic chord's root into a
   root-list index, compare pitch classes, so an enharmonic spelling (Bb vs A#)
   still finds the right entry.
+
+## Session 6c — Play transport (Play/Pause, playhead, metronome, mute)
+
+- **A stoppable transport** — Web Audio notes, once scheduled, normally can't be
+  un-scheduled. So `startPlayback` routes every chord + click through ONE master
+  gain and keeps the oscillators in a list; Pause ramps that gain to silence and
+  calls `stop()` on each oscillator. It returns a handle `{ startTime, stop }`.
+- **Driving a playhead off the audio clock** — the line's position is computed
+  every animation frame from `audioContext.currentTime - startTime`, NOT from a
+  JS timer. The audio clock is the source of truth, so the line and the sound
+  never drift apart. When the beat passes the song's end, we stop and rewind.
+- **requestAnimationFrame loop in React** — a `useRef` holds the frame id so we
+  can cancel it on Pause / unmount; each frame calls `setPlayheadBeat`, which is
+  the one piece of state that re-renders during playback.
+- **Metronome = scheduled clicks** — a click per beat (a short square-wave blip),
+  accented on the downbeat (`i % beatsPerBar === 0`). **Mute chords** just sends
+  an empty chord list to the transport, so the playhead + metronome still run.
+- **Gotcha (both areas mounted):** the hidden area's buttons are still in the DOM,
+  so `querySelector('.pill--play')` can grab the WRONG one. Scope DOM lookups to
+  the visible area (the wrapper without the `hidden` attribute).

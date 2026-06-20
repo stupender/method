@@ -213,6 +213,18 @@
   background: var(--line);
 }
 
+/* The playhead — a thin accent line that sweeps across a system as the song
+   plays. It sits above the bar lines and chords but ignores the mouse. */
+.playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+  pointer-events: none;
+  z-index: 3;
+}
+
 /* The TAB staff under the chord lane. */
 .staff {
   position: absolute;

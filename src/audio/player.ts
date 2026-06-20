@@ -27,6 +27,12 @@ function getContext(): AudioContext {
   return audioContext;
 }
 
+// The shared AudioContext, for callers that need to read its clock (e.g. the
+// Song playhead, which animates off `ctx.currentTime`). Same single context.
+export function getAudioContext(): AudioContext {
+  return getContext();
+}
+
 // Convert a MIDI note number to its frequency in Hz. A=440 is MIDI 69, and every
 // 12 semitones doubles the frequency — that's this formula.
 export function frequencyOfMidi(midi: number): number {
@@ -42,7 +48,8 @@ function scheduleNote(
   midi: number,
   when: number,
   duration: number,
-): void {
+  destination: AudioNode = ctx.destination,
+): OscillatorNode {
   // Tone generator. A triangle wave is soft and warm, good for an instrument.
   const osc = ctx.createOscillator();
   osc.type = 'triangle';
@@ -60,10 +67,35 @@ function scheduleNote(
   gain.gain.exponentialRampToValueAtTime(0.28, when + 0.012);
   gain.gain.exponentialRampToValueAtTime(0.0001, when + duration);
 
-  // Wire the graph (oscillator -> filter -> volume -> speakers) and run it.
-  osc.connect(filter).connect(gain).connect(ctx.destination);
+  // Wire the graph (oscillator -> filter -> volume -> `destination`) and run it.
+  // `destination` is usually the speakers, but the transport routes through a
+  // master gain it can mute, so it passes that instead. We return the oscillator
+  // so the transport can stop it early on Pause.
+  osc.connect(filter).connect(gain).connect(destination);
   osc.start(when);
   osc.stop(when + duration + 0.05);
+  return osc;
+}
+
+// A short metronome click — a dry percussive blip, not a tone. The downbeat (the
+// first beat of a bar) is "accented": a touch higher and louder.
+function scheduleClick(
+  ctx: AudioContext,
+  when: number,
+  accent: boolean,
+  destination: AudioNode,
+): OscillatorNode {
+  const osc = ctx.createOscillator();
+  osc.type = 'square';
+  osc.frequency.value = accent ? 2000 : 1400;
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, when);
+  gain.gain.exponentialRampToValueAtTime(accent ? 0.22 : 0.12, when + 0.001);
+  gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.045);
+  osc.connect(gain).connect(destination);
+  osc.start(when);
+  osc.stop(when + 0.06);
+  return osc;
 }
 
 // Play a single note (given as a MIDI number) for `duration` seconds, now.
@@ -88,17 +120,65 @@ export function playChord(midis: number[], strum = 0.022): void {
   midis.forEach((midi, i) => scheduleNote(ctx, midi, start + i * strum, 1.6));
 }
 
-// Play a progression: each chord strummed at its own time, lasting its own
-// duration (both in SECONDS, relative to now). Scheduled on the audio clock so
-// the rhythm is tight. Returns nothing; nothing to stop for these short notes.
-export function playProgression(
-  events: { midis: number[]; atSec: number; durSec: number }[],
-): void {
+// One chord in a transport: its notes, when it starts and how long it lasts
+// (both in SECONDS, relative to beat 0).
+export interface ChordEvent {
+  midis: number[];
+  atSec: number;
+  durSec: number;
+}
+
+export interface PlaybackOptions {
+  chordEvents: ChordEvent[]; // the chords to strum (empty if chord audio is muted)
+  clickSecs?: number[]; // metronome click times in seconds from beat 0 (empty = off)
+  accentEvery?: number; // accent every Nth click (the downbeat); 0 = no accent
+  leadInSec?: number; // a beat of silence before beat 0, so playback starts clean
+}
+
+// A running transport: the audio-clock time of beat 0 (so the UI can animate a
+// playhead off `getAudioContext().currentTime`), and a stop() to cut it short.
+export interface Playback {
+  startTime: number;
+  stop: () => void;
+}
+
+// Start a progression playing and hand back a handle to stop it (for Pause).
+// Everything routes through one master gain so a single ramp-to-silence cleanly
+// kills all the scheduled chords and clicks at once; we also stop each oscillator
+// so nothing keeps running after Pause.
+export function startPlayback(opts: PlaybackOptions): Playback {
   const ctx = getContext();
-  const start = ctx.currentTime + 0.08; // tiny lead-in
-  for (const e of events) {
+  const start = ctx.currentTime + (opts.leadInSec ?? 0.12);
+
+  const master = ctx.createGain();
+  master.gain.value = 1;
+  master.connect(ctx.destination);
+
+  const oscs: OscillatorNode[] = [];
+  for (const e of opts.chordEvents) {
     e.midis.forEach((midi, i) =>
-      scheduleNote(ctx, midi, start + e.atSec + i * 0.018, e.durSec),
+      oscs.push(scheduleNote(ctx, midi, start + e.atSec + i * 0.018, e.durSec, master)),
     );
   }
+  (opts.clickSecs ?? []).forEach((t, i) => {
+    const accent = opts.accentEvery ? i % opts.accentEvery === 0 : false;
+    oscs.push(scheduleClick(ctx, start + t, accent, master));
+  });
+
+  const stop = () => {
+    const now = ctx.currentTime;
+    master.gain.cancelScheduledValues(now);
+    master.gain.setValueAtTime(Math.max(master.gain.value, 0.0001), now);
+    master.gain.exponentialRampToValueAtTime(0.0001, now + 0.03);
+    oscs.forEach((o) => {
+      try {
+        o.stop(now + 0.05);
+      } catch {
+        /* already stopped — fine */
+      }
+    });
+    setTimeout(() => master.disconnect(), 120);
+  };
+
+  return { startTime: start, stop };
 }
