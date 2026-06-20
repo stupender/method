@@ -8,7 +8,7 @@
 // for using them. Within Study, a Mode picks Scales vs Harmony.
 // ============================================================================
 
-import { useState } from 'react';
+import { useState, type Dispatch, type SetStateAction } from 'react';
 import type { Note, ScaleDefinition } from './theory/types';
 import { SCALES } from './data/scales';
 import { CHORDS } from './data/chords';
@@ -27,18 +27,66 @@ const CHORD_LIST = Object.values(CHORDS);
 type Area = 'study' | 'song';
 type Mode = 'scale' | 'chord' | 'harmony';
 
+// A song in the songbook: a name and its chord chart. (Tempo / time signature
+// stay in the Play view for now, shared across songs.)
+interface Song {
+  id: string;
+  name: string;
+  chords: ChartChord[];
+}
+
+// A unique id for a new song. A monotonic counter is plenty — no need for UUIDs.
+let songCounter = 0;
+const nextSongId = () => `song-${++songCounter}`;
+
+// A fresh, never-empty song (the chart needs at least one chord).
+const newSong = (name: string): Song => ({
+  id: nextSongId(),
+  name,
+  chords: [{ rootIndex: 0, chordId: 'major-triad', durationBeats: 4 }], // C, one bar
+});
+
 function App() {
   const [area, setArea] = useState<Area>('study');
 
-  // The SONG (the chord list) lives here, above both areas, so it survives
-  // switching to Possibility and back, and so the "Add to Play" button in
-  // Possibility can append to it. Tempo / time-sig / selection stay inside Play.
-  const [songChords, setSongChords] = useState<ChartChord[]>([
-    { rootIndex: 5, chordId: 'minor-triad', durationBeats: 4 }, // Fm, one bar
+  // The SONGBOOK lives here, above both areas, so it survives switching to
+  // Possibility and back, and so the "Add to Play" button in Possibility can
+  // append to whichever song is open. Tempo / time-sig / selection stay in Play.
+  const [songs, setSongs] = useState<Song[]>([
+    { id: nextSongId(), name: 'Untitled', chords: [{ rootIndex: 5, chordId: 'minor-triad', durationBeats: 4 }] },
   ]);
-  // Add a chord (root + quality) to the end of the song, one bar long by default.
+  const [currentId, setCurrentId] = useState(songs[0].id);
+  const current = songs.find((s) => s.id === currentId) ?? songs[0];
+
+  // Update the OPEN song's chords. Shaped like a useState setter so SongView can
+  // stay a plain controlled component (it doesn't know songs exist).
+  const setCurrentChords: Dispatch<SetStateAction<ChartChord[]>> = (update) =>
+    setSongs((ss) =>
+      ss.map((s) =>
+        s.id === currentId
+          ? { ...s, chords: typeof update === 'function' ? update(s.chords) : update }
+          : s,
+      ),
+    );
+
+  // Add a chord (root + quality) to the end of the open song, one bar by default.
   const addToSong = (rootIndex: number, chordId: string) =>
-    setSongChords((cs) => [...cs, { rootIndex, chordId, durationBeats: 4 }]);
+    setCurrentChords((cs) => [...cs, { rootIndex, chordId, durationBeats: 4 }]);
+
+  // --- Songbook actions ---------------------------------------------------
+  const addSong = () => {
+    const song = newSong(`Untitled ${songs.length + 1}`);
+    setSongs((ss) => [...ss, song]);
+    setCurrentId(song.id);
+  };
+  const renameCurrent = (name: string) =>
+    setSongs((ss) => ss.map((s) => (s.id === currentId ? { ...s, name } : s)));
+  const deleteCurrent = () => {
+    if (songs.length === 1) return; // always keep at least one song
+    const remaining = songs.filter((s) => s.id !== currentId);
+    setSongs(remaining);
+    setCurrentId(remaining[0].id);
+  };
 
   return (
     <main className="page page--wide">
@@ -59,14 +107,75 @@ function App() {
       </header>
 
       {/* Both areas stay mounted (just hidden) so each keeps its own state when
-          you switch — the song, and Possibility's key/scale/mode choices. */}
+          you switch — the songbook, and Possibility's key/scale/mode choices. */}
       <div hidden={area !== 'study'}>
-        <StudyArea onAddChord={addToSong} songLength={songChords.length} />
+        <StudyArea onAddChord={addToSong} songLength={current.chords.length} />
       </div>
       <div hidden={area !== 'song'}>
-        <SongView chords={songChords} setChords={setSongChords} />
+        <SongBook
+          songs={songs}
+          currentId={currentId}
+          onSelect={setCurrentId}
+          onAdd={addSong}
+          onRename={renameCurrent}
+          onDelete={deleteCurrent}
+        />
+        <SongView songId={current.id} chords={current.chords} setChords={setCurrentChords} />
       </div>
     </main>
+  );
+}
+
+// --- Songbook: switch between songs, add / rename / delete ------------------
+function SongBook({
+  songs,
+  currentId,
+  onSelect,
+  onAdd,
+  onRename,
+  onDelete,
+}: {
+  songs: Song[];
+  currentId: string;
+  onSelect: (id: string) => void;
+  onAdd: () => void;
+  onRename: (name: string) => void;
+  onDelete: () => void;
+}) {
+  const current = songs.find((s) => s.id === currentId) ?? songs[0];
+  return (
+    <div className="songbook">
+      {/* Tabs: one per song, plus a way to start a new one. */}
+      <div className="songbook-tabs" role="group" aria-label="Songs">
+        {songs.map((s) => (
+          <button
+            key={s.id}
+            className={s.id === currentId ? 'pill pill--on' : 'pill'}
+            onClick={() => onSelect(s.id)}
+          >
+            {s.name || 'Untitled'}
+          </button>
+        ))}
+        <button className="chart-add" onClick={onAdd}>
+          + New song
+        </button>
+      </div>
+
+      {/* Rename / delete the open song. */}
+      <div className="songbook-meta">
+        <input
+          className="songbook-name"
+          value={current.name}
+          aria-label="Song name"
+          onChange={(e) => onRename(e.target.value)}
+        />
+        {songs.length > 1 && (
+          <button className="pill" onClick={onDelete}>
+            Delete song
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
 

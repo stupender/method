@@ -126,9 +126,11 @@ const keyId = (tonic: Note, scaleId: string) => `${pitchClassOf(tonic)}:${scaleI
 // tempo, time signature, which chord is selected, voice-leading — is view state
 // local to this screen.
 export function SongView({
+  songId,
   chords,
   setChords,
 }: {
+  songId: string;
   chords: ChartChord[];
   setChords: Dispatch<SetStateAction<ChartChord[]>>;
 }) {
@@ -397,6 +399,17 @@ export function SongView({
       if (raf.current != null) cancelAnimationFrame(raf.current);
     };
   }, []);
+
+  // When the open song changes, reset this chart's view state: stop playback and
+  // clear the playhead, selection and reveal. (Tempo / time-sig carry over.)
+  useEffect(() => {
+    stopAudio();
+    setIsPlaying(false);
+    setPlayheadBeat(null);
+    setSelectedIndex(0);
+    setOpenKey(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [songId]);
 
   return (
     <>

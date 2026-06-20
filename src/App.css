@@ -236,6 +236,46 @@
   border-color: var(--muted);
 }
 
+/* --- Songbook: switch between songs -------------------------------------- */
+.songbook {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 26px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--line);
+}
+.songbook-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.songbook-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+/* The open song's name, edited in place. Looks like a heading until you focus it. */
+.songbook-name {
+  font-family: var(--serif);
+  font-size: 22px;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid transparent;
+  padding: 2px 0;
+  min-width: 180px;
+}
+.songbook-name:hover {
+  border-bottom-color: var(--line);
+}
+.songbook-name:focus {
+  outline: none;
+  border-bottom-color: var(--accent);
+}
+
 /* --- Song: the lead-sheet timeline -------------------------------------- */
 /* A small inline label inside a control row (e.g. "Beats"). */
 .control-label {

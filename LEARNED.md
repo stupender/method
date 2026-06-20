@@ -384,3 +384,18 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   paste can't silently wipe the chart.
 - **Progressive disclosure** — the paste box is a `<details>` so it stays out of
   the way until wanted, matching the backlog's "don't show everything at once".
+
+## Session 6f — multiple songs (a songbook)
+
+- **Lifting state ONE more level** — the chord list grew from "the song" to "one
+  of many songs". App now holds `songs: Song[]` + a `currentId`; the open song's
+  chords feed SongView. Same move as session 6b, one level up.
+- **Keeping a child component dumb** — SongView still takes `chords` + `setChords`
+  and knows nothing about songs. App passes a `setChords` that, under the hood,
+  updates just the open song inside the array. The child stays a plain controlled
+  component; the songbook logic lives entirely in the parent.
+- **Resetting view state on a data switch** — switching songs swaps the whole
+  chart, so a `useEffect` keyed on `songId` clears the per-chart view state
+  (selection, playhead, playback, reveal). Tempo/time-sig intentionally carry over.
+- **Always keep one** — delete is a no-op at one song, so the chart is never empty
+  (mirrors the never-empty-chart rule for chords).
