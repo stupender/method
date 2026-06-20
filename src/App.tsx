@@ -192,9 +192,18 @@ function StudyArea({
   const [rootIndex, setRootIndex] = useState(0); // the Key
   const [scaleId, setScaleId] = useState(SCALE_LIST[0].id); // the Scale type
   const [degree, setDegree] = useState(0); // scale degree (Roman numeral), 0-based
+  // The fret of the last note clicked on the neck, so the re-rooted mode can land
+  // in that position. `seq` bumps each click so re-clicking the same fret re-pins.
+  const [focus, setFocus] = useState<{ fret: number; seq: number } | null>(null);
 
   const root = ROOT_CHOICES[rootIndex];
   const scale = SCALES[scaleId];
+
+  // Click a note on the neck: select its degree AND remember the fret to focus.
+  const pickNote = (d: number, fret: number) => {
+    setDegree(d);
+    setFocus((f) => ({ fret, seq: (f?.seq ?? 0) + 1 }));
+  };
 
   // The seven Roman numerals of this key — the degree selector's labels. They sit
   // ABOVE Scales/Harmony and PERSIST across them: in Scales a degree picks the
@@ -262,7 +271,13 @@ function StudyArea({
       </div>
 
       {mode === 'scale' && (
-        <ScaleView root={root} scale={scale} degree={deg} onPickDegree={setDegree} />
+        <ScaleView
+          root={root}
+          scale={scale}
+          degree={deg}
+          focus={focus}
+          onPickNote={pickNote}
+        />
       )}
       {mode === 'chord' && <ChordView root={root} />}
       {mode === 'harmony' && (
@@ -285,23 +300,26 @@ function ScaleView({
   root,
   scale,
   degree,
-  onPickDegree,
+  focus,
+  onPickNote,
 }: {
   root: Note;
   scale: ScaleDefinition;
   degree: number;
-  onPickDegree: (degree: number) => void;
+  focus: { fret: number; seq: number } | null;
+  onPickNote: (degree: number, fret: number) => void;
 }) {
   const { modeRoot, modeScale } = modeAt(root, scale, degree);
   const tones = realizeScale(modeRoot, modeScale);
 
   // Click a note on the neck -> make it the new tonic. Map the note's pitch class
-  // back to which degree of the PARENT scale it is, and select that degree.
+  // back to which degree of the PARENT scale it is, select that degree, and pass
+  // the clicked fret so the mode lands in the position you clicked.
   const parentTones = realizeScale(root, scale);
   const pickRoot = (placed: PlacedNote) => {
     const pc = pitchClassOf(placed.note);
     const d = parentTones.findIndex((t) => pitchClassOf(t.note) === pc);
-    if (d >= 0) onPickDegree(d);
+    if (d >= 0) onPickNote(d, placed.position.fret);
   };
 
   return (
@@ -311,11 +329,16 @@ function ScaleView({
         {tones.map((t) => noteName(t.note)).join('  ')}
       </p>
 
-      <ScaleExplorer root={modeRoot} scale={modeScale} onPickRoot={pickRoot} />
+      <ScaleExplorer
+        root={modeRoot}
+        scale={modeScale}
+        onPickRoot={pickRoot}
+        focus={focus ?? undefined}
+      />
 
       <footer className="footnote">
         Each box is a position (a fingering). Click any note to make it the new
-        tonic — the mode shifts to start there.
+        tonic — the mode shifts to start there, in that position.
       </footer>
     </>
   );

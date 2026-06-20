@@ -434,3 +434,20 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **The neck and the buttons drive the same state** — clicking a note and clicking
   a Roman numeral both call `setDegree`. Two views onto one piece of state; neither
   owns it. That's why lifting `degree` to StudyArea (6g) paid off here.
+
+## Session 6i — click a note lands the mode in THAT position
+
+- **Pin after the re-render, not during the click** — clicking a note re-roots the
+  mode, which recomputes all the position boxes. So we can't pick the box in the
+  click handler (the new boxes don't exist yet). Instead we pass the clicked fret
+  down as `focus = { fret, seq }`; a `useEffect` keyed on `seq` runs AFTER the new
+  positions render and pins the box covering that fret. `seq` bumps each click so
+  clicking the same fret twice still re-fires the effect.
+- **Scoring the best box** — prefer the box that CONTAINS the fret, and most of all
+  the one whose ROOT sits exactly there; tie-break by nearest box centre. So a high
+  click lands the upper position, a low click the lower one.
+- **Clear stale pins on a real change** — a second effect keyed on a `modeKey`
+  (scale id + root + fingering) clears the pinned index whenever the set of boxes
+  changes, so switching degree by button or fingering doesn't leave a wrong box
+  lit. Effects run top-to-bottom, so on a note-click (both keys change) the clear
+  runs first, then the focus pin — final state is the right box.
