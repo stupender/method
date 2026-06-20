@@ -8,7 +8,7 @@
 // for using them. Within Study, a Mode picks Scales vs Harmony.
 // ============================================================================
 
-import { useState, type Dispatch, type SetStateAction } from 'react';
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import type { Note, ScaleDefinition, PlacedNote } from './theory/types';
 import { SCALES } from './data/scales';
 import { CHORDS } from './data/chords';
@@ -28,24 +28,76 @@ const CHORD_LIST = Object.values(CHORDS);
 type Area = 'study' | 'song';
 type Mode = 'scale' | 'chord' | 'harmony';
 
-// A song in the songbook: a name and its chord chart. (Tempo / time signature
-// stay in the Play view for now, shared across songs.)
+// A song in the songbook: a name, its chord chart, and its own meter + tempo.
 interface Song {
   id: string;
   name: string;
   chords: ChartChord[];
+  bpm: number; // tempo (quarter-note BPM)
+  beatsPerBar: number; // time-signature numerator
+  denominator: number; // time-signature bottom number (2/4/8/16)
 }
 
 // A unique id for a new song. A monotonic counter is plenty — no need for UUIDs.
 let songCounter = 0;
 const nextSongId = () => `song-${++songCounter}`;
 
-// A fresh, never-empty song (the chart needs at least one chord).
+// A fresh, never-empty song (the chart needs at least one chord), in common time.
 const newSong = (name: string): Song => ({
   id: nextSongId(),
   name,
   chords: [{ rootIndex: 0, chordId: 'major-triad', durationBeats: 4 }], // C, one bar
+  bpm: 100,
+  beatsPerBar: 4,
+  denominator: 4,
 });
+
+// --- Saving the songbook to the browser, so it survives a reload -----------
+const STORAGE_KEY = 'method.songbook.v1';
+
+// Fill in any missing fields, so older/partial saved data still loads cleanly.
+function normalizeSong(raw: Partial<Song> & { id: string }): Song {
+  return {
+    id: raw.id,
+    name: raw.name ?? 'Untitled',
+    chords:
+      Array.isArray(raw.chords) && raw.chords.length
+        ? raw.chords
+        : [{ rootIndex: 0, chordId: 'major-triad', durationBeats: 4 }],
+    bpm: raw.bpm ?? 100,
+    beatsPerBar: raw.beatsPerBar ?? 4,
+    denominator: raw.denominator ?? 4,
+  };
+}
+
+// Read the saved songbook (or null if none / unreadable). Also advances the id
+// counter past any saved ids so new songs don't collide.
+function loadSongbook(): { songs: Song[]; currentId: string } | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { songs?: unknown; currentId?: string };
+    if (!Array.isArray(parsed.songs) || parsed.songs.length === 0) return null;
+    const songs = (parsed.songs as (Partial<Song> & { id: string })[]).map(normalizeSong);
+    for (const s of songs) {
+      const n = Number(String(s.id).replace('song-', ''));
+      if (Number.isFinite(n)) songCounter = Math.max(songCounter, n);
+    }
+    const currentId = songs.some((s) => s.id === parsed.currentId)
+      ? (parsed.currentId as string)
+      : songs[0].id;
+    return { songs, currentId };
+  } catch {
+    return null; // corrupt or unavailable storage — start fresh
+  }
+}
+
+// The starting songbook: the saved one, or a single new song.
+const initialSongbook = loadSongbook() ?? (() => {
+  const first = newSong('Untitled');
+  first.chords = [{ rootIndex: 5, chordId: 'minor-triad', durationBeats: 4 }]; // Fm
+  return { songs: [first], currentId: first.id };
+})();
 
 function App() {
   const [area, setArea] = useState<Area>('study');
@@ -53,11 +105,29 @@ function App() {
   // The SONGBOOK lives here, above both areas, so it survives switching to
   // Possibility and back, and so the "Add to Play" button in Possibility can
   // append to whichever song is open. Tempo / time-sig / selection stay in Play.
-  const [songs, setSongs] = useState<Song[]>([
-    { id: nextSongId(), name: 'Untitled', chords: [{ rootIndex: 5, chordId: 'minor-triad', durationBeats: 4 }] },
-  ]);
-  const [currentId, setCurrentId] = useState(songs[0].id);
+  const [songs, setSongs] = useState<Song[]>(initialSongbook.songs);
+  const [currentId, setCurrentId] = useState(initialSongbook.currentId);
   const current = songs.find((s) => s.id === currentId) ?? songs[0];
+
+  // Save the songbook whenever it changes, so it's there on the next visit.
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ songs, currentId }));
+    } catch {
+      /* storage full or blocked — not worth interrupting the user */
+    }
+  }, [songs, currentId]);
+
+  // Merge a patch into the OPEN song. Accepts an updater fn too, so relative
+  // changes (tempo +/-) read the latest value even if clicks batch together.
+  const updateCurrent = (update: Partial<Song> | ((s: Song) => Partial<Song>)) =>
+    setSongs((ss) =>
+      ss.map((s) =>
+        s.id === currentId
+          ? { ...s, ...(typeof update === 'function' ? update(s) : update) }
+          : s,
+      ),
+    );
 
   // Update the OPEN song's chords. Shaped like a useState setter so SongView can
   // stay a plain controlled component (it doesn't know songs exist).
@@ -121,7 +191,15 @@ function App() {
           onRename={renameCurrent}
           onDelete={deleteCurrent}
         />
-        <SongView songId={current.id} chords={current.chords} setChords={setCurrentChords} />
+        <SongView
+          songId={current.id}
+          chords={current.chords}
+          setChords={setCurrentChords}
+          bpm={current.bpm}
+          beatsPerBar={current.beatsPerBar}
+          denominator={current.denominator}
+          onMeter={updateCurrent}
+        />
       </div>
     </main>
   );

@@ -451,3 +451,21 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   changes, so switching degree by button or fingering doesn't leave a wrong box
   lit. Effects run top-to-bottom, so on a note-click (both keys change) the clear
   runs first, then the focus pin — final state is the right box.
+
+## Session 6j — show-all boxes, descending runs, per-song meter + saved songbook
+
+- **Show every box at once** — a `showAllShapes` flag on the Fretboard draws all
+  positions' constellation lines together (quiet style), none dimmed, so you see
+  how a mode tiles the whole neck. Clicking a note to focus a position exits it.
+- **Direction** — ascending/descending just reverses the order: `TabSequence`
+  reverses its note columns, and playback reverses the midi list. The data is the
+  same; only the reading order flips.
+- **Per-song meter** — bpm / beats-per-bar / denominator moved INTO the Song, so
+  each song carries its own. SongView became fully controlled for these too.
+- **Functional updater across a prop boundary** — tempo +/- must read the LATEST
+  value, but the handler captured a stale `bpm`. Fix: `onMeter` accepts an updater
+  `(m) => patch`, mirroring React's `setState(fn)`, so batched clicks compound.
+- **localStorage persistence** — the songbook saves on every change (a `useEffect`
+  on `[songs, currentId]`) and loads at startup, with a `normalizeSong` pass so
+  partial/older saved data still opens. The id counter is advanced past saved ids
+  so new songs don't collide. Wrapped in try/catch — storage can be blocked/full.

@@ -56,7 +56,6 @@ function formatBeats(b: number): string {
   const num = whole === 0 ? frac : `${whole}${frac}`;
   return `${num} ${b === 1 ? 'beat' : 'beats'}`;
 }
-const BPM = 100; // playback tempo
 const PX_PER_BEAT = 46; // timeline scale
 const SNAP = 0.25; // drag snaps to a sixteenth note
 const MIN_DUR = 0.25; // a chord must last at least this
@@ -129,14 +128,29 @@ export function SongView({
   songId,
   chords,
   setChords,
+  bpm,
+  beatsPerBar,
+  denominator,
+  onMeter,
 }: {
   songId: string;
   chords: ChartChord[];
   setChords: Dispatch<SetStateAction<ChartChord[]>>;
+  // Meter + tempo belong to the open song (handed in), so each song keeps its own.
+  bpm: number;
+  beatsPerBar: number;
+  denominator: number;
+  // A patch, or an updater that reads the song's latest meter (for tempo +/-).
+  onMeter: (
+    update:
+      | { bpm?: number; beatsPerBar?: number; denominator?: number }
+      | ((m: { bpm: number; beatsPerBar: number; denominator: number }) => {
+          bpm?: number;
+          beatsPerBar?: number;
+          denominator?: number;
+        }),
+  ) => void;
 }) {
-  const [beatsPerBar, setBeatsPerBar] = useState(4); // time-sig numerator
-  const [denominator, setDenominator] = useState(4); // time-sig bottom number
-  const [bpm, setBpm] = useState(BPM);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [openKey, setOpenKey] = useState<KeyMatch | null>(null);
   // Transport state: whether the song is playing, plus the metronome and chord-
@@ -422,14 +436,14 @@ export function SongView({
             max={32}
             value={beatsPerBar}
             onChange={(e) =>
-              setBeatsPerBar(Math.max(1, Math.min(32, Number(e.target.value) || 1)))
+              onMeter({ beatsPerBar: Math.max(1, Math.min(32, Number(e.target.value) || 1)) })
             }
             aria-label="Beats per bar"
           />
           <span>/</span>
           <select
             value={denominator}
-            onChange={(e) => setDenominator(Number(e.target.value))}
+            onChange={(e) => onMeter({ denominator: Number(e.target.value) })}
             aria-label="Beat unit"
           >
             {[2, 4, 8, 16].map((d) => (
@@ -444,11 +458,17 @@ export function SongView({
         </button>
         {/* Tempo. */}
         <div className="tempo" role="group" aria-label="Tempo">
-          <button className="pill pill--tiny" onClick={() => setBpm((b) => Math.max(40, b - 5))}>
+          <button
+            className="pill pill--tiny"
+            onClick={() => onMeter((m) => ({ bpm: Math.max(40, m.bpm - 5) }))}
+          >
             –
           </button>
           <span className="tempo__value">♩ = {bpm}</span>
-          <button className="pill pill--tiny" onClick={() => setBpm((b) => Math.min(280, b + 5))}>
+          <button
+            className="pill pill--tiny"
+            onClick={() => onMeter((m) => ({ bpm: Math.min(280, m.bpm + 5) }))}
+          >
             +
           </button>
         </div>
