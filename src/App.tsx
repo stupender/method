@@ -14,6 +14,7 @@ import { SCALES } from './data/scales';
 import { CHORDS } from './data/chords';
 import { ROOT_CHOICES } from './data/roots';
 import { realizeScale } from './theory/scale';
+import { modeAt } from './theory/mode';
 import { diatonicChords } from './theory/harmony';
 import { noteName, pitchClassOf } from './theory/notes';
 import { ChordExplorer } from './ui/ChordExplorer';
@@ -190,13 +191,20 @@ function StudyArea({
   const [mode, setMode] = useState<Mode>('scale');
   const [rootIndex, setRootIndex] = useState(0); // the Key
   const [scaleId, setScaleId] = useState(SCALE_LIST[0].id); // the Scale type
+  const [degree, setDegree] = useState(0); // scale degree (Roman numeral), 0-based
 
   const root = ROOT_CHOICES[rootIndex];
   const scale = SCALES[scaleId];
 
+  // The seven Roman numerals of this key — the degree selector's labels. They sit
+  // ABOVE Scales/Harmony and PERSIST across them: in Scales a degree picks the
+  // mode built on it; in Harmony it picks that degree's chord.
+  const romanLabels = diatonicChords(root, scale, false).map((c) => c.roman);
+  const deg = Math.min(degree, romanLabels.length - 1);
+
   return (
     <>
-      {/* Controls in priority order: Key → Scale type → Mode. */}
+      {/* Controls in priority order: Key → Scale type → Degree → Mode. */}
       <div className="controls">
         <div className="control-group" role="group" aria-label="Key">
           {ROOT_CHOICES.map((note, i) => (
@@ -222,6 +230,20 @@ function StudyArea({
           ))}
         </div>
 
+        {/* Degree (Roman numeral) — the persistent selector. In Scales it sets
+            the mode; in Harmony it sets the chord. */}
+        <div className="control-group control-group--wrap" role="group" aria-label="Degree">
+          {romanLabels.map((roman, i) => (
+            <button
+              key={i}
+              className={i === deg ? 'pill pill--on' : 'pill'}
+              onClick={() => setDegree(i)}
+            >
+              {roman}
+            </button>
+          ))}
+        </div>
+
         {/* 'chord' (the absolute, key-less chord explorer) is intentionally NOT
             offered here — it isn't useful on this key-oriented page yet. The
             view + ChordExplorer are kept below for a future, less key-centric
@@ -239,12 +261,13 @@ function StudyArea({
         </div>
       </div>
 
-      {mode === 'scale' && <ScaleView root={root} scale={scale} />}
+      {mode === 'scale' && <ScaleView root={root} scale={scale} degree={deg} />}
       {mode === 'chord' && <ChordView root={root} />}
       {mode === 'harmony' && (
         <HarmonyView
           root={root}
           scale={scale}
+          degree={deg}
           onAddChord={onAddChord}
           songLength={songLength}
         />
@@ -253,22 +276,32 @@ function StudyArea({
   );
 }
 
-// --- Scale view: the scale's position boxes (its 7 modal fingerings) -------
-function ScaleView({ root, scale }: { root: Note; scale: ScaleDefinition }) {
-  const tones = realizeScale(root, scale);
+// --- Scale view: the MODE on the chosen degree, and its position boxes -------
+// Degree 0 is the scale itself; degree 4 of a major key is Mixolydian, etc. The
+// neck then shows that mode rooted on its own degree, in every position.
+function ScaleView({
+  root,
+  scale,
+  degree,
+}: {
+  root: Note;
+  scale: ScaleDefinition;
+  degree: number;
+}) {
+  const { modeRoot, modeScale } = modeAt(root, scale, degree);
+  const tones = realizeScale(modeRoot, modeScale);
 
   return (
     <>
       <p className="tagline">
-        {noteName(root)} {scale.name} —{' '}
+        {noteName(modeRoot)} {modeScale.name} —{' '}
         {tones.map((t) => noteName(t.note)).join('  ')}
       </p>
 
-      <ScaleExplorer root={root} scale={scale} />
+      <ScaleExplorer root={modeRoot} scale={modeScale} />
 
       <footer className="footnote">
-        Each box is a position (a mode's fingering). Hover to light it; click to
-        hear it.
+        Each box is a position (a fingering). Hover to light it; click to hear it.
       </footer>
     </>
   );
@@ -308,19 +341,22 @@ function ChordView({ root }: { root: Note }) {
 }
 
 // --- Harmony view: the chords OF a key (diatonic harmony) ------------------
+// The degree comes from the shared selector above, so it stays put when you flip
+// between Scales and Harmony. This view just adds the triad/seventh choice.
 function HarmonyView({
   root,
   scale,
+  degree,
   onAddChord,
   songLength,
 }: {
   root: Note;
   scale: ScaleDefinition;
+  degree: number;
   onAddChord: (rootIndex: number, chordId: string) => void;
   songLength: number;
 }) {
   const [seventh, setSeventh] = useState(false);
-  const [degree, setDegree] = useState(0);
 
   // The diatonic chords of this key + scale — derived, not stored. Switching the
   // global scale type (major, harmonic minor, ...) changes the whole harmony set.
@@ -344,20 +380,8 @@ function HarmonyView({
       </p>
 
       <div className="view-controls">
-        {/* Highest priority: which degree (Roman numeral) in the key. */}
-        <div className="control-group" role="group" aria-label="Scale degree">
-          {chords.map((c, i) => (
-            <button
-              key={i}
-              className={i === degree ? 'pill pill--on' : 'pill'}
-              onClick={() => setDegree(i)}
-            >
-              {c.roman}
-            </button>
-          ))}
-        </div>
-
-        {/* Then: triads vs seventh chords. */}
+        {/* Triads vs seventh chords (the degree is chosen by the shared selector
+            above). */}
         <div className="control-group" role="group" aria-label="Chord size">
           <button
             className={!seventh ? 'pill pill--on' : 'pill'}

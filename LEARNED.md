@@ -399,3 +399,22 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   (selection, playhead, playback, reveal). Tempo/time-sig intentionally carry over.
 - **Always keep one** — delete is a no-op at one song, so the chart is never empty
   (mirrors the never-empty-chart rule for chords).
+
+## Session 6g — Roman numeral as a persistent degree selector (Possibility)
+
+- **A mode is the parent scale heard from another degree** — `modeAt(root, scale,
+  degree)` rotates the scale's semitone pattern to start on that degree and
+  re-measures each tone from the new root. Degree 0 is the scale itself; degree 4
+  of a major key is Mixolydian. The note spellings stay correct because the new
+  root is just the (already correctly-spelled) scale tone on that degree.
+- **Own-degree labels** — each mode tone is labelled by comparing its pitch to a
+  plain major scale at the same letter-step: "♭3", "♯4", "♭7". So Lydian shows a
+  ♯4 on the neck, which is the whole point of seeing a mode in position.
+- **Lifting a control to where it's shared** — the degree (Roman numeral) moved UP
+  out of the Harmony view to StudyArea, so it PERSISTS across Scales and Harmony:
+  in Scales it picks the mode, in Harmony the chord. The view-specific control
+  (triads vs sevenths) stayed in Harmony. Put each control at the altitude of
+  whoever shares it — same principle as lifting state.
+- The degree labels come from `diatonicChords(root, scale, false)` (the triads),
+  so they read I ii iii IV V vi vii° (or i ii III+ … for melodic minor) regardless
+  of the Scales/Harmony view or the seventh toggle.
