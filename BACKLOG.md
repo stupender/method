@@ -122,8 +122,9 @@ directly to the palta generator (item A).
 - ~~**Metronome** option, and a **mute toggle for chord audio**~~ (done — a click
   per beat accented on the downbeat; Mute sends an empty chord list so the
   playhead + metronome still run.)
-- Still to come: **click-to-scrub / set the playhead** by clicking the score, and
-  a **count-in**.
+- ~~**click-to-scrub / set the playhead** by clicking the score, and a
+  **count-in**.~~ (done — the playhead doubles as a cursor: click to place, Play
+  starts there, Pause resumes; one-bar Count-in toggle.)
 
 ### Rhythm, refined
 
