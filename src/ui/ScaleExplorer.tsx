@@ -40,6 +40,8 @@ export function ScaleExplorer({
   const [fingering, setFingering] = useState<'3nps' | 'box'>('3nps');
   // Show every position's box outlined at once (see the whole mode tile the neck).
   const [showAll, setShowAll] = useState(false);
+  // Read/play the run ascending (low -> high) or descending (high -> low).
+  const [direction, setDirection] = useState<'up' | 'down'>('up');
   // Pinned (clicked, stays lit) vs hovered (temporary preview). Hover wins while
   // over a box; otherwise the pinned one shows. Click the empty neck to unpin.
   const [pinnedShape, setPinnedShape] = useState<number | null>(null);
@@ -83,11 +85,12 @@ export function ScaleExplorer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focus?.seq]);
 
-  // Play a position ascending (lowest pitch to highest).
+  // Play a position in the chosen direction (low->high, or high->low).
   const playPosition = (shape: (typeof shapes)[number]) => {
     const midis = [...shape]
       .sort((a, b) => midiOf(a.note) - midiOf(b.note))
       .map((p) => midiOf(p.note));
+    if (direction === 'down') midis.reverse();
     playSequence(midis, 0.18);
   };
 
@@ -126,6 +129,21 @@ export function ScaleExplorer({
           >
             All positions
           </button>
+          {/* Read/play the run up or down. */}
+          <div className="control-group" role="group" aria-label="Direction">
+            <button
+              className={direction === 'up' ? 'pill pill--on' : 'pill'}
+              onClick={() => setDirection('up')}
+            >
+              Ascending
+            </button>
+            <button
+              className={direction === 'down' ? 'pill pill--on' : 'pill'}
+              onClick={() => setDirection('down')}
+            >
+              Descending
+            </button>
+          </div>
           <div className="control-group" role="group" aria-label="Labels">
             <button
               className={labelMode === 'degree' ? 'pill pill--on' : 'pill'}
@@ -184,6 +202,7 @@ export function ScaleExplorer({
               instrument={GUITAR}
               tuning={GUITAR_STANDARD}
               placed={pos.notes}
+              descending={direction === 'down'}
               caption={pos.name}
             />
           </div>

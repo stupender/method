@@ -17,12 +17,21 @@ interface TabSequenceProps {
   instrument: Instrument;
   tuning: Tuning;
   placed: PlacedNote[];
+  descending?: boolean; // read high -> low instead of low -> high
   caption?: string; // optional label, e.g. the position name
 }
 
-export function TabSequence({ instrument, tuning, placed, caption }: TabSequenceProps) {
-  // The notes left-to-right in ascending pitch — so the run reads as a scale.
+export function TabSequence({
+  instrument,
+  tuning,
+  placed,
+  descending = false,
+  caption,
+}: TabSequenceProps) {
+  // The notes left-to-right by pitch — ascending so the run reads as a scale, or
+  // descending (high -> low) when asked.
   const notes = [...placed].sort((a, b) => midiOf(a.note) - midiOf(b.note));
+  if (descending) notes.reverse();
 
   // String rows, highest string on top (TAB convention).
   const rows: number[] = [];
