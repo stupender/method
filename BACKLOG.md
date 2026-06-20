@@ -97,8 +97,11 @@ added as voicing data + placement.
   Harmony view appends the selected diatonic chord. Still to come: the same Add
   from the **Scales** view (see Possibility → "click a note" above), and full
   **per-chord manual voicing** via the Study expansion.
-- **Multiple songs / songbooks & setlists** — hold many charts; (later) sync with
-  Spotify / Apple Music playlists to auto-generate a song or find a chart for it.
+- ~~**Multiple songs / songbooks**~~ (done — a songbook of named songs: switch
+  tabs, + New song, inline rename, Delete; the open song feeds Play). Still to
+  come: **persistence** (localStorage/accounts — currently in-memory, lost on
+  reload), **per-song tempo/time-sig** (shared for now), setlists, and (later)
+  Spotify / Apple Music playlist sync.
 
 ### Per-bar UNIT type
 
