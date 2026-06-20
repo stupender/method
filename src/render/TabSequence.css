@@ -1,0 +1,72 @@
+/* ==========================================================================
+   TabSequence.css — horizontal scale TAB (one note per column)
+   ========================================================================== */
+
+.tabseq {
+  display: inline-flex;
+  flex-direction: column;
+  padding: 12px 16px;
+  font-family: var(--sans);
+}
+
+.tabseq-grid {
+  display: flex;
+  align-items: stretch;
+}
+
+/* Each column is one note's time-slot: a stack of string cells. */
+.tabseq-col {
+  display: flex;
+  flex-direction: column;
+  width: 20px;
+}
+.tabseq-col--labels {
+  width: 22px;
+  margin-right: 6px;
+}
+
+.tabseq-cell {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* The string line runs through the middle of every note cell, so the columns
+   join into six continuous lines — matching the Song staff / chord TAB look. */
+.tabseq-col:not(.tabseq-col--labels) .tabseq-cell::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: #d8d0c0;
+}
+
+/* The open-string name at the left of each row. */
+.tabseq-open {
+  justify-content: flex-end;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* A fret number sitting on its line (background masks the line behind it). */
+.tabseq-num {
+  position: relative;
+  z-index: 1;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 3px;
+}
+
+.tabseq-caption {
+  margin-top: 8px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+}

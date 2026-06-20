@@ -9,7 +9,7 @@
 // ============================================================================
 
 import { useState, type Dispatch, type SetStateAction } from 'react';
-import type { Note, ScaleDefinition } from './theory/types';
+import type { Note, ScaleDefinition, PlacedNote } from './theory/types';
 import { SCALES } from './data/scales';
 import { CHORDS } from './data/chords';
 import { ROOT_CHOICES } from './data/roots';
@@ -261,7 +261,9 @@ function StudyArea({
         </div>
       </div>
 
-      {mode === 'scale' && <ScaleView root={root} scale={scale} degree={deg} />}
+      {mode === 'scale' && (
+        <ScaleView root={root} scale={scale} degree={deg} onPickDegree={setDegree} />
+      )}
       {mode === 'chord' && <ChordView root={root} />}
       {mode === 'harmony' && (
         <HarmonyView
@@ -283,13 +285,24 @@ function ScaleView({
   root,
   scale,
   degree,
+  onPickDegree,
 }: {
   root: Note;
   scale: ScaleDefinition;
   degree: number;
+  onPickDegree: (degree: number) => void;
 }) {
   const { modeRoot, modeScale } = modeAt(root, scale, degree);
   const tones = realizeScale(modeRoot, modeScale);
+
+  // Click a note on the neck -> make it the new tonic. Map the note's pitch class
+  // back to which degree of the PARENT scale it is, and select that degree.
+  const parentTones = realizeScale(root, scale);
+  const pickRoot = (placed: PlacedNote) => {
+    const pc = pitchClassOf(placed.note);
+    const d = parentTones.findIndex((t) => pitchClassOf(t.note) === pc);
+    if (d >= 0) onPickDegree(d);
+  };
 
   return (
     <>
@@ -298,10 +311,11 @@ function ScaleView({
         {tones.map((t) => noteName(t.note)).join('  ')}
       </p>
 
-      <ScaleExplorer root={modeRoot} scale={modeScale} />
+      <ScaleExplorer root={modeRoot} scale={modeScale} onPickRoot={pickRoot} />
 
       <footer className="footnote">
-        Each box is a position (a fingering). Hover to light it; click to hear it.
+        Each box is a position (a fingering). Click any note to make it the new
+        tonic — the mode shifts to start there.
       </footer>
     </>
   );

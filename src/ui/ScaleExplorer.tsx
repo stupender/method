@@ -17,9 +17,19 @@ import { scalePositions, positionalBoxes } from '../theory/scalePositions';
 import { midiOf } from '../theory/notes';
 import { playSequence } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
-import { TabView } from '../render/TabView';
+import { TabSequence } from '../render/TabSequence';
+import type { PlacedNote } from '../theory/types';
 
-export function ScaleExplorer({ root, scale }: { root: Note; scale: ScaleDefinition }) {
+export function ScaleExplorer({
+  root,
+  scale,
+  onPickRoot,
+}: {
+  root: Note;
+  scale: ScaleDefinition;
+  // Click a note on the neck to make it the new root (re-root the mode).
+  onPickRoot?: (placed: PlacedNote) => void;
+}) {
   const [labelMode, setLabelMode] = useState<'note' | 'degree'>('degree');
   // Which fingering system: three-notes-per-string, or the in-position "box".
   const [fingering, setFingering] = useState<'3nps' | 'box'>('3nps');
@@ -99,6 +109,7 @@ export function ScaleExplorer({ root, scale }: { root: Note; scale: ScaleDefinit
         onShapeHover={setHoveredShape}
         onShapeTap={selectShape}
         onBackgroundClick={() => setPinnedShape(null)}
+        onNoteTap={onPickRoot}
         labelMode={labelMode}
       />
 
@@ -113,7 +124,7 @@ export function ScaleExplorer({ root, scale }: { root: Note; scale: ScaleDefinit
             onMouseLeave={() => setHoveredShape(null)}
             onClick={() => selectShape(i)}
           >
-            <TabView
+            <TabSequence
               instrument={GUITAR}
               tuning={GUITAR_STANDARD}
               placed={pos.notes}

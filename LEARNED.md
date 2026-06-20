@@ -418,3 +418,19 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - The degree labels come from `diatonicChords(root, scale, false)` (the triads),
   so they read I ii iii IV V vi vii° (or i ii III+ … for melodic minor) regardless
   of the Scales/Harmony view or the seventh toggle.
+
+## Session 6h — click a note to re-root + horizontal scale TAB
+
+- **Scale TAB reads left-to-right** — a chord stacks in one column, but a scale is
+  a LINE: `TabSequence` sorts a position's notes by pitch and gives each its own
+  column, so the run steps up the strings like real tablature. (Chords still use
+  the stacked `TabView`.) The string lines are drawn as a 1px rule through every
+  cell, so adjacent columns join into six continuous lines.
+- **Click a note → re-root the mode** — the Fretboard already had `onNoteTap`; in
+  shape mode the note's click now `stopPropagation()`s so it beats the position's
+  play-click underneath. ScaleView maps the clicked note's PITCH CLASS back to its
+  degree in the PARENT scale and selects that degree — so clicking any scale note
+  makes it the new tonic and the mode shifts to start there.
+- **The neck and the buttons drive the same state** — clicking a note and clicking
+  a Roman numeral both call `setDegree`. Two views onto one piece of state; neither
+  owns it. That's why lifting `degree` to StudyArea (6g) paid off here.

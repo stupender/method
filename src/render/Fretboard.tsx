@@ -177,7 +177,16 @@ export function Fretboard({
             <g
               key={key}
               className={onNoteTap ? 'note tappable' : 'note'}
-              onClick={onNoteTap ? () => onNoteTap(h) : undefined}
+              onClick={
+                onNoteTap
+                  ? (e) => {
+                      // A note tap wins over the shape/background click beneath it
+                      // (so clicking a scale note re-roots, not plays the box).
+                      e.stopPropagation();
+                      onNoteTap(h);
+                    }
+                  : undefined
+              }
             >
               <circle className={dotClass} cx={x} cy={y} r={DOT_RADIUS} />
               <text
