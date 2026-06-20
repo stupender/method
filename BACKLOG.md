@@ -109,10 +109,13 @@ directly to the palta generator (item A).
 
 ### Text chord entry & paste import
 
-- **+ Add chord → type its name** (e.g. "F-7"), with recognition / filter-search
-  to confirm — as an alternative to the root + chord-type selectors.
-- **Paste a text progression** (from Guitar Pro, Apple Notes, or typed) and have
-  the app read it into bars; a `,` or `|` denotes a bar line.
+- ~~**type its name** (e.g. "F-7"), with recognition~~ (done — a "Type a chord"
+  field sets the selected chord; `theory/chordParser.ts`).
+- ~~**Paste a text progression** … read it into bars; a `,` or `|` denotes a bar
+  line.~~ (done — Replace / Append; bars split on `|` `,` newline, chords in a bar
+  share its beats.)
+- Still to come: **filter-search/autocomplete** as you type; richer qualities
+  (6ths, 9/11/13, slash bass) once that chord data exists.
 
 ### Playback / transport
 
