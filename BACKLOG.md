@@ -62,11 +62,15 @@ that degree** to Play (the chord-on-a-degree machinery already exists in Harmony
 via `diatonicChords`). Now that notes are individually clickable (re-root), a
 modifier/secondary action could add that degree's chord. Its own step.
 
-### Positional fingering, refined
+### Positional fingering, refined ✓ (done)
 
-In positional mode you still can't skip scale notes, but rather than 3 notes on
-the low E, the **3rd note moves to the A string**, continuing 2–3 per string and
-generally staying in one position. (Refine `positionalBoxes`.)
+~~In positional mode the 3rd low-E note moves to the A string, continuing 2–3 per
+string in one position.~~ Done — `positionalBoxes` rewritten as a true in-position
+scan (2 on the low E for most boxes). Also added a third system, `hybridBoxes`
+(**Hybrid**: 2 on the low E, then 3 per string — a common learned blend), and
+clarified the naming: **Positional = the 7-position system** (not CAGED).
+Still open: a **CAGED** (5-shape) system; per-user **saved fingering preference**;
+the open-position nuance (Positional keeps 3 on the low E there).
 
 ### String sets are a first-class choice
 
