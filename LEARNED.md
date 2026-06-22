@@ -469,3 +469,20 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   on `[songs, currentId]`) and loads at startup, with a `normalizeSong` pass so
   partial/older saved data still opens. The id counter is advanced past saved ids
   so new songs don't collide. Wrapped in try/catch — storage can be blocked/full.
+
+## Session 6k — voicing placement principle (least stretch per register)
+
+- **The bug** — `placeOnStringSets` returned a shape for EVERY string set within
+  the span limit. A drop-3 from the low E fit BOTH the idiomatic skip-the-A set
+  (E-D-G-B, span 2) AND a skip-the-D set (E-A-G-B, span 3) that stretches the next
+  note way up the A string. Both showed; the wide one even sorted first.
+- **The principle** — show a voicing once per REGISTER (the lowest string it starts
+  on), and within a register keep the LEAST-STRETCH fingering
+  (`leastStretchPerRegister`). A skipped string exists to line up with the
+  voicing's big interval gap, so the next note lands on the closer string (D, not
+  high on the A). This is the general rule, not a drop-3 special case.
+- **Why it's safe** — contiguous string sets each start on a different string, so
+  the triad's four / the 7th's three close shapes are untouched. Only the skip-set
+  voicings (drop-3, open triad) collapse to their one idiomatic shape per register.
+- Verified: Cmaj7 drop-3 -> [E,D,G,B] + [A,G,B,e]; open triad -> skip-after-bass
+  sets; close triads/7ths unchanged.

@@ -198,12 +198,40 @@ function placeOnStringSets(
   return shapes;
 }
 
-// Step 4 — place the built voicing on the neck, ONCE ON EACH STRING SET it fits.
-// We want the voicing shown on every string set so the player sees every place to
-// grab it: a triad on its four contiguous 3-string sets (E-A-D, A-D-G, D-G-B,
-// G-B-e), a 7th on its three contiguous 4-string sets. Voicings that can't sit on
-// adjacent strings (open triads, drop-3) won't fit any contiguous set — for those
-// we fall back to the skip string sets. Shapes are ordered low to high.
+// The fret span (stretch) of a shape: highest fret minus lowest.
+function fretSpan(shape: PlacedNote[]): number {
+  const frets = shape.map((p) => p.position.fret);
+  return Math.max(...frets) - Math.min(...frets);
+}
+
+// PLACEMENT PRINCIPLE — one shape per register, the least-stretch one.
+// We show a voicing once per "register" (the lowest string it starts on). When a
+// register offers several string sets — e.g. a drop-3 from the low E could skip
+// the A string OR stretch up it — we keep only the LEAST-STRETCH fingering. That's
+// the whole point of a skipped string: it lines up with the voicing's big interval
+// gap, so the next note lands on the D string (close to the rest) instead of high
+// up the A string. Same idea keeps every voicing in its closest, most grabbable
+// range. Contiguous sets each start on a different string, so this leaves the
+// triad's four / the 7th's three shapes untouched.
+function leastStretchPerRegister(shapes: PlacedNote[][]): PlacedNote[][] {
+  const lowestString = (shape: PlacedNote[]) =>
+    Math.min(...shape.map((p) => p.position.stringIndex));
+  const best = new Map<number, PlacedNote[]>();
+  for (const shape of shapes) {
+    const key = lowestString(shape);
+    const current = best.get(key);
+    if (!current || fretSpan(shape) < fretSpan(current)) best.set(key, shape);
+  }
+  return [...best.values()];
+}
+
+// Step 4 — place the built voicing on the neck, ONCE PER REGISTER it fits.
+// We want the voicing shown wherever it sits comfortably so the player sees every
+// place to grab it: a triad on its four contiguous 3-string sets (E-A-D, A-D-G,
+// D-G-B, G-B-e), a 7th on its three contiguous 4-string sets. Voicings that can't
+// sit on adjacent strings (open triads, drop-3) won't fit any contiguous set — for
+// those we fall back to the skip string sets, then keep the least-stretch fingering
+// per register (see leastStretchPerRegister). Shapes are ordered low to high.
 export function placeVoicingAll(
   instrument: Instrument,
   tuning: Tuning,
@@ -245,12 +273,12 @@ export function placeVoicingAll(
       ],
       Infinity,
     );
-    const span = (s: PlacedNote[]) =>
-      Math.max(...s.map((p) => p.position.fret)) -
-      Math.min(...s.map((p) => p.position.fret));
-    all.sort((a, b) => span(a) - span(b));
+    all.sort((a, b) => fretSpan(a) - fretSpan(b));
     if (all.length) shapes = [all[0]];
   }
+
+  // Keep just the most-grabbable fingering in each register (least stretch).
+  shapes = leastStretchPerRegister(shapes);
 
   // Order shapes by STRING SET, lowest strings first (then by fret within a
   // string set). So all the shapes on the lowest strings come first, then the
