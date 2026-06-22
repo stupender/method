@@ -56,6 +56,11 @@ data  →  theory logic  →  rendering  →  audio  →  UI / state
   `diatonicSteps` (letters) and `semitones` (pitch) for this reason.
 - **Voicings are rearrangements of chord tones, not new chord types.**
   Inversions, drop-2, drop-3, spread = reorder + octave-shift the same tones.
+- **Voicing placement = least stretch per register.** Show a voicing once per
+  register (the lowest string it starts on); within a register pick the
+  least-stretch fingering. A skipped string must line up with the voicing's big
+  interval gap (so a drop-3 from the low E voices its next note on the D string,
+  not stretched up the A). See `leastStretchPerRegister` in `theory/chord.ts`.
 - **Tuning convention:** `openNotes` is ordered LOW pitch → HIGH pitch (index 0
   = lowest string). The renderer reverses for display.
 
