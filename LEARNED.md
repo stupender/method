@@ -548,3 +548,21 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
     form (F Mixo: 7), and the open box matches Stu's example exactly.
 - **Verified with a throwaway `tsx` script** (the browser preview was flaky) —
   imported the real theory fns and printed both systems' boxes for F Mixolydian.
+
+## Session 6p — Positional vs Hybrid, finally precise (one shared scan)
+
+- **Both are the same in-position scan** (`positionScan`), differing by ONE rule:
+  - **Positional** (shiftUp=false): every tone crosses DOWN to the next string when
+    it passes the window top — even below the baseline. Boxes that can't cross don't
+    form.
+  - **Hybrid** (shiftUp=true): identical, EXCEPT a ♭7 that would have to drop BELOW
+    the position to cross instead stays on its string and shifts UP a fret. Scoped
+    to (a) the scale's 7th being MINOR (so major-7 scales finger exactly like
+    Positional — Lydian/Ionian), and (b) the TOP TWO strings only (`s >= stringCount
+    − 2` — "once we cross the G string"), so it doesn't pile a 4th note on a low
+    string.
+- The earlier rigid "2-on-low-E-then-3-per-string" hybrid was wrong: for a major-7
+  scale it forced 2-fret-per-note stretches. The shared scan fixes that — Hybrid
+  Lydian == Positional Lydian.
+- Verified via `tsx` against Stu's two examples (F Lydian pos 2; F Mixolydian pos 1)
+  — both exact — plus Dorian/Aeolian sanity (no 4-note strings).

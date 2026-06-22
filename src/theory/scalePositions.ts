@@ -143,21 +143,32 @@ export function scalePositions(
   return positions;
 }
 
-// ---- System 2: in-position "box" (mostly 2 notes per string) -------------
-// Like 3-notes-per-string, but the hand STAYS in one ~4-fret position instead of
-// shifting up every string. We lay TWO OCTAVES of consecutive scale tones across
-// the neck, string by string, moving up a string as soon as the next tone would
-// climb past the position's window. Because the major scale's third tone on the
-// low E lands a whole step past the window, the low E naturally takes just TWO
-// notes (e.g. F major starts F–G, skipping the open E) — Stu's "notes 2 & 3 of
-// the low E string" — and the box stays put (F major, position I = frets 0–3).
+// ---- Systems 2 & 3: in-position boxes (Positional and Hybrid) -------------
+// Both lay TWO OCTAVES of consecutive scale tones across the neck, staying in one
+// ~4-fret position: move up a string the moment a tone climbs past the window's
+// top, where it sits at a lower fret on the next string. (The major scale's 3rd
+// low-E tone lands a whole step past the window, so the low E naturally takes two
+// notes — Stu's "notes 2 & 3 of the low E".) They differ by ONE rule at a string
+// crossing:
+//
+//   - Positional (shiftUp = false): a tone ALWAYS crosses down to the next string,
+//     even when that puts it BELOW the position (a minor 3rd / 7th "below the
+//     baseline"). Where the cross has no room — a ♭7 low on the neck whose next
+//     string would be a negative fret — the box simply doesn't form (play it higher
+//     up). Strict position playing.
+//   - Hybrid (shiftUp = true): a tone crosses down ONLY if it still lands inside the
+//     position; if crossing would drop it below the baseline (the ♭7 case) it stays
+//     on the current string and shifts UP a fret instead, keeping it on the B
+//     string. For a MAJOR-7 scale (Lydian, Ionian) nothing forces a shift, so
+//     Hybrid is identical to Positional — the systems diverge ONLY on a ♭7.
 const BOX_WIDTH = 4; // a 4-fret hand position
 
-export function positionalBoxes(
+function positionScan(
   instrument: Instrument,
   tuning: Tuning,
   root: Note,
   scale: ScaleDefinition,
+  shiftUp: boolean,
 ): ScalePosition[] {
   const byPitchClass = toneLookup(root, scale);
   const scalePcs = new Set(byPitchClass.keys());
@@ -173,30 +184,45 @@ export function positionalBoxes(
     if (scalePcs.has(((m % 12) + 12) % 12)) ladder.push(m);
   }
 
+  // Is the scale's 7th a MINOR 7th (♭7)? That's the only note Hybrid fingers
+  // differently from Positional, so a major-7 scale fingers identically in both.
+  const lastDegree = scale.intervals.length - 1;
+  const seventhIsMinor = scale.intervals[lastDegree].semitones % 12 === 10;
+
   // Build one in-position box: `boxNotes` consecutive ladder tones from `startIdx`,
-  // staying inside a 4-fret window. We move to the next string the moment a tone
-  // would sit above the window (where it has a lower, in-window fret).
+  // crossing strings per the Positional / Hybrid rule above.
   const buildBox = (startIdx: number): PlacedNote[] | null => {
     const base = ladder[startIdx] - lowOpen; // the box's start fret on the low E
     const winLo = Math.max(0, base - 1); // allow one fret below for open-side notes
     const winHi = winLo + (BOX_WIDTH - 1);
+    const fretOn = (m: number, s: number) => m - midiOf(tuning.openNotes[s]);
     const notes: PlacedNote[] = [];
     let s = 0;
     for (let k = 0; k < boxNotes; k++) {
       const m = ladder[startIdx + k];
       if (m === undefined) return null; // ran off the end of the neck
-      // Step up a string the moment a tone climbs past the top of the window. It
-      // then sits on the next string at a LOWER fret — possibly below the window's
-      // bottom (a "below the baseline" note). This is strict position playing: a
-      // minor 3rd / minor 7th crosses DOWN to the next string rather than shifting
-      // the hand up. Where that cross has no room (a ♭7 low on the neck whose next
-      // string would be a negative fret) the position simply doesn't form here —
-      // you'd play it higher up. (Hybrid handles that note differently — it shifts
-      // up onto the B string above the baseline.)
-      while (s < stringCount && m - midiOf(tuning.openNotes[s]) > winHi) s++;
+      // Both cross down a string while the tone climbs past the window's top.
+      while (s < stringCount && fretOn(m, s) > winHi) {
+        // Hybrid's ONE exception: a ♭7 that would have to drop BELOW the position
+        // to cross stays on its string and shifts up a fret instead. This only
+        // kicks in once we're past the G string (the top two strings — B and high
+        // E on guitar); lower down, and everywhere in Positional, the note crosses
+        // down. So a major-7 scale fingers identically in both systems.
+        if (
+          shiftUp &&
+          seventhIsMinor &&
+          toneAt(m).degreeIndex === lastDegree &&
+          s >= stringCount - 2 &&
+          s + 1 < stringCount &&
+          fretOn(m, s + 1) < winLo
+        ) {
+          break;
+        }
+        s++;
+      }
       if (s >= stringCount) return null; // ran off the top string
-      const fret = m - midiOf(tuning.openNotes[s]);
-      if (fret < 0 || fret > fretCount) return null; // can't cross down here
+      const fret = fretOn(m, s);
+      if (fret < 0 || fret > fretCount) return null; // can't place it in this box
       notes.push(placeAt(tuning, s, fret, toneAt(m)));
     }
     return notes;
@@ -218,63 +244,25 @@ export function positionalBoxes(
   return positions;
 }
 
-// ---- System 3: hybrid (2 on the low E, then 3 notes per string) -----------
-// Two octaves of consecutive scale tones: the low E starts you on its 2nd note so
-// it gets only TWO, then every string above gets THREE — a positional start with a
-// 3-notes-per-string body. F Mixolydian, e.g.: E:F G | A:A B♭ C | D:D E♭ F | G:G A
-// B♭ | B:C D E♭ | e:F. Positions whose 3rd low-E note can't reach the next string
-// (the open-E box) simply don't form, so every hybrid box has 2 on the low E.
+// Positional — strict position playing (minor 3rds/7ths cross DOWN to the next
+// string, below the baseline; boxes that can't make the cross don't form).
+export function positionalBoxes(
+  instrument: Instrument,
+  tuning: Tuning,
+  root: Note,
+  scale: ScaleDefinition,
+): ScalePosition[] {
+  return positionScan(instrument, tuning, root, scale, false);
+}
+
+// Hybrid — like Positional, but a tone that would cross BELOW the baseline (a ♭7 at
+// the top) stays on the B string and shifts up instead. Same as Positional for
+// major-7 scales; the two diverge only on a ♭7.
 export function hybridBoxes(
   instrument: Instrument,
   tuning: Tuning,
   root: Note,
   scale: ScaleDefinition,
 ): ScalePosition[] {
-  const byPitchClass = toneLookup(root, scale);
-  const scalePcs = new Set(byPitchClass.keys());
-  const lowOpen = midiOf(tuning.openNotes[0]);
-  const { stringCount, fretCount } = instrument;
-  const boxNotes = 2 * scale.intervals.length + 1; // two octaves
-  const toneAt = (m: number) => byPitchClass.get(((m % 12) + 12) % 12)!;
-
-  const topReach = midiOf(tuning.openNotes[stringCount - 1]) + fretCount;
-  const ladder: number[] = [];
-  for (let m = lowOpen; m <= topReach; m++) {
-    if (scalePcs.has(((m % 12) + 12) % 12)) ladder.push(m);
-  }
-
-  // 2 tones on the low E, 3 on every string above, stopping at two octaves.
-  const buildBox = (startIdx: number): PlacedNote[] | null => {
-    const notes: PlacedNote[] = [];
-    let idx = startIdx;
-    for (let s = 0; s < stringCount; s++) {
-      const open = midiOf(tuning.openNotes[s]);
-      const count = s === 0 ? 2 : 3;
-      for (let j = 0; j < count; j++) {
-        if (notes.length >= boxNotes) return notes; // two octaves laid down
-        const m = ladder[idx];
-        if (m === undefined) return null;
-        const fret = m - open;
-        if (fret < 0 || fret > fretCount) return null; // doesn't fit this string
-        notes.push(placeAt(tuning, s, fret, toneAt(m)));
-        idx++;
-      }
-    }
-    return notes;
-  };
-
-  const positions: ScalePosition[] = [];
-  for (const start of lowStringStartFrets(tuning, fretCount, byPitchClass)) {
-    const startIdx = ladder.indexOf(lowOpen + start);
-    if (startIdx < 0) continue;
-    const notes = buildBox(startIdx);
-    if (!notes) continue;
-    const startDegree = toneAt(lowOpen + start).degreeIndex;
-    positions.push({
-      notes,
-      name: scale.modeNames?.[startDegree] ?? `Position ${positions.length + 1}`,
-      lowestFret: Math.min(...notes.map((p) => p.position.fret)),
-    });
-  }
-  return positions;
+  return positionScan(instrument, tuning, root, scale, true);
 }
