@@ -13,7 +13,7 @@ import { useEffect, useState } from 'react';
 import type { Note, ScaleDefinition } from '../theory/types';
 import { GUITAR } from '../data/instruments';
 import { GUITAR_STANDARD } from '../data/tunings';
-import { scalePositions, positionalBoxes } from '../theory/scalePositions';
+import { scalePositions, positionalBoxes, hybridBoxes } from '../theory/scalePositions';
 import { midiOf } from '../theory/notes';
 import { playSequence } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
@@ -36,8 +36,9 @@ export function ScaleExplorer({
   focus?: { fret: number; seq: number };
 }) {
   const [labelMode, setLabelMode] = useState<'note' | 'degree'>('degree');
-  // Which fingering system: three-notes-per-string, or the in-position "box".
-  const [fingering, setFingering] = useState<'3nps' | 'box'>('3nps');
+  // Which fingering system: 3-notes-per-string, in-position (Positional), or the
+  // hybrid (2 on the low E, then 3 per string).
+  const [fingering, setFingering] = useState<'3nps' | 'box' | 'hybrid'>('3nps');
   // Show every position's box outlined at once (see the whole mode tile the neck).
   const [showAll, setShowAll] = useState(false);
   // Read/play the run ascending (low -> high) or descending (high -> low).
@@ -51,7 +52,9 @@ export function ScaleExplorer({
   const positions =
     fingering === '3nps'
       ? scalePositions(GUITAR, GUITAR_STANDARD, root, scale)
-      : positionalBoxes(GUITAR, GUITAR_STANDARD, root, scale);
+      : fingering === 'box'
+        ? positionalBoxes(GUITAR, GUITAR_STANDARD, root, scale)
+        : hybridBoxes(GUITAR, GUITAR_STANDARD, root, scale);
   const shapes = positions.map((p) => p.notes);
 
   // A stable key for "which scale, in which fingering" — when it changes the set
@@ -117,6 +120,12 @@ export function ScaleExplorer({
               onClick={() => setFingering('box')}
             >
               Positional
+            </button>
+            <button
+              className={fingering === 'hybrid' ? 'pill pill--on' : 'pill'}
+              onClick={() => setFingering('hybrid')}
+            >
+              Hybrid
             </button>
           </div>
           {/* See every position's box at once, or focus one. */}

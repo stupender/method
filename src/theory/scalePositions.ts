@@ -2,14 +2,18 @@
 // theory/scalePositions.ts — the playable position "boxes" of a scale
 // ----------------------------------------------------------------------------
 // THEORY LOGIC layer (pure functions). A scale spans the whole neck; players
-// learn it in positions. We offer TWO fingering systems, both producing 7 boxes
-// (one per scale degree = the 7 MODES):
+// learn it in positions, and there's no single "right" fingering — there are a
+// few systems and personal blends. We offer THREE, all built from the same idea
+// (lay scale tones across the strings) but with different per-string counts:
 //
 //   - scalePositions (3 notes per string): each string gets exactly 3 scale
-//     tones. Even and wide (~6 frets); modern, good for speed.
-//   - positionalBoxes (in-position / "box"): all the scale tones that fall in a
-//     compact ~4-fret hand position. Mostly 2 notes per string (sometimes 3);
-//     the low E starts the box. Traditional, stays in one hand position.
+//     tones. Even and wide (~6 frets); modern, good for speed and legato.
+//   - positionalBoxes (Positional / position-playing, the 7-position system): the
+//     hand stays in one ~4-fret position; strings carry 2–3 notes as they fit.
+//     Traditional. (CAGED is a DIFFERENT, 5-shape system — not this.)
+//   - hybridBoxes (Hybrid): two octaves, TWO notes on the low E (you start on its
+//     2nd note), then THREE per string. A common blend — a positional start with
+//     a 3-notes-per-string body.
 //
 // Each box is a group of PlacedNotes the renderer shows as a constellation —
 // same machinery as chord voicings, different source.
@@ -185,6 +189,67 @@ export function positionalBoxes(
       const fret = m - midiOf(tuning.openNotes[s]);
       if (fret < 0 || fret > fretCount) return null; // doesn't sit in this position
       notes.push(placeAt(tuning, s, fret, toneAt(m)));
+    }
+    return notes;
+  };
+
+  const positions: ScalePosition[] = [];
+  for (const start of lowStringStartFrets(tuning, fretCount, byPitchClass)) {
+    const startIdx = ladder.indexOf(lowOpen + start);
+    if (startIdx < 0) continue;
+    const notes = buildBox(startIdx);
+    if (!notes) continue;
+    const startDegree = toneAt(lowOpen + start).degreeIndex;
+    positions.push({
+      notes,
+      name: scale.modeNames?.[startDegree] ?? `Position ${positions.length + 1}`,
+      lowestFret: Math.min(...notes.map((p) => p.position.fret)),
+    });
+  }
+  return positions;
+}
+
+// ---- System 3: hybrid (2 on the low E, then 3 notes per string) -----------
+// Two octaves of consecutive scale tones: the low E starts you on its 2nd note so
+// it gets only TWO, then every string above gets THREE — a positional start with a
+// 3-notes-per-string body. F Mixolydian, e.g.: E:F G | A:A B♭ C | D:D E♭ F | G:G A
+// B♭ | B:C D E♭ | e:F. Positions whose 3rd low-E note can't reach the next string
+// (the open-E box) simply don't form, so every hybrid box has 2 on the low E.
+export function hybridBoxes(
+  instrument: Instrument,
+  tuning: Tuning,
+  root: Note,
+  scale: ScaleDefinition,
+): ScalePosition[] {
+  const byPitchClass = toneLookup(root, scale);
+  const scalePcs = new Set(byPitchClass.keys());
+  const lowOpen = midiOf(tuning.openNotes[0]);
+  const { stringCount, fretCount } = instrument;
+  const boxNotes = 2 * scale.intervals.length + 1; // two octaves
+  const toneAt = (m: number) => byPitchClass.get(((m % 12) + 12) % 12)!;
+
+  const topReach = midiOf(tuning.openNotes[stringCount - 1]) + fretCount;
+  const ladder: number[] = [];
+  for (let m = lowOpen; m <= topReach; m++) {
+    if (scalePcs.has(((m % 12) + 12) % 12)) ladder.push(m);
+  }
+
+  // 2 tones on the low E, 3 on every string above, stopping at two octaves.
+  const buildBox = (startIdx: number): PlacedNote[] | null => {
+    const notes: PlacedNote[] = [];
+    let idx = startIdx;
+    for (let s = 0; s < stringCount; s++) {
+      const open = midiOf(tuning.openNotes[s]);
+      const count = s === 0 ? 2 : 3;
+      for (let j = 0; j < count; j++) {
+        if (notes.length >= boxNotes) return notes; // two octaves laid down
+        const m = ladder[idx];
+        if (m === undefined) return null;
+        const fret = m - open;
+        if (fret < 0 || fret > fretCount) return null; // doesn't fit this string
+        notes.push(placeAt(tuning, s, fret, toneAt(m)));
+        idx++;
+      }
     }
     return notes;
   };

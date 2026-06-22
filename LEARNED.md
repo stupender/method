@@ -501,3 +501,19 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **The window dips one fret below the start** (`winLo = base - 1`) so open-side
   notes on the higher strings are caught — that's what puts the A string's fret-0
   note in the box.
+
+## Session 6m — a third fingering: Hybrid (and naming the systems right)
+
+- **There is no single "right" scale fingering** — there are codified systems and
+  personal blends. Method now offers three, all built from the same idea (lay
+  scale tones across strings) differing only in per-string counts:
+  - **3 per string** (3nps) — 3 everywhere, even and wide.
+  - **Positional** — the 7-position system / "position playing": hand stays in a
+    ~4-fret box, 2–3 per string. NOT CAGED (that's a separate 5-shape system named
+    after chord forms but also used for scales).
+  - **Hybrid** — two octaves, 2 on the low E (start on its 2nd note) then 3 per
+    string. A positional start with a 3nps body — a very common learned blend.
+- **The Hybrid self-selects clean boxes** — a position only forms if the low E's
+  3rd note can reach the next string; the open-E box can't, so every hybrid box has
+  exactly 2 on the low E. Verified: F Mixolydian hybrid = E:1,3 A:0,1,3 D:0,1,3
+  G:0,2,3 B:1,3,4 e:1 — Stu's example, exactly.
