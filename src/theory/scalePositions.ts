@@ -183,9 +183,20 @@ export function positionalBoxes(
     for (let k = 0; k < boxNotes; k++) {
       const m = ladder[startIdx + k];
       if (m === undefined) return null; // ran off the end of the neck
-      // Step up strings until this tone fits at or below the top of the window.
-      while (s < stringCount && m - midiOf(tuning.openNotes[s]) > winHi) s++;
-      if (s >= stringCount) return null; // ran off the top string
+      // Move up a string only while this tone is above the window AND the next
+      // string would still place it at or above the window's bottom. If crossing
+      // would drop it BELOW the position (a backwards reach) we keep it on the
+      // current string with a light shift up instead. The classic case is a ♭7 at
+      // the top of the scale: rather than cross awkwardly to the high E, it stays
+      // on the B string a fret higher — a jazz-fingering preference (and it lets
+      // ♭7 scales like Mixolydian/Dorian/minor form positions that otherwise fail).
+      while (
+        s + 1 < stringCount &&
+        m - midiOf(tuning.openNotes[s]) > winHi &&
+        m - midiOf(tuning.openNotes[s + 1]) >= winLo
+      ) {
+        s++;
+      }
       const fret = m - midiOf(tuning.openNotes[s]);
       if (fret < 0 || fret > fretCount) return null; // doesn't sit in this position
       notes.push(placeAt(tuning, s, fret, toneAt(m)));

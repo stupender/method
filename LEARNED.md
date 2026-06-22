@@ -517,3 +517,18 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   3rd note can reach the next string; the open-E box can't, so every hybrid box has
   exactly 2 on the low E. Verified: F Mixolydian hybrid = E:1,3 A:0,1,3 D:0,1,3
   G:0,2,3 B:1,3,4 e:1 — Stu's example, exactly.
+
+## Session 6n — Positional: keep the ♭7 on the B string (jazz fingering)
+
+- **The bug it also fixed** — the in-position scan crossed to the next string
+  whenever a tone passed the window top. For a ♭7 at the top of the scale that
+  meant trying the high E at fret −1 (impossible), so the WHOLE position was
+  dropped. Mixolydian/Dorian/minor were quietly losing positions.
+- **The rule** — cross to the next string only if the tone still lands at/above
+  the window's BOTTOM there; if crossing would reach BACKWARD below the position
+  (exactly what a ♭7 does), keep it on the current string with a light shift up.
+  Geometrically this triggers on the half-step 7th, so the ♭7 stays on the B
+  string (3 notes, a light reach) — a preference Stu learned from jazz teachers.
+- **Major is untouched** — its natural 7 is a whole step, lands at fret 0 on the
+  high E (= window bottom), so it still crosses cleanly. Verified F major position
+  II unchanged; F Mixolydian now forms all 7 boxes with E♭ on the B string.
