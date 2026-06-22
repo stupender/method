@@ -138,6 +138,13 @@ export function scalePositions(
 }
 
 // ---- System 2: in-position "box" (mostly 2 notes per string) -------------
+// Like 3-notes-per-string, but the hand STAYS in one ~4-fret position instead of
+// shifting up every string. We lay TWO OCTAVES of consecutive scale tones across
+// the neck, string by string, moving up a string as soon as the next tone would
+// climb past the position's window. Because the major scale's third tone on the
+// low E lands a whole step past the window, the low E naturally takes just TWO
+// notes (e.g. F major starts F–G, skipping the open E) — Stu's "notes 2 & 3 of
+// the low E string" — and the box stays put (F major, position I = frets 0–3).
 const BOX_WIDTH = 4; // a 4-fret hand position
 
 export function positionalBoxes(
@@ -147,32 +154,52 @@ export function positionalBoxes(
   scale: ScaleDefinition,
 ): ScalePosition[] {
   const byPitchClass = toneLookup(root, scale);
+  const scalePcs = new Set(byPitchClass.keys());
   const lowOpen = midiOf(tuning.openNotes[0]);
+  const { stringCount, fretCount } = instrument;
+  const boxNotes = 2 * scale.intervals.length + 1; // two octaves (15 for a 7-note scale)
+  const toneAt = (m: number) => byPitchClass.get(((m % 12) + 12) % 12)!;
+
+  // An ascending ladder of every scale-tone MIDI reachable on the neck.
+  const topReach = midiOf(tuning.openNotes[stringCount - 1]) + fretCount;
+  const ladder: number[] = [];
+  for (let m = lowOpen; m <= topReach; m++) {
+    if (scalePcs.has(((m % 12) + 12) % 12)) ladder.push(m);
+  }
+
+  // Build one in-position box: `boxNotes` consecutive ladder tones from `startIdx`,
+  // staying inside a 4-fret window. We move to the next string the moment a tone
+  // would sit above the window (where it has a lower, in-window fret).
+  const buildBox = (startIdx: number): PlacedNote[] | null => {
+    const base = ladder[startIdx] - lowOpen; // the box's start fret on the low E
+    const winLo = Math.max(0, base - 1); // allow one fret below for open-side notes
+    const winHi = winLo + (BOX_WIDTH - 1);
+    const notes: PlacedNote[] = [];
+    let s = 0;
+    for (let k = 0; k < boxNotes; k++) {
+      const m = ladder[startIdx + k];
+      if (m === undefined) return null; // ran off the end of the neck
+      // Step up strings until this tone fits at or below the top of the window.
+      while (s < stringCount && m - midiOf(tuning.openNotes[s]) > winHi) s++;
+      if (s >= stringCount) return null; // ran off the top string
+      const fret = m - midiOf(tuning.openNotes[s]);
+      if (fret < 0 || fret > fretCount) return null; // doesn't sit in this position
+      notes.push(placeAt(tuning, s, fret, toneAt(m)));
+    }
+    return notes;
+  };
 
   const positions: ScalePosition[] = [];
-  for (const start of lowStringStartFrets(tuning, instrument.fretCount, byPitchClass)) {
-    const end = Math.min(instrument.fretCount, start + BOX_WIDTH - 1);
-    const notes: PlacedNote[] = [];
-    // Every scale tone that falls inside the hand position, string by string.
-    for (let s = 0; s < instrument.stringCount; s++) {
-      const open = midiOf(tuning.openNotes[s]);
-      let onThisString = 0;
-      for (let f = start; f <= end; f++) {
-        const tone = byPitchClass.get(((open + f) % 12 + 12) % 12);
-        if (!tone) continue;
-        notes.push(placeAt(tuning, s, f, tone));
-        onThisString++;
-        // The box should START WITH TWO NOTES on the low E string, so cap it at
-        // two even when a half-step would otherwise put a third in the window.
-        if (s === 0 && onThisString === 2) break;
-      }
-    }
-    // The box starts on whatever degree sits at `start` on the low E string.
-    const startDegree = byPitchClass.get(((lowOpen + start) % 12 + 12) % 12)!.degreeIndex;
+  for (const start of lowStringStartFrets(tuning, fretCount, byPitchClass)) {
+    const startIdx = ladder.indexOf(lowOpen + start);
+    if (startIdx < 0) continue;
+    const notes = buildBox(startIdx);
+    if (!notes) continue;
+    const startDegree = toneAt(lowOpen + start).degreeIndex;
     positions.push({
       notes,
       name: scale.modeNames?.[startDegree] ?? `Position ${positions.length + 1}`,
-      lowestFret: start,
+      lowestFret: Math.min(...notes.map((p) => p.position.fret)),
     });
   }
   return positions;

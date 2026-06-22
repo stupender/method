@@ -486,3 +486,18 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   voicings (drop-3, open triad) collapse to their one idiomatic shape per register.
 - Verified: Cmaj7 drop-3 -> [E,D,G,B] + [A,G,B,e]; open triad -> skip-after-bass
   sets; close triads/7ths unchanged.
+
+## Session 6l — positional scale fingerings (in-position, 2 on the low E)
+
+- **What "positional" really is** — not a rigid fret window, but TWO OCTAVES of
+  consecutive scale tones laid string-by-string while the hand STAYS put. You move
+  to the next string the moment the next tone would climb past a ~4-fret window.
+- **Why the low E gets two notes** — the major scale's 3rd tone on the low E lands
+  a whole step past the window, so it spills onto the next string. The low E keeps
+  just its 2nd & 3rd notes (Stu's phrase), e.g. F major position II = F–G on the
+  low E, frets 0–3. 6 of the 7 positions come out with 2 on the low E this way; the
+  open position keeps 3 because the window can't dip below fret 0 (can't drop the
+  open E without skipping it).
+- **The window dips one fret below the start** (`winLo = base - 1`) so open-side
+  notes on the higher strings are caught — that's what puts the A string's fret-0
+  note in the box.
