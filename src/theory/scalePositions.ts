@@ -9,11 +9,13 @@
 //   - scalePositions (3 notes per string): each string gets exactly 3 scale
 //     tones. Even and wide (~6 frets); modern, good for speed and legato.
 //   - positionalBoxes (Positional / position-playing, the 7-position system): the
-//     hand stays in one ~4-fret position; strings carry 2–3 notes as they fit.
+//     hand stays strictly in one ~4-fret position; a minor 3rd / minor 7th crosses
+//     DOWN to the next string (below the baseline) rather than shifting the hand.
 //     Traditional. (CAGED is a DIFFERENT, 5-shape system — not this.)
-//   - hybridBoxes (Hybrid): two octaves, TWO notes on the low E (you start on its
-//     2nd note), then THREE per string. A common blend — a positional start with
-//     a 3-notes-per-string body.
+//   - hybridBoxes (Hybrid): positional through the lower strings, but once past the
+//     G string it switches — keeping a minor 7th ABOVE the baseline on the B string
+//     (a light shift up) instead of crossing. Works out to 2 notes on the low E
+//     then 3 per string. A common learned blend Stu uses.
 //
 // Each box is a group of PlacedNotes the renderer shows as a constellation —
 // same machinery as chord voicings, different source.
@@ -183,22 +185,18 @@ export function positionalBoxes(
     for (let k = 0; k < boxNotes; k++) {
       const m = ladder[startIdx + k];
       if (m === undefined) return null; // ran off the end of the neck
-      // Move up a string only while this tone is above the window AND the next
-      // string would still place it at or above the window's bottom. If crossing
-      // would drop it BELOW the position (a backwards reach) we keep it on the
-      // current string with a light shift up instead. The classic case is a ♭7 at
-      // the top of the scale: rather than cross awkwardly to the high E, it stays
-      // on the B string a fret higher — a jazz-fingering preference (and it lets
-      // ♭7 scales like Mixolydian/Dorian/minor form positions that otherwise fail).
-      while (
-        s + 1 < stringCount &&
-        m - midiOf(tuning.openNotes[s]) > winHi &&
-        m - midiOf(tuning.openNotes[s + 1]) >= winLo
-      ) {
-        s++;
-      }
+      // Step up a string the moment a tone climbs past the top of the window. It
+      // then sits on the next string at a LOWER fret — possibly below the window's
+      // bottom (a "below the baseline" note). This is strict position playing: a
+      // minor 3rd / minor 7th crosses DOWN to the next string rather than shifting
+      // the hand up. Where that cross has no room (a ♭7 low on the neck whose next
+      // string would be a negative fret) the position simply doesn't form here —
+      // you'd play it higher up. (Hybrid handles that note differently — it shifts
+      // up onto the B string above the baseline.)
+      while (s < stringCount && m - midiOf(tuning.openNotes[s]) > winHi) s++;
+      if (s >= stringCount) return null; // ran off the top string
       const fret = m - midiOf(tuning.openNotes[s]);
-      if (fret < 0 || fret > fretCount) return null; // doesn't sit in this position
+      if (fret < 0 || fret > fretCount) return null; // can't cross down here
       notes.push(placeAt(tuning, s, fret, toneAt(m)));
     }
     return notes;

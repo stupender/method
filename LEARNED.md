@@ -532,3 +532,19 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Major is untouched** — its natural 7 is a whole step, lands at fret 0 on the
   high E (= window bottom), so it still crosses cleanly. Verified F major position
   II unchanged; F Mixolydian now forms all 7 boxes with E♭ on the B string.
+
+## Session 6o — the real Positional vs Hybrid distinction (reverting 6n)
+
+- **6n was wrong** — it made Positional keep the ♭7 up on the B string, but that's
+  actually the HYBRID behavior. Reverted Positional to crossing DOWN.
+- **The clean distinction (Stu's model):**
+  - **3 per string** — 3 everywhere.
+  - **Positional** — strict position: a minor 3rd / minor 7th crosses DOWN to the
+    next string (a lower fret, "below the baseline"). Where that cross has no room
+    (a ♭7 low on the neck → negative fret on the next string), the position simply
+    doesn't form — you'd play it higher. So ♭7 scales get fewer boxes (F Mixo: 6).
+  - **Hybrid** — positional through the lower strings, but past the G string it
+    keeps the m7 UP on the B string (above the baseline, a light shift). All boxes
+    form (F Mixo: 7), and the open box matches Stu's example exactly.
+- **Verified with a throwaway `tsx` script** (the browser preview was flaky) —
+  imported the real theory fns and printed both systems' boxes for F Mixolydian.
