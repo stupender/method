@@ -3,9 +3,41 @@
    ========================================================================== */
 
 .page {
+  position: relative;
   max-width: 760px;
   margin: 0 auto;
   padding: 12vh 24px 64px;
+}
+
+/* Lesson mode hides anything marked "advanced" — the calm teaching default.
+   Studio mode (no .page--lesson) shows everything. */
+.page--lesson .advanced {
+  display: none;
+}
+
+/* The Lesson / Studio switch, tucked in the top-right corner. */
+.modeswitch {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.modeswitch-btn {
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  padding: 5px 13px;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.modeswitch-btn--on {
+  background: var(--accent);
+  color: #fff;
 }
 
 /* Wider layout once the fretboard is on screen. */

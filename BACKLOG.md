@@ -377,3 +377,10 @@ possibility space, each commitment narrows it. The progression's "function" laye
 (`ChordRef.romanNumerals[]`) holds a *set* of interpretations, sharing machinery
 with the reveal. This also motivates lifting the Roman numeral to a top-level
 selector in Study (above).
+
+**Secondary-dominant recognition IS the reveal, read inward (Stu's note).** The
+Play-mode reveal already lists every key a chord could live in; "A7 lives in D's
+key" is the same fact as "A7 is the V7 of ii there." So detecting secondary
+dominants / tonicizations (for Analyze and ear-training's function layer) is mostly
+*re-pointing `keysContaining`*, not a new engine — once you see the connection it's
+not a crazy rebuild.

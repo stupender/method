@@ -128,9 +128,9 @@ export function ScaleExplorer({
               Hybrid
             </button>
           </div>
-          {/* See every position's box at once, or focus one. */}
+          {/* See every position's box at once, or focus one. (Advanced.) */}
           <button
-            className={showAll ? 'pill pill--on' : 'pill'}
+            className={(showAll ? 'pill pill--on' : 'pill') + ' advanced'}
             onClick={() => {
               setShowAll((v) => !v);
               setPinnedShape(null);
@@ -138,8 +138,8 @@ export function ScaleExplorer({
           >
             All positions
           </button>
-          {/* Read/play the run up or down. */}
-          <div className="control-group" role="group" aria-label="Direction">
+          {/* Read/play the run up or down. (Advanced.) */}
+          <div className="control-group advanced" role="group" aria-label="Direction">
             <button
               className={direction === 'up' ? 'pill pill--on' : 'pill'}
               onClick={() => setDirection('up')}

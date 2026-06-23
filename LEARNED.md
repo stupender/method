@@ -582,3 +582,18 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   score tallies, Next poses another.
 - **Multi-area nav** — generalised the topnav from a 2-way ternary to an
   `AREA_LABELS` map so a third area drops in cleanly.
+
+## Session 7b — Lesson / Studio mode (the first design-reframe move)
+
+- **Lesson vs Studio** — a global mode (default Lesson) that hides advanced
+  controls so the screen stays calm for live teaching; Studio reveals everything.
+- **Mechanism: a class + CSS, not prop-threading.** App puts `page--lesson` on the
+  root; `.page--lesson .advanced { display: none }` hides anything tagged
+  `advanced`. So classifying a control as advanced is just adding a class — no view
+  has to know the mode. Easy to re-tune what counts as advanced.
+- **First-pass classification** — Play hides the root/quality pill grids (lead with
+  the text input), plus Metronome / Mute / Count-in / Voice-lead. Possibility hides
+  All-positions and the Ascending/Descending toggle. The essentials (selectors,
+  transport play/tempo, the neck, the reveal) stay.
+- This is the cheapest real step of the design reframe: it forces the "what's
+  essential per view" decision, which is half the IA work.

@@ -472,21 +472,22 @@ export function SongView({
             +
           </button>
         </div>
-        {/* A click track, and the option to hear it WITHOUT the chords. */}
+        {/* A click track, and the option to hear it WITHOUT the chords.
+            (Advanced — hidden in Lesson mode.) */}
         <button
-          className={metronome ? 'pill pill--on' : 'pill'}
+          className={(metronome ? 'pill pill--on' : 'pill') + ' advanced'}
           onClick={() => setMetronome((m) => !m)}
         >
           Metronome
         </button>
         <button
-          className={muteChords ? 'pill pill--on' : 'pill'}
+          className={(muteChords ? 'pill pill--on' : 'pill') + ' advanced'}
           onClick={() => setMuteChords((m) => !m)}
         >
           Mute chords
         </button>
         <button
-          className={countIn ? 'pill pill--on' : 'pill'}
+          className={(countIn ? 'pill pill--on' : 'pill') + ' advanced'}
           onClick={() => setCountIn((c) => !c)}
         >
           Count-in
@@ -495,7 +496,7 @@ export function SongView({
           + Add chord
         </button>
         <button
-          className={voiceLead ? 'pill pill--on' : 'pill'}
+          className={(voiceLead ? 'pill pill--on' : 'pill') + ' advanced'}
           onClick={() => setVoiceLead((v) => !v)}
         >
           Voice-lead
@@ -669,7 +670,7 @@ export function SongView({
           <span className="control-hint control-hint--warn">Didn't recognise that chord.</span>
         )}
       </form>
-      <div className="control-group" role="group" aria-label="Chord root">
+      <div className="control-group advanced" role="group" aria-label="Chord root">
         {ROOT_CHOICES.map((note, i) => (
           <button
             key={`${note.letter}${note.accidental}`}
@@ -680,7 +681,7 @@ export function SongView({
           </button>
         ))}
       </div>
-      <div className="control-group control-group--wrap" role="group" aria-label="Chord quality">
+      <div className="control-group control-group--wrap advanced" role="group" aria-label="Chord quality">
         {CHORD_LIST.map((c) => (
           <button
             key={c.id}
