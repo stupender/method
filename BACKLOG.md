@@ -42,12 +42,31 @@ progressions), `chordParser` (read the guess). Mostly a NEW UI mode + a progress
 generator, not new engine. Shares the **Shuffle filter** model (keys / qualities /
 diatonic-only vs include-secondary-dominants / given-key vs find-the-key).
 
-**Open design forks (for Stu):**
-- Source: GENERATED diatonic progressions (easy first) vs REVERSE-ENGINEER a real
-  song you paste/import (needs song import; the truest to the method).
-- Key: GIVEN (identify function within a known key) vs FIND-THE-KEY (full challenge).
-- Answer modality on screen: click roman numerals / tap the bass on the neck / pick
-  quality pills (reuses existing UI).
+**Two faces, one engine:**
+- **In-lesson (Lesson Mode)** — reverse-engineering a real progression live.
+- **A quiz module / page (Studio Mode)** — the student narrows/widens the
+  parameters (key, triad vs seventh, inversions, which qualities, …) and the app
+  drills them. The Shuffle-filter model as a practice tool.
+
+**Worry less about KEY — it simplifies the MVP.** First version drops the key
+entirely: play a chord (or short progression), identify **quality + root/bass**
+(and inversion when enabled). No key to commit to, no roman numerals yet — pure,
+fully-parameterized chord recognition. Ships fast (audio player + chord data +
+filters only). Then progressions (quality + root *motion*), then function on top.
+
+**Beyond diatonic (the important part).** Real progressions tonicize and borrow —
+**ii-V of IV, secondary dominants (V7/x), borrowed ♭VII, out-of-key chords.** So the
+FUNCTION layer can't be purely diatonic (`diatonicChords` only knows the 7 in-key
+chords). We recognize **local function units** (a ii-V heard as a gesture, wherever
+it points) and **secondary dominants/tonicizations**, built on the GPS reveal
+(`keysContaining` already knows a C7 lives in F's key → it's the V7/IV). This is
+where the richest teaching lives, and it ties to the "open Roman numerals" note at
+the bottom of this file. "Worry less about key" fits: hear the ii-V gesture and
+where it points, don't force a global key label.
+
+**Suggested layering:** (1) parameterized chord-recognition quiz (quality +
+root/inversion, key-agnostic) → (2) progression dictation (quality + root motion) →
+(3) function layer with secondary dominants & tonicizations on the GPS reveal.
 
 ---
 
