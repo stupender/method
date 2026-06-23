@@ -122,6 +122,10 @@ Note: the app now has two top-level AREAS — **Study** (Scales/Harmony) and
 
 ## Working notes
 
+- [DESIGN.md](DESIGN.md) is the UX design doc (the "how it feels / how it's
+  organized" counterpart to BACKLOG). Current target: the full app as a tool Stu
+  uses LIVE to teach students of all levels (expert-driven, legible, uncluttered).
+  A guided *Learning Synths*-style course is a deferred, separate side-project.
 - Maintain [LEARNED.md](LEARNED.md) (one line per new concept) as you build.
 - Maintain [MAINTENANCE.md](MAINTENANCE.md) when run/build/deploy steps change.
 - Reusable audio approach comes from Stu's earlier apps (Archive, Soundscape) —
