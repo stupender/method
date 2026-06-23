@@ -175,8 +175,12 @@ grid that duplicate the text input, then the paste disclosure).
 
 ## Sequenced first moves (revised — small, reversible, but aimed at the right shape)
 
-1. **Lesson Mode vs Studio Mode** as a top-level distinction; Lesson Mode the
-   default. (Declutters more than any regrouping, and scopes the future guided mode.)
+1. ~~**Lesson Mode vs Studio Mode** as a top-level distinction; Lesson Mode the
+   default.~~ **(done)** — a `page--lesson` root class + CSS hides anything tagged
+   `advanced`. First-pass: Play hides the pill grids (leads with text) + the
+   transport options + Voice-lead; Possibility hides All-positions + direction.
+   Re-tune by adding/removing the `advanced` class. The "what's essential per view"
+   call is now made in code and easy to adjust.
 2. **Reorganize the shell around the teaching loop** — Song → Analyze →
    Voicings/Scales → Practice. Navigation + priority order mirror the lesson even if
    views barely change.
