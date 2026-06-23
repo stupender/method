@@ -68,6 +68,13 @@ where it points, don't force a global key label.
 root/inversion, key-agnostic) → (2) progression dictation (quality + root motion) →
 (3) function layer with secondary dominants & tonicizations on the GPS reveal.
 
+~~**Step 1 — chord-QUALITY quiz**~~ (done — `ui/EarTrainingView.tsx`, a new top-level
+area). Plays a chord on a random root; you name the quality; narrow/widen the
+quality pool; immediate green/red feedback + running score. Still to come for the
+quiz module: **inversion** identification; **root/bass relative to a played tonic**;
+a richer parameter panel (which roots, octave range); progression dictation; then
+the function layer.
+
 ---
 
 ## Quick wins / near-term polish (small, do soon)
