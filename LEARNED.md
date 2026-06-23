@@ -566,3 +566,19 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   Lydian == Positional Lydian.
 - Verified via `tsx` against Stu's two examples (F Lydian pos 2; F Mixolydian pos 1)
   — both exact — plus Dorian/Aeolian sanity (no 4-note strings).
+
+## Session 7 — ear training MVP (chord-quality quiz)
+
+- **Ear training started** — a new top-level area (Possibility / Play / Ear
+  Training). The MVP is a chord-QUALITY quiz: it plays a chord on a RANDOM root
+  (so absolute pitch can't be a crutch) and you name the quality; the pool of
+  qualities is what you narrow/widen.
+- **Why no root-by-name yet** — naming an absolute root with no reference is a
+  perfect-pitch task. Quality (and later inversion) is what RELATIVE pitch hears.
+  Root/bass identification belongs to the progression layer, relative to a tonic.
+- **A thin UI over existing pieces** — `EarTrainingView` just uses the chord data
+  + correct spelling (`spellNoteFromInterval`) + `midiOf` + `playChord`. No new
+  engine. Snappy loop: answer reveals immediately (green correct / red wrong),
+  score tallies, Next poses another.
+- **Multi-area nav** — generalised the topnav from a 2-way ternary to an
+  `AREA_LABELS` map so a third area drops in cleanly.

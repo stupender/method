@@ -20,13 +20,21 @@ import { noteName, pitchClassOf } from './theory/notes';
 import { ChordExplorer } from './ui/ChordExplorer';
 import { ScaleExplorer } from './ui/ScaleExplorer';
 import { SongView, type ChartChord } from './ui/SongView';
+import { EarTrainingView } from './ui/EarTrainingView';
 import './App.css';
 
 const SCALE_LIST = Object.values(SCALES);
 const CHORD_LIST = Object.values(CHORDS);
 
-type Area = 'study' | 'song';
+type Area = 'study' | 'song' | 'ear';
 type Mode = 'scale' | 'chord' | 'harmony';
+
+// The label each top-level area shows in the nav.
+const AREA_LABELS: Record<Area, string> = {
+  study: 'Possibility',
+  song: 'Play',
+  ear: 'Ear Training',
+};
 
 // A song in the songbook: a name, its chord chart, and its own meter + tempo.
 interface Song {
@@ -165,13 +173,13 @@ function App() {
         <h1 className="title title--sm">Method</h1>
         {/* Top-level areas: a higher separation than the modes within Study. */}
         <nav className="topnav" role="group" aria-label="Area">
-          {(['study', 'song'] as Area[]).map((a) => (
+          {(['study', 'song', 'ear'] as Area[]).map((a) => (
             <button
               key={a}
               className={area === a ? 'topnav-item topnav-item--on' : 'topnav-item'}
               onClick={() => setArea(a)}
             >
-              {a === 'study' ? 'Possibility' : 'Play'}
+              {AREA_LABELS[a]}
             </button>
           ))}
         </nav>
@@ -200,6 +208,9 @@ function App() {
           denominator={current.denominator}
           onMeter={updateCurrent}
         />
+      </div>
+      <div hidden={area !== 'ear'}>
+        <EarTrainingView />
       </div>
     </main>
   );
