@@ -15,6 +15,42 @@ Everything below is the forward plan.
 
 ---
 
+## Ear training — reverse-engineering (CORE, not a v2 nicety)
+
+The front door to the whole teaching loop: *hear a song you love → name what it's
+doing → see everything else it could have been → use that as a constraint to write
+and improvise.* Reverse-engineering by ear is the way **in**; the possibility space
+is what you do once you're in. Stu flags this as essential, not optional.
+
+**The framing: ear training is the "Analyze" step run in reverse.** Normal Analyze
+takes chords IN and reveals key / roman numerals / candidates. Ear training plays
+the chords and the user PRODUCES the analysis; the engine checks them. Same engine,
+input ↔ output flipped. The Context strip (the search engine made visible, see
+[DESIGN.md](DESIGN.md)) becomes a quiz: predict what narrows when the next chord
+lands, instead of watching it narrow.
+
+**The skill is layered** (isolate any layer, or stack into full progression dictation):
+- **Bass note / root motion** — the foundation (4ths? down a step?).
+- **Chord quality** — maj / min / dom7 / m7♭5 / the colour.
+- **Function / roman numeral** — *given a key*, is this IV, V, a secondary dominant,
+  a borrowed ♭VII?
+- **Colour tones** — the 9, ♯11, the note that says Lydian not Ionian.
+
+**Reuses what's already built** — `diatonicChords` (roman numerals of a key),
+`keysContaining` / the GPS reveal (the search), the audio player (chords, bass,
+progressions), `chordParser` (read the guess). Mostly a NEW UI mode + a progression
+generator, not new engine. Shares the **Shuffle filter** model (keys / qualities /
+diatonic-only vs include-secondary-dominants / given-key vs find-the-key).
+
+**Open design forks (for Stu):**
+- Source: GENERATED diatonic progressions (easy first) vs REVERSE-ENGINEER a real
+  song you paste/import (needs song import; the truest to the method).
+- Key: GIVEN (identify function within a known key) vs FIND-THE-KEY (full challenge).
+- Answer modality on screen: click roman numerals / tap the bass on the neck / pick
+  quality pills (reuses existing UI).
+
+---
+
 ## Quick wins / near-term polish (small, do soon)
 
 - ~~**Rename the two areas to "Possibility" & "Play"**~~ (done).
@@ -216,6 +252,8 @@ model with ear training.
 - **Ear training** — quiz any unit (chord/voicing/interval/arpeggio/scale): "what
   was that?" with difficulty filters (always triads in root position; always F in
   F major; key/voicing/chord/scale/interval sets). Shares the Shuffle filter model.
+  **(See the dedicated section below — Stu has flagged this as a core priority, not
+  a v2 nicety.)**
 - **Negative harmony** — set an axis, reflect notes/chords/progressions to their
   Levy counterpart; then re-spell and re-voice.
 - **Search → practice** — search any chord/scale/voicing/concept and jump there,
