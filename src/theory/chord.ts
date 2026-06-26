@@ -74,6 +74,30 @@ export function inversionName(inversion: number): string {
   return INVERSION_NAMES[inversion] ?? `Inversion ${inversion}`;
 }
 
+// The scale-degree of the LOWEST voice — the note in the bass — of a voicing.
+// For close voicings this matches the inversion (root / 3rd / 5th / 7th in bass).
+// For DROP-2 / DROP-3 it doesn't: dropping a voice an octave changes which note
+// sits on the bottom, so a "drop-2 root position" actually has the 5th in the
+// bass. That's why we label the bass note explicitly rather than by inversion #.
+export function bassDegree(
+  chord: ChordDefinition,
+  structure: VoicingStructure,
+  inversion: number,
+): string {
+  // applyDrop sorts low -> high, so the first voice is the bass.
+  const stack = applyDrop(invertStack(chord, inversion), structure.dropFromTop);
+  return degreeLabel(stack[0].interval); // "1", "3", "5", "7"
+}
+
+// "Root in bass", "3rd in bass", "5th in bass", "7th in bass" — the clearest name
+// for a voicing's inversion, especially for drop voicings.
+const BASS_NAMES: Record<string, string> = {
+  '1': 'Root', '2': '2nd', '3': '3rd', '4': '4th', '5': '5th', '6': '6th', '7': '7th',
+};
+export function bassNoteName(degree: string): string {
+  return `${BASS_NAMES[degree] ?? degree} in bass`;
+}
+
 // Step 1 — rotate the close stack so `inversion`'s tone is in the bass. Tones
 // that end up below their original position (the ones that "wrapped") move up an
 // octave so the stack stays ascending. Root position (0) is the chord as-is.

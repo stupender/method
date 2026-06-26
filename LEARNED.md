@@ -597,3 +597,16 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   transport play/tempo, the neck, the reveal) stay.
 - This is the cheapest real step of the design reframe: it forces the "what's
   essential per view" decision, which is half the IA work.
+
+## Session 7c — revert Lesson/Studio; label inversions by the bass note
+
+- **Lesson/Studio removed** — it was abstract chrome that didn't earn its keep
+  (Stu's call). Reverted the mode, the CSS, and the `advanced` tags.
+- **Inversions labelled by the BASS note** — "Root in bass / 3rd / 5th / 7th in
+  bass" instead of "Root Position / 1st …". For close voicings these agree, but
+  for DROP-2 / DROP-3 the inversion number lies: a "drop-2 root position" actually
+  has the 5th in the bass (drop the 2nd-from-top voice and it falls below the
+  root). `bassDegree(chord, structure, inversion)` reads the lowest voice's degree
+  off the built stack; the buttons are ordered root→7th and each picks the
+  inversion that truly puts that tone in the bass, so the player chooses the bass
+  directly regardless of structure.

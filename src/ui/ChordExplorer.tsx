@@ -24,7 +24,8 @@ import {
   structuresForChord,
   structureName,
   inversionCount,
-  inversionName,
+  bassDegree,
+  bassNoteName,
 } from '../theory/chord';
 import { midiOf } from '../theory/notes';
 import { playChord } from '../audio/player';
@@ -46,6 +47,20 @@ export function ChordExplorer({ root, chord }: { root: Note; chord: ChordDefinit
   const structures = structuresForChord(chord, STRUCTURES);
   const structure = structures.find((s) => s.id === structureId) ?? structures[0];
   const inversion = Math.min(inversionIndex, voiceCount - 1);
+
+  // The inversions, labelled by the note in the BASS and ordered root -> 7th. The
+  // inversions are a permutation of the chord's bass notes, so each tone maps to
+  // exactly one; for drop voicings that bass differs from the inversion number,
+  // which is why we let the player pick the bass directly.
+  const bassOptions = chord.intervals
+    .map((iv) => {
+      const degree = String(iv.diatonicSteps + 1);
+      const inv = Array.from({ length: voiceCount }, (_, i) => i).find(
+        (i) => bassDegree(chord, structure, i) === degree,
+      );
+      return inv === undefined ? null : { degree, inv };
+    })
+    .filter((o): o is { degree: string; inv: number } => o != null);
 
   // Every playable shape of this voicing across the neck.
   const shapes = placeVoicingAll(
@@ -81,14 +96,14 @@ export function ChordExplorer({ root, chord }: { root: Note; chord: ChordDefinit
     <>
       <div className="view-controls">
         <div className="controls-row">
-          <div className="control-group" role="group" aria-label="Inversion">
-            {Array.from({ length: voiceCount }, (_, i) => (
+          <div className="control-group" role="group" aria-label="Bass note">
+            {bassOptions.map((o) => (
               <button
-                key={i}
-                className={i === inversion ? 'pill pill--on' : 'pill'}
-                onClick={() => setInversionIndex(i)}
+                key={o.degree}
+                className={o.inv === inversion ? 'pill pill--on' : 'pill'}
+                onClick={() => setInversionIndex(o.inv)}
               >
-                {inversionName(i)}
+                {bassNoteName(o.degree)}
               </button>
             ))}
           </div>

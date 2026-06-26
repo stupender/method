@@ -109,10 +109,6 @@ const initialSongbook = loadSongbook() ?? (() => {
 
 function App() {
   const [area, setArea] = useState<Area>('study');
-  // Lesson vs Studio: in Lesson (the default) advanced controls are hidden, so the
-  // screen stays calm for teaching live. Studio shows everything. Implemented with
-  // a class on the page root + CSS, so no view has to thread the mode through.
-  const [lessonMode, setLessonMode] = useState(true);
 
   // The SONGBOOK lives here, above both areas, so it survives switching to
   // Possibility and back, and so the "Add to Play" button in Possibility can
@@ -172,22 +168,7 @@ function App() {
   };
 
   return (
-    <main className={'page page--wide' + (lessonMode ? ' page--lesson' : '')}>
-      {/* Lesson keeps the screen calm for teaching; Studio reveals every control. */}
-      <div className="modeswitch" role="group" aria-label="Mode">
-        <button
-          className={lessonMode ? 'modeswitch-btn modeswitch-btn--on' : 'modeswitch-btn'}
-          onClick={() => setLessonMode(true)}
-        >
-          Lesson
-        </button>
-        <button
-          className={!lessonMode ? 'modeswitch-btn modeswitch-btn--on' : 'modeswitch-btn'}
-          onClick={() => setLessonMode(false)}
-        >
-          Studio
-        </button>
-      </div>
+    <main className="page page--wide">
       <header className="masthead masthead--compact">
         <h1 className="title title--sm">Method</h1>
         {/* Top-level areas: a higher separation than the modes within Study. */}
