@@ -610,3 +610,18 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   off the built stack; the buttons are ordered root→7th and each picks the
   inversion that truly puts that tone in the bass, so the player chooses the bass
   directly regardless of structure.
+
+## Session 7d — the chord scale ladder (harmony axis: one voicing, all seven chords)
+
+- **Two harmony axes** — Harmony now toggles between "This chord" (ChordExplorer:
+  one chord, every placement) and "Chord scale" (ChordScaleLadder: the seven
+  diatonic chords in ONE voicing, ascending the neck on one string set).
+- **Reuses the voicing engine wholesale** — `diatonicChords` gives the seven
+  chords, `placeVoicingAll` places each; we keep the shape on the chosen string
+  set. No new placement code.
+- **Only offer string sets where ALL SEVEN fit** — intersect each chord's
+  available string sets. Close 7ths don't lay out on the lowest set (too cramped),
+  so it's simply not offered; if none work, a hint points to a drop voicing.
+- **Make it climb** — octave-shift a chord up the neck when it would sit below the
+  previous one, so the scale ascends. Drop-2/3 ladders climb cleanly; on the very
+  lowest triad set the last chord can wrap when it hits the 17-fret ceiling.

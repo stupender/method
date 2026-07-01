@@ -18,6 +18,7 @@ import { modeAt } from './theory/mode';
 import { diatonicChords } from './theory/harmony';
 import { noteName, pitchClassOf } from './theory/notes';
 import { ChordExplorer } from './ui/ChordExplorer';
+import { ChordScaleLadder } from './ui/ChordScaleLadder';
 import { ScaleExplorer } from './ui/ScaleExplorer';
 import { SongView, type ChartChord } from './ui/SongView';
 import { EarTrainingView } from './ui/EarTrainingView';
@@ -483,6 +484,9 @@ function HarmonyView({
   songLength: number;
 }) {
   const [seventh, setSeventh] = useState(false);
+  // Two ways to explore the harmony: ONE chord in every voicing, or the whole
+  // CHORD SCALE (all seven diatonic chords) in one voicing up the neck.
+  const [explore, setExplore] = useState<'chord' | 'scale'>('chord');
 
   // The diatonic chords of this key + scale — derived, not stored. Switching the
   // global scale type (major, harmonic minor, ...) changes the whole harmony set.
@@ -502,45 +506,79 @@ function HarmonyView({
   return (
     <>
       <p className="tagline">
-        Key of {noteName(root)} {scale.name} — {selected.roman}: {selected.name}
+        {explore === 'chord' ? (
+          <>
+            Key of {noteName(root)} {scale.name} — {selected.roman}: {selected.name}
+          </>
+        ) : (
+          <>
+            Chord scale of {noteName(root)} {scale.name} — every chord in the key, in
+            one voicing
+          </>
+        )}
       </p>
 
       <div className="view-controls">
-        {/* Triads vs seventh chords (the degree is chosen by the shared selector
-            above). */}
-        <div className="control-group" role="group" aria-label="Chord size">
-          <button
-            className={!seventh ? 'pill pill--on' : 'pill'}
-            onClick={() => setSeventh(false)}
-          >
-            Triads
-          </button>
-          <button
-            className={seventh ? 'pill pill--on' : 'pill'}
-            onClick={() => setSeventh(true)}
-          >
-            Sevenths
-          </button>
+        <div className="controls-row">
+          {/* What we're laddering: this one chord, or the whole chord scale. */}
+          <div className="control-group" role="group" aria-label="Explore">
+            <button
+              className={explore === 'chord' ? 'pill pill--on' : 'pill'}
+              onClick={() => setExplore('chord')}
+            >
+              This chord
+            </button>
+            <button
+              className={explore === 'scale' ? 'pill pill--on' : 'pill'}
+              onClick={() => setExplore('scale')}
+            >
+              Chord scale
+            </button>
+          </div>
+
+          {/* Triads vs seventh chords (the degree is chosen by the shared selector
+              above). */}
+          <div className="control-group" role="group" aria-label="Chord size">
+            <button
+              className={!seventh ? 'pill pill--on' : 'pill'}
+              onClick={() => setSeventh(false)}
+            >
+              Triads
+            </button>
+            <button
+              className={seventh ? 'pill pill--on' : 'pill'}
+              onClick={() => setSeventh(true)}
+            >
+              Sevenths
+            </button>
+          </div>
         </div>
 
-        {/* Send this chord over to the Play song (it persists across areas). */}
-        <div className="controls-row">
-          <button className="chart-add" onClick={addThisChord}>
-            + Add {noteName(selected.chordRoot)}
-            {selected.chord.symbol} to Play
-          </button>
-          <span className="control-label">
-            {songLength} chord{songLength === 1 ? '' : 's'} in Play
-          </span>
-        </div>
+        {/* Send the selected chord over to the Play song (chord mode only). */}
+        {explore === 'chord' && (
+          <div className="controls-row">
+            <button className="chart-add" onClick={addThisChord}>
+              + Add {noteName(selected.chordRoot)}
+              {selected.chord.symbol} to Play
+            </button>
+            <span className="control-label">
+              {songLength} chord{songLength === 1 ? '' : 's'} in Play
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* The chosen diatonic chord, explored with the shared voicing UI. */}
-      <ChordExplorer root={selected.chordRoot} chord={selected.chord} />
-
-      <footer className="footnote">
-        Each chord's quality comes from where it's built in the key.
-      </footer>
+      {explore === 'chord' ? (
+        <>
+          {/* The chosen diatonic chord, explored with the shared voicing UI. */}
+          <ChordExplorer root={selected.chordRoot} chord={selected.chord} />
+          <footer className="footnote">
+            Each chord's quality comes from where it's built in the key.
+          </footer>
+        </>
+      ) : (
+        <ChordScaleLadder root={root} scale={scale} seventh={seventh} />
+      )}
     </>
   );
 }
