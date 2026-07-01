@@ -140,9 +140,10 @@ the open-position nuance (Positional keeps 3 on the low E there).
 chord, in one voicing on a chosen string set.~~ (done — `ui/ChordScaleLadder.tsx`;
 Harmony toggles **This chord / Chord scale**; pick structure + bass + string set
 and the seven diatonic chords climb the neck, playable.) String-set choice is a
-first-class control there. Still to come: the **inversions ladder** (Stu's other
-axis — one chord, all its inversions up the neck), string-set choice in
-ChordExplorer + **Voice Leading**, and a multi-select of string sets to practice.
+first-class control there. ~~The **inversions ladder** (Stu's other axis — one
+chord, all its inversions up the neck).~~ (done — `ui/InversionLadder.tsx`; Harmony
+now toggles This chord / Chord scale / Inversions.) Still to come: string-set choice
+in ChordExplorer + **Voice Leading**, and a multi-select of string sets to practice.
 
 ### Horizontal TAB for scales & patterns
 
