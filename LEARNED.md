@@ -625,3 +625,18 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Make it climb** — octave-shift a chord up the neck when it would sit below the
   previous one, so the scale ascends. Drop-2/3 ladders climb cleanly; on the very
   lowest triad set the last chord can wrap when it hits the 17-fret ceiling.
+
+## Session 7e — the inversions ladder (harmony axis: one chord, up the neck)
+
+- **The second harmony axis** — Harmony now has three explore modes: This chord /
+  Chord scale / Inversions. `InversionLadder` holds ONE chord fixed and tiles its
+  inversions up the neck on a chosen string set: root/3rd/5th/(7th) in the bass in
+  turn, then the cycle again an octave higher.
+- **Tiling up the neck** — for each inversion take its shape on the chosen set, then
+  octave-copy it upward while it fits; sort every rung by lowest fret so the whole
+  thing climbs. Each rung is captioned by its bass note (`bassDegree`/`bassNoteName`).
+- Same "offer only string sets where all inversions fit" intersection as the chord
+  scale ladder; close 7ths that lay out nowhere get the drop-voicing hint.
+- **Duplication note** — InversionLadder and ChordScaleLadder share their controls,
+  render, and the tiny layout helpers (stringSetKey/octaveUp/loFret). Kept separate
+  + self-contained for now; a shared ladder could dedup them later if it's worth it.

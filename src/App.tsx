@@ -19,6 +19,7 @@ import { diatonicChords } from './theory/harmony';
 import { noteName, pitchClassOf } from './theory/notes';
 import { ChordExplorer } from './ui/ChordExplorer';
 import { ChordScaleLadder } from './ui/ChordScaleLadder';
+import { InversionLadder } from './ui/InversionLadder';
 import { ScaleExplorer } from './ui/ScaleExplorer';
 import { SongView, type ChartChord } from './ui/SongView';
 import { EarTrainingView } from './ui/EarTrainingView';
@@ -484,9 +485,10 @@ function HarmonyView({
   songLength: number;
 }) {
   const [seventh, setSeventh] = useState(false);
-  // Two ways to explore the harmony: ONE chord in every voicing, or the whole
-  // CHORD SCALE (all seven diatonic chords) in one voicing up the neck.
-  const [explore, setExplore] = useState<'chord' | 'scale'>('chord');
+  // Three ways to explore the harmony: ONE chord in every voicing; the whole CHORD
+  // SCALE (all seven diatonic chords) in one voicing; or one chord's INVERSIONS,
+  // both laid up the neck.
+  const [explore, setExplore] = useState<'chord' | 'scale' | 'inversions'>('chord');
 
   // The diatonic chords of this key + scale — derived, not stored. Switching the
   // global scale type (major, harmonic minor, ...) changes the whole harmony set.
@@ -506,14 +508,21 @@ function HarmonyView({
   return (
     <>
       <p className="tagline">
-        {explore === 'chord' ? (
+        {explore === 'chord' && (
           <>
             Key of {noteName(root)} {scale.name} — {selected.roman}: {selected.name}
           </>
-        ) : (
+        )}
+        {explore === 'scale' && (
           <>
             Chord scale of {noteName(root)} {scale.name} — every chord in the key, in
             one voicing
+          </>
+        )}
+        {explore === 'inversions' && (
+          <>
+            {selected.name} — every inversion up the neck ({selected.roman} of{' '}
+            {noteName(root)} {scale.name})
           </>
         )}
       </p>
@@ -533,6 +542,12 @@ function HarmonyView({
               onClick={() => setExplore('scale')}
             >
               Chord scale
+            </button>
+            <button
+              className={explore === 'inversions' ? 'pill pill--on' : 'pill'}
+              onClick={() => setExplore('inversions')}
+            >
+              Inversions
             </button>
           </div>
 
@@ -568,7 +583,7 @@ function HarmonyView({
         )}
       </div>
 
-      {explore === 'chord' ? (
+      {explore === 'chord' && (
         <>
           {/* The chosen diatonic chord, explored with the shared voicing UI. */}
           <ChordExplorer root={selected.chordRoot} chord={selected.chord} />
@@ -576,8 +591,12 @@ function HarmonyView({
             Each chord's quality comes from where it's built in the key.
           </footer>
         </>
-      ) : (
+      )}
+      {explore === 'scale' && (
         <ChordScaleLadder root={root} scale={scale} seventh={seventh} />
+      )}
+      {explore === 'inversions' && (
+        <InversionLadder root={selected.chordRoot} chord={selected.chord} />
       )}
     </>
   );
