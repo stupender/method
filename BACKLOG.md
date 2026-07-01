@@ -136,10 +136,13 @@ the open-position nuance (Positional keeps 3 on the low E there).
 
 ### String sets are a first-class choice
 
-Let the user choose the **string set** for any chord voicing — a key step,
-including in Voice Leading. Also a **"whole chord scale" button** next to the
-Harmony Roman numerals that lays out the entire chord-scale (chord by chord, all
-string sets); you can still then pick inversion / voicing per chord.
+~~A **"whole chord scale"** view that lays out the entire chord-scale, chord by
+chord, in one voicing on a chosen string set.~~ (done — `ui/ChordScaleLadder.tsx`;
+Harmony toggles **This chord / Chord scale**; pick structure + bass + string set
+and the seven diatonic chords climb the neck, playable.) String-set choice is a
+first-class control there. Still to come: the **inversions ladder** (Stu's other
+axis — one chord, all its inversions up the neck), string-set choice in
+ChordExplorer + **Voice Leading**, and a multi-select of string sets to practice.
 
 ### Horizontal TAB for scales & patterns
 
@@ -219,10 +222,24 @@ For guitar/ukulele specifically (not piano), prefer staying in the **same string
 set / same position**, keeping as many notes the same / the **shortest distance**.
 (Tighten `voiceLeadDistance` with a string-set/position bias.)
 
+### Bass-first input → chord suggestions (a heat map)
+
+A whole songwriting / transcription flow (Stu). **Type in just the BASS NOTES** of
+a progression — nothing else — as they emerge from writing or from ear-transcribing
+a song. Then the possibilities engine **suggests the chords** that could sit over
+each bass, as a **heat map from most obvious → least obvious**: diatonic triads/7ths
+of the key first, then borrowed / secondary / farther-out choices, then related
+keys. Because we're given only the bass, the suggestions naturally include
+**inversions** (the bass as the 3rd/5th/7th of a chord) and **slash chords**
+(the bass as a non-chord tone under an upper structure). Rides the GPS reveal
+(`keysContaining`) + `diatonicChords`; ranking = distance from the key. Needs
+bass-note entry in Play, a ranking model, and slash-chord data.
+
 ### Heat map of harmonic possibilities
 
 A visual **heat map** over the reveal that highlights which harmonic choices are
 most crucial to the flow of the song (vs interchangeable). Extends the GPS reveal.
+(Shares the ranking model with the bass-first flow above.)
 
 ---
 
