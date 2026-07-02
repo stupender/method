@@ -246,18 +246,20 @@ For guitar/ukulele specifically (not piano), prefer staying in the **same string
 set / same position**, keeping as many notes the same / the **shortest distance**.
 (Tighten `voiceLeadDistance` with a string-set/position bias.)
 
-### Bass-first input → chord suggestions (a heat map)
+### Bass-first input → chord suggestions (a heat map) ✓ (MVP done)
 
-A whole songwriting / transcription flow (Stu). **Type in just the BASS NOTES** of
-a progression — nothing else — as they emerge from writing or from ear-transcribing
-a song. Then the possibilities engine **suggests the chords** that could sit over
-each bass, as a **heat map from most obvious → least obvious**: diatonic triads/7ths
-of the key first, then borrowed / secondary / farther-out choices, then related
-keys. Because we're given only the bass, the suggestions naturally include
-**inversions** (the bass as the 3rd/5th/7th of a chord) and **slash chords**
-(the bass as a non-chord tone under an upper structure). Rides the GPS reveal
-(`keysContaining`) + `diatonicChords`; ranking = distance from the key. Needs
-bass-note entry in Play, a ranking model, and slash-chord data.
+~~Type in just the BASS NOTES; the engine suggests the chords that could sit over
+each bass as a heat map from most obvious → least obvious, including inversions.~~
+(done — `theory/suggest.ts` + Play's "Start from a bass line": dashed bass-only
+bars that play as a bass line; candidate working keys from the whole line; ranked
+suggestions with slash names + function labels (tier 0 diatonic root-in-bass,
+tier 1 slash/inversion, tier 2 secondary dominants); click to fill the bar. The
+heat ramp `--heat-0..3` is the first art-book palette token.)
+Still to come: a **borrowed-chords tier** (parallel minor — needs a natural-minor
+scale definition), **true slash chords** (bass as a NON-chord tone under an upper
+structure), richer qualities (6ths/extensions data), storing the chosen
+inversion/bass on the chart chord (so the slash survives into playback/voicing),
+and re-ranking as bars commit (committed chords should narrow the working keys).
 
 ### Heat map of harmonic possibilities
 
