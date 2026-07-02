@@ -57,6 +57,16 @@ function roleOfBass(
   return null;
 }
 
+// The PARALLEL (natural) minor of a major tonic. Natural minor is deliberately
+// NOT in the SCALES data (every natural minor is its relative major's notes, so
+// listing it would double every key in the reveal). Derive it instead: aeolian
+// on this tonic = the 6th mode of the major scale a minor 3rd up (C aeolian =
+// the notes of E♭ major, from C).
+function parallelMinorOf(tonic: Note) {
+  const relativeMajor = spellNoteFromInterval(tonic, m3);
+  return modeAt(relativeMajor, MAJOR_SCALE, 5); // { modeRoot, modeScale }
+}
+
 // Every chord that could sit over `bass` in the key of (tonic, scale), ranked.
 // Offers both triads and sevenths. Deduped by (root, quality, bass role),
 // keeping the closest (lowest-tier) interpretation.
@@ -123,13 +133,8 @@ export function chordsOverBass(
   }
 
   // Tier 3 — chords BORROWED from the parallel (natural) minor, for major keys.
-  // Natural minor is deliberately NOT in the SCALES data (every natural minor is
-  // its relative major's notes, so listing it would double every key in the
-  // reveal). Derive it instead: aeolian on this tonic = the 6th mode of the
-  // major scale a minor 3rd up (C aeolian = the notes of E♭ major, from C).
   if (scale.id === MAJOR_SCALE.id) {
-    const relativeMajor = spellNoteFromInterval(tonic, m3);
-    const { modeRoot, modeScale } = modeAt(relativeMajor, MAJOR_SCALE, 5);
+    const { modeRoot, modeScale } = parallelMinorOf(tonic);
     for (const seventh of [false, true]) {
       let borrowedChords;
       try {
@@ -185,4 +190,108 @@ export function keysContainingNotes(notes: Note[]): NoteKeyMatch[] {
     }
   }
   return matches;
+}
+
+// ---------------------------------------------------------------------------
+// The other face of the engine: given a chord and a key, what IS it there?
+// This is what the Context strip shows, and what ear training's function layer
+// will quiz. Checked from nearest to farthest — the first reading wins.
+// ---------------------------------------------------------------------------
+
+export interface Interpretation {
+  label: string; // "ii7", "V7/IV", "♭VI", or "?" when the key can't explain it
+  kind: 'diatonic' | 'secondary' | 'borrowed' | 'outside';
+}
+
+export function interpretInKey(
+  root: Note,
+  chord: ChordDefinition,
+  tonic: Note,
+  scale: ScaleDefinition,
+): Interpretation {
+  const rootPc = pitchClassOf(root);
+  const seventh = chord.intervals.length === 4;
+
+  // 1. Diatonic — the chord is simply one of the key's own.
+  try {
+    const hit = diatonicChords(tonic, scale, seventh).find(
+      (c) => pitchClassOf(c.chordRoot) === rootPc && c.chord.id === chord.id,
+    );
+    if (hit) return { label: hit.roman, kind: 'diatonic' };
+  } catch {
+    return { label: '?', kind: 'outside' }; // a key whose harmony we can't name
+  }
+
+  // 2. A secondary dominant — a dominant 7th (or major triad, "V of x") whose
+  // root sits a perfect 5th above one of the key's (non-diminished) degrees.
+  if (chord.id === 'dominant-seventh' || chord.id === 'major-triad') {
+    const tones = realizeScale(tonic, scale);
+    const triads = diatonicChords(tonic, scale, false);
+    for (let degree = 0; degree < tones.length; degree++) {
+      if (triads[degree].chord.id === 'diminished-triad') continue;
+      const domPc = pitchClassOf(spellNoteFromInterval(tones[degree].note, P5));
+      if (domPc === rootPc) {
+        const v = chord.id === 'dominant-seventh' ? 'V7' : 'V';
+        return { label: `${v}/${triads[degree].roman}`, kind: 'secondary' };
+      }
+    }
+  }
+
+  // 3. Borrowed from the parallel minor (major keys only), ♭-labelled against
+  // the major key (III of the minor = ♭III here).
+  if (scale.id === MAJOR_SCALE.id) {
+    const { modeRoot, modeScale } = parallelMinorOf(tonic);
+    try {
+      const hit = diatonicChords(modeRoot, modeScale, seventh).find(
+        (c) => pitchClassOf(c.chordRoot) === rootPc && c.chord.id === chord.id,
+      );
+      if (hit) {
+        const flat = hit.degree === 2 || hit.degree === 5 || hit.degree === 6 ? '♭' : '';
+        return { label: flat + hit.roman, kind: 'borrowed' };
+      }
+    } catch {
+      /* fall through to outside */
+    }
+  }
+
+  return { label: '?', kind: 'outside' };
+}
+
+// Every key, ranked by how well it EXPLAINS a whole progression. Unlike the
+// strict `keysContainingAll`, a chord outside the key doesn't eliminate it —
+// real songs tonicize and borrow — it just reads as secondary/borrowed/'?'.
+// Best key = fewest unexplained chords, then the most plainly diatonic ones.
+export interface RankedKey {
+  tonic: Note;
+  scale: ScaleDefinition;
+  labels: Interpretation[]; // one per chord, in order
+  diatonicCount: number;
+  allExplained: boolean; // no chord read as 'outside'
+}
+
+export function rankKeys(
+  chords: { root: Note; chord: ChordDefinition }[],
+): RankedKey[] {
+  if (chords.length === 0) return [];
+  const ranked: RankedKey[] = [];
+  for (const scale of Object.values(SCALES)) {
+    for (const tonic of ROOT_CHOICES) {
+      const labels = chords.map((c) => interpretInKey(c.root, c.chord, tonic, scale));
+      const diatonicCount = labels.filter((l) => l.kind === 'diatonic').length;
+      if (diatonicCount === 0) continue; // a key sharing nothing isn't a hypothesis
+      ranked.push({
+        tonic,
+        scale,
+        labels,
+        diatonicCount,
+        allExplained: labels.every((l) => l.kind !== 'outside'),
+      });
+    }
+  }
+  ranked.sort(
+    (a, b) =>
+      Number(b.allExplained) - Number(a.allExplained) ||
+      b.diatonicCount - a.diatonicCount,
+  );
+  return ranked;
 }

@@ -702,3 +702,25 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   show it; playback puts it underneath an octave down; localStorage carries it.
 - Still open in the heat map: TRUE slash chords (bass as a NON-chord tone),
   richer qualities, re-narrowing working keys as bars commit.
+
+## Session 8d — the Context strip (the search engine, visible)
+
+- **`interpretInKey`** completes the function engine: given a chord and a key,
+  name what it IS there — diatonic numeral, secondary dominant (V7/x, V/x),
+  borrowed (♭-labelled vs the major), or outside. Checked nearest-first.
+- **`rankKeys`** replaces strict intersection for the strip: an out-of-key chord
+  doesn't ELIMINATE a key (real songs tonicize/borrow) — it reads as V7/x or
+  borrowed. Keys rank by fewest unexplained chords, then most diatonic; keys with
+  no diatonic anchor aren't hypotheses at all.
+- **The strip** (Play, above the score): the working-key hypotheses (click to
+  re-read), the progression AS FUNCTIONS in that key (numerals are buttons that
+  select their bar; secondary/borrowed wear the accent, unexplained go quiet),
+  and what the selected bar does to the search.
+- **Narrowing isn't the only direction** — a bar can also ANCHOR readings (give a
+  key its first diatonic foothold) or KEEP them all (every hypothesis explains a
+  V7/x — exactly why secondary dominants are safe spice). The readout says which:
+  "C anchors 6", "A7 keeps all 6", "G7 narrows 8 → 6". Caught because the naive
+  "X → Y keys" arrow read wrongly when Y > X.
+- **Open tension, on purpose** — the old reveal still uses the STRICT intersection
+  ("0 fit the whole progression" when an A7 is present) while the strip tolerates.
+  Different measures, both true; unifying the reveal onto readings is a next step.

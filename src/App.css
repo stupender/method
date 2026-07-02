@@ -588,6 +588,71 @@
   border-left-style: dashed;
 }
 
+/* --- The Context strip: the search engine, visible ------------------------ */
+.context-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 9px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin-top: 16px;
+}
+.context-strip .pill {
+  padding: 4px 11px;
+  font-size: 12px;
+}
+.context-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+}
+/* The progression read as functions in the working key. */
+.ctx-romans {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+}
+.ctx-roman {
+  font-family: var(--serif);
+  font-size: 16px;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  padding: 2px 7px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.ctx-roman:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+.ctx-roman--on {
+  background: var(--heat-3);
+}
+/* Chords that REACH — secondary dominants and borrowed — wear the accent;
+   chords the key can't explain go quiet. */
+.ctx-roman--secondary,
+.ctx-roman--borrowed {
+  color: var(--accent);
+}
+.ctx-roman--outside {
+  color: var(--muted);
+}
+/* The narrowing readout: what the selected bar did to the search. */
+.ctx-narrow {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.ctx-more {
+  font-size: 12px;
+  color: var(--muted);
+}
+
 /* --- Bass-first suggestions: the heat map -------------------------------- */
 /* Chips ranked most obvious -> farthest out; the background is the heat ramp
    (see index.css). Click a chip to fill the bar with that chord. */

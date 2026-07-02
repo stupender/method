@@ -44,6 +44,7 @@ import { parseChordSymbol, parseProgression } from '../theory/chordParser';
 import {
   chordsOverBass,
   keysContainingNotes,
+  rankKeys,
   type BassSuggestion,
 } from '../theory/suggest';
 import { bassNoteName } from '../theory/chord';
@@ -249,6 +250,29 @@ export function SongView({
   const fitCount = selectedKeys.filter((m) =>
     progressionKeyIds.has(keyId(m.tonic, m.scale.id)),
   ).length;
+
+  // --- The Context strip: the search engine, visible ------------------------
+  // Rank every key by how well it explains the COMMITTED bars (bass-only bars
+  // are still open questions). Unlike the strict reveal intersection, an
+  // out-of-key chord doesn't kill a key here — it reads as V7/x or borrowed.
+  const committed = chords
+    .map((c, i) => ({ c, i }))
+    .filter(({ c }) => !c.bassOnly);
+  const asTheory = (list: { c: ChartChord }[]) =>
+    list.map(({ c }) => ({ root: ROOT_CHOICES[c.rootIndex], chord: CHORDS[c.chordId] }));
+  const ranked = rankKeys(asTheory(committed));
+  const ctxKey =
+    ranked.find((k) => keyId(k.tonic, k.scale.id) === workingKeyId) ?? ranked[0];
+  const explainedNow = ranked.filter((k) => k.allExplained).length;
+  // What the SELECTED bar does to the search: how many keys fully explained the
+  // progression without it, vs with it. The narrowing, in numbers.
+  const selCommittedPos = committed.findIndex(({ i }) => i === selectedIndex);
+  const explainedWithout =
+    selCommittedPos >= 0 && committed.length > 1
+      ? rankKeys(asTheory(committed.filter((_, j) => j !== selCommittedPos))).filter(
+          (k) => k.allExplained,
+        ).length
+      : null;
 
   // --- Bass-first: suggestions for a bass-only bar --------------------------
   // Candidate keys come from the WHOLE bass line (every bar's bottom note) —
@@ -514,6 +538,7 @@ export function SongView({
     setPlayheadBeat(null);
     setSelectedIndex(0);
     setOpenKey(null);
+    setWorkingKeyId(null); // each song reads against its own working key
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [songId]);
 
@@ -602,6 +627,63 @@ export function SongView({
           </button>
         </div>
       </div>
+
+      {/* The CONTEXT STRIP — the search engine, visible. The working key
+          hypothesis (click a candidate to re-read everything), the progression
+          as functions in that key (secondary dominants and borrowed chords in
+          accent — the chords that reach), and what the selected bar just did
+          to the search. */}
+      {committed.length > 0 && ctxKey && (
+        <div className="context-strip">
+          <span className="context-label">Context</span>
+          <div className="control-group" role="group" aria-label="Key hypothesis">
+            {ranked.slice(0, 3).map((k) => {
+              const id = keyId(k.tonic, k.scale.id);
+              const on = id === keyId(ctxKey.tonic, ctxKey.scale.id);
+              return (
+                <button
+                  key={id}
+                  className={on ? 'pill pill--on' : 'pill'}
+                  onClick={() => setWorkingKeyId(id)}
+                >
+                  {noteName(k.tonic)} {k.scale.name}
+                </button>
+              );
+            })}
+            {ranked.length > 3 && (
+              <span className="ctx-more">+{ranked.length - 3}</span>
+            )}
+          </div>
+          <div className="ctx-romans" role="group" aria-label="Functions">
+            {committed.map(({ i }, j) => (
+              <button
+                key={i}
+                className={
+                  `ctx-roman ctx-roman--${ctxKey.labels[j].kind}` +
+                  (i === selectedIndex ? ' ctx-roman--on' : '')
+                }
+                onClick={() => {
+                  setSelectedIndex(i);
+                  setOpenKey(null);
+                }}
+              >
+                {ctxKey.labels[j].label}
+              </button>
+            ))}
+          </div>
+          {explainedWithout != null && (
+            <span className="ctx-narrow">
+              {chordLabel(selected)}{' '}
+              {explainedWithout > explainedNow
+                ? `narrows ${explainedWithout} → ${explainedNow}`
+                : explainedWithout === explainedNow
+                  ? `keeps all ${explainedNow}`
+                  : `anchors ${explainedNow}`}{' '}
+              readings
+            </span>
+          )}
+        </div>
+      )}
 
       {/* The lead sheet as a SCORE: chord symbols on top, an aligned TAB staff
           below (when voiced), bar lines running through both — wrapped into rows
