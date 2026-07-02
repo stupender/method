@@ -724,3 +724,21 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Open tension, on purpose** — the old reveal still uses the STRICT intersection
   ("0 fit the whole progression" when an A7 is present) while the strip tolerates.
   Different measures, both true; unifying the reveal onto readings is a next step.
+
+## Session 8e — the function quiz (ear training meets the function engine)
+
+- **Ear Training is now a two-skill area** — a Quality/Function toggle at the top.
+  Quality = "what did I hear?" (key-agnostic); Function = "what is it DOING in the
+  key?" — the reverse-engineering skill proper.
+- **The anchor-first design** — every round picks a RANDOM major key and plays
+  four chords, the first always the I. Function is relative; the I is the ear's
+  reference point. Random keys mean you learn the RELATIONSHIP, not pitches.
+- **Secondary dominants are quizzable** — the pool has two groups: "In key" (the
+  seven diatonic sevenths) and "Reaching out" (V7/ii … V7/vi). Defaults include
+  V7/IV and V7/V — real songs reach outside, so the drill does too (Stu's note).
+- **Snapshot the pool into the question** — narrowing the pool mid-round must not
+  strand the correct answer, so each question carries its own pool copy; changes
+  apply from the next round.
+- **Answer slots, one at a time** — chords 2–4 asked in sequence ("Next chord →"),
+  then "Next progression →"; same green/red + running-score rhythm as the quality
+  quiz, so the two drills feel like one tool.

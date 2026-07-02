@@ -17,8 +17,37 @@ import { CHORDS } from '../data/chords';
 import { ROOT_CHOICES } from '../data/roots';
 import { spellNoteFromInterval, midiOf, noteName } from '../theory/notes';
 import { playChord } from '../audio/player';
+import { FunctionQuizView } from './FunctionQuizView';
 
 const CHORD_LIST = Object.values(CHORDS);
+
+// The Ear Training area: a shell that picks WHICH skill to drill. Quality =
+// "what did I hear?" (key-agnostic); Function = "what is it doing in the key?"
+// (roman numerals + secondary dominants, riding the function engine).
+export function EarTrainingView() {
+  const [quiz, setQuiz] = useState<'quality' | 'function'>('quality');
+  return (
+    <>
+      <div className="controls">
+        <div className="control-group" role="group" aria-label="Quiz">
+          <button
+            className={quiz === 'quality' ? 'pill pill--on' : 'pill'}
+            onClick={() => setQuiz('quality')}
+          >
+            Chord quality
+          </button>
+          <button
+            className={quiz === 'function' ? 'pill pill--on' : 'pill'}
+            onClick={() => setQuiz('function')}
+          >
+            Function
+          </button>
+        </div>
+      </div>
+      {quiz === 'quality' ? <QualityQuiz /> : <FunctionQuizView />}
+    </>
+  );
+}
 
 // A quiz question: which root the chord is built on, and which quality it is.
 interface Question {
@@ -32,7 +61,7 @@ function chordMidis(q: Question): number[] {
   return CHORDS[q.chordId].intervals.map((iv) => midiOf(spellNoteFromInterval(root, iv)));
 }
 
-export function EarTrainingView() {
+function QualityQuiz() {
   // Which qualities are in play. Start gentle — three clearly different sounds.
   const [enabled, setEnabled] = useState<Set<string>>(
     new Set(['major-triad', 'minor-triad', 'dominant-seventh']),
