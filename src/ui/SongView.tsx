@@ -427,79 +427,88 @@ export function SongView({
 
   return (
     <>
-      {/* Transport: time signature + play. */}
-      <div className="controls-row">
-        <div className="timesig" role="group" aria-label="Time signature">
-          <input
-            type="number"
-            min={1}
-            max={32}
-            value={beatsPerBar}
-            onChange={(e) =>
-              onMeter({ beatsPerBar: Math.max(1, Math.min(32, Number(e.target.value) || 1)) })
-            }
-            aria-label="Beats per bar"
-          />
-          <span>/</span>
-          <select
-            value={denominator}
-            onChange={(e) => onMeter({ denominator: Number(e.target.value) })}
-            aria-label="Beat unit"
-          >
-            {[2, 4, 8, 16].map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
-        </div>
-        <button className="pill pill--play" onClick={togglePlay}>
-          {isPlaying ? '⏸ Pause' : '▶ Play'}
-        </button>
-        {/* Tempo. */}
-        <div className="tempo" role="group" aria-label="Tempo">
-          <button
-            className="pill pill--tiny"
-            onClick={() => onMeter((m) => ({ bpm: Math.max(40, m.bpm - 5) }))}
-          >
-            –
+      {/* Transport, grouped by job: playback | practice options | song actions.
+          Everything stays visible (these are live teaching controls) — the quiet
+          dividers just make the row read as three ideas instead of eight buttons. */}
+      <div className="transport">
+        <div className="cluster" role="group" aria-label="Playback">
+          <div className="timesig" role="group" aria-label="Time signature">
+            <input
+              type="number"
+              min={1}
+              max={32}
+              value={beatsPerBar}
+              onChange={(e) =>
+                onMeter({ beatsPerBar: Math.max(1, Math.min(32, Number(e.target.value) || 1)) })
+              }
+              aria-label="Beats per bar"
+            />
+            <span>/</span>
+            <select
+              value={denominator}
+              onChange={(e) => onMeter({ denominator: Number(e.target.value) })}
+              aria-label="Beat unit"
+            >
+              {[2, 4, 8, 16].map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button className="pill pill--play" onClick={togglePlay}>
+            {isPlaying ? '⏸ Pause' : '▶ Play'}
           </button>
-          <span className="tempo__value">♩ = {bpm}</span>
-          <button
-            className="pill pill--tiny"
-            onClick={() => onMeter((m) => ({ bpm: Math.min(280, m.bpm + 5) }))}
-          >
-            +
-          </button>
+          <div className="tempo" role="group" aria-label="Tempo">
+            <button
+              className="pill pill--tiny"
+              onClick={() => onMeter((m) => ({ bpm: Math.max(40, m.bpm - 5) }))}
+            >
+              –
+            </button>
+            <span className="tempo__value">♩ = {bpm}</span>
+            <button
+              className="pill pill--tiny"
+              onClick={() => onMeter((m) => ({ bpm: Math.min(280, m.bpm + 5) }))}
+            >
+              +
+            </button>
+          </div>
         </div>
+
         {/* A click track, and the option to hear it WITHOUT the chords. */}
-        <button
-          className={metronome ? 'pill pill--on' : 'pill'}
-          onClick={() => setMetronome((m) => !m)}
-        >
-          Metronome
-        </button>
-        <button
-          className={muteChords ? 'pill pill--on' : 'pill'}
-          onClick={() => setMuteChords((m) => !m)}
-        >
-          Mute chords
-        </button>
-        <button
-          className={countIn ? 'pill pill--on' : 'pill'}
-          onClick={() => setCountIn((c) => !c)}
-        >
-          Count-in
-        </button>
-        <button className="chart-add" onClick={addChord}>
-          + Add chord
-        </button>
-        <button
-          className={voiceLead ? 'pill pill--on' : 'pill'}
-          onClick={() => setVoiceLead((v) => !v)}
-        >
-          Voice-lead
-        </button>
+        <div className="cluster" role="group" aria-label="Practice options">
+          <button
+            className={metronome ? 'pill pill--on' : 'pill'}
+            onClick={() => setMetronome((m) => !m)}
+          >
+            Metronome
+          </button>
+          <button
+            className={muteChords ? 'pill pill--on' : 'pill'}
+            onClick={() => setMuteChords((m) => !m)}
+          >
+            Mute chords
+          </button>
+          <button
+            className={countIn ? 'pill pill--on' : 'pill'}
+            onClick={() => setCountIn((c) => !c)}
+          >
+            Count-in
+          </button>
+        </div>
+
+        <div className="cluster" role="group" aria-label="Song actions">
+          <button className="chart-add" onClick={addChord}>
+            + Add chord
+          </button>
+          <button
+            className={voiceLead ? 'pill pill--on' : 'pill'}
+            onClick={() => setVoiceLead((v) => !v)}
+          >
+            Voice-lead
+          </button>
+        </div>
       </div>
 
       {/* The lead sheet as a SCORE: chord symbols on top, an aligned TAB staff
@@ -669,28 +678,35 @@ export function SongView({
           <span className="control-hint control-hint--warn">Didn't recognise that chord.</span>
         )}
       </form>
-      <div className="control-group" role="group" aria-label="Chord root">
-        {ROOT_CHOICES.map((note, i) => (
-          <button
-            key={`${note.letter}${note.accidental}`}
-            className={i === selected.rootIndex ? 'pill pill--on' : 'pill'}
-            onClick={() => editSelected({ rootIndex: i })}
-          >
-            {noteName(note)}
-          </button>
-        ))}
-      </div>
-      <div className="control-group control-group--wrap" role="group" aria-label="Chord quality">
-        {CHORD_LIST.map((c) => (
-          <button
-            key={c.id}
-            className={c.id === selected.chordId ? 'pill pill--on' : 'pill'}
-            onClick={() => editSelected({ chordId: c.id })}
-          >
-            {c.name}
-          </button>
-        ))}
-      </div>
+      {/* The root/quality pill grids duplicate the text input, so they live
+          behind a disclosure — the text field leads (Stu's call). */}
+      <details className="picker-box">
+        <summary>Pick visually</summary>
+        <div className="picker-grids">
+          <div className="control-group" role="group" aria-label="Chord root">
+            {ROOT_CHOICES.map((note, i) => (
+              <button
+                key={`${note.letter}${note.accidental}`}
+                className={i === selected.rootIndex ? 'pill pill--on' : 'pill'}
+                onClick={() => editSelected({ rootIndex: i })}
+              >
+                {noteName(note)}
+              </button>
+            ))}
+          </div>
+          <div className="control-group" role="group" aria-label="Chord quality">
+            {CHORD_LIST.map((c) => (
+              <button
+                key={c.id}
+                className={c.id === selected.chordId ? 'pill pill--on' : 'pill'}
+                onClick={() => editSelected({ chordId: c.id })}
+              >
+                {c.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      </details>
       </div>
 
       {/* Paste a whole progression as text — tucked away in a disclosure so it

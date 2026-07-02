@@ -160,18 +160,27 @@ Not a v1 requirement, but the data model should anticipate it.
    m11 / m13 and "Upper Triadic Extensions" can surface even if you've never opened
    that menu. *The current music is the trigger; the teacher is the override.*
 
-## Current-state audit (where the clutter is)
+## Current-state audit — RESOLVED in the Fable-5 design pass (2026-07)
 
-**Possibility** — the selector stack is well-ordered (Key → Scale type → Degree →
-Mode) but *tall* before the neck appears, and the sub-views pile on toggles:
-Fingering (3) · All positions · Direction (2) · Labels (2) · Play in Scales;
-Chord size · Add · Inversion · Structure · Labels · Play in Harmony. **Labels** is
-duplicated across views.
+The audit below was implemented; kept for the record:
 
-**Play** — two crowded zones: the **transport row** (time-sig · Play/Pause · tempo ±
-· Metronome · Mute · Count-in · +Add · Voice-lead — eight controls wrapping), and
-the **chord editor** (a text field, then a 12-button root grid + 11-button quality
-grid that duplicate the text input, then the paste disclosure).
+- ~~**Labels duplicated across four views** (and resetting on every switch — it was
+  per-component state).~~ Now ONE global Degrees/Notes toggle in the Possibility
+  selector stack, passed down to every explorer/ladder.
+- ~~**Possibility stacked 4 selector rows before content.**~~ Degree + Scales/Harmony
+  (+ Labels, right-aligned) share one row; the neck sits a row higher.
+- ~~**ScaleExplorer crammed 5 clusters into one row.**~~ Two rows by job: primary
+  (Fingering + ▶ Play), then reading options (Direction + All positions).
+- ~~**Play transport: eight controls in one soup.**~~ Three clusters divided by quiet
+  rules: *playback* (time-sig · play · tempo) | *practice options* (metronome ·
+  mute · count-in) | *song actions* (+add · voice-lead). Nothing hidden — grouped.
+- ~~**Play's 23 chord pills duplicated the text input.**~~ The pill grids live behind
+  a "Pick visually" disclosure; the text field leads (same pattern as the paste
+  box). Stu's explicit call.
+- ~~**Ladders' string-set pills ("E A D") were unlabelled.**~~ A quiet "Strings"
+  label now fronts them.
+- ~~**Flow bug: ▶ Play position/chord always played the FIRST shape**~~ even with
+  another pinned. Now plays the active (pinned/hovered) shape.
 
 ## Sequenced first moves (revised — small, reversible, but aimed at the right shape)
 
@@ -186,10 +195,11 @@ grid that duplicate the text input, then the paste disclosure).
    views barely change.
 3. **Add the persistent Context strip** above the neck — the search engine made
    visible.
-4. **Lead Play with Song input**; demote single-chord entry inside it; demote the
-   pill grids behind "pick visually ▾".
-5. **Unify Labels into one global display setting** — and add the **Constellation**
-   axis (single / overlay / off).
+4. **Lead Play with Song input**; demote single-chord entry inside it; ~~demote the
+   pill grids behind "pick visually ▾"~~ **(pill grids demoted — Fable-5 pass;**
+   the full Song/Section input — paste a URL, lyrics-with-chords — is still to come).
+5. ~~**Unify Labels into one global display setting**~~ **(done — Fable-5 pass)**;
+   the **Constellation** axis (single / overlay / off) is still to come.
 6. **Split Play actions into Loop / Play-along / Practice card** as distinct intents
    sharing machinery.
 7. **Scaffold the Practice zone** (constraint cards). Skeleton-only for v1.

@@ -32,10 +32,18 @@ import { playChord } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
 import { TabView } from '../render/TabView';
 
-export function ChordExplorer({ root, chord }: { root: Note; chord: ChordDefinition }) {
+export function ChordExplorer({
+  root,
+  chord,
+  labelMode = 'degree',
+}: {
+  root: Note;
+  chord: ChordDefinition;
+  // What the dots say — a global display setting, owned by the view above.
+  labelMode?: 'note' | 'degree';
+}) {
   const [structureId, setStructureId] = useState('close');
   const [inversionIndex, setInversionIndex] = useState(0);
-  const [labelMode, setLabelMode] = useState<'note' | 'degree'>('degree');
   // Two kinds of selection: a PINNED shape (set by clicking, stays lit) and a
   // HOVERED shape (a temporary preview). Hover wins while the pointer is over a
   // shape; otherwise the pinned one shows. Click the empty neck to unpin.
@@ -107,7 +115,10 @@ export function ChordExplorer({ root, chord }: { root: Note; chord: ChordDefinit
               </button>
             ))}
           </div>
-          <button className="pill pill--play" onClick={() => playShape(shapes[0] ?? [])}>
+          <button
+            className="pill pill--play"
+            onClick={() => playShape(shapes[activeShape ?? 0] ?? [])}
+          >
             ▶ Play chord
           </button>
         </div>
@@ -123,20 +134,6 @@ export function ChordExplorer({ root, chord }: { root: Note; chord: ChordDefinit
                 {structureName(s, voiceCount)}
               </button>
             ))}
-          </div>
-          <div className="control-group" role="group" aria-label="Labels">
-            <button
-              className={labelMode === 'degree' ? 'pill pill--on' : 'pill'}
-              onClick={() => setLabelMode('degree')}
-            >
-              Degrees
-            </button>
-            <button
-              className={labelMode === 'note' ? 'pill pill--on' : 'pill'}
-              onClick={() => setLabelMode('note')}
-            >
-              Notes
-            </button>
           </div>
         </div>
       </div>

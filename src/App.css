@@ -110,6 +110,49 @@
   gap: 18px;
 }
 
+/* A group pushed to the far right of its row (e.g. the global Labels toggle). */
+.control-group--right {
+  margin-left: auto;
+}
+
+/* The Play transport: three clusters divided by quiet rules —
+   playback | practice options | song actions. Same controls, grouped by job. */
+.transport {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: 12px;
+}
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.cluster + .cluster {
+  margin-left: 14px;
+  border-left: 1px solid var(--line);
+  padding-left: 14px;
+}
+
+/* "Pick visually" — the root/quality pill grids, tucked behind a disclosure so
+   the text input leads (same pattern as the paste box). */
+.picker-box summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 14px;
+  width: fit-content;
+}
+.picker-box summary:hover {
+  color: var(--ink);
+}
+.picker-grids {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+}
+
 /* Wraps a view's control rows and puts breathing room before the fretboard. */
 .view-controls {
   display: flex;

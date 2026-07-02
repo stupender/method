@@ -39,15 +39,17 @@ export function ChordScaleLadder({
   root,
   scale,
   seventh,
+  labelMode = 'degree',
 }: {
   root: Note;
   scale: ScaleDefinition;
   seventh: boolean;
+  // What the dots say — a global display setting, owned by the view above.
+  labelMode?: 'note' | 'degree';
 }) {
   const [structureId, setStructureId] = useState('close');
   const [inversionIndex, setInversionIndex] = useState(0); // the bass note
   const [stringSet, setStringSet] = useState<string | null>(null);
-  const [labelMode, setLabelMode] = useState<'note' | 'degree'>('degree');
   const [hovered, setHovered] = useState<number | null>(null);
 
   const degrees = diatonicChords(root, scale, seventh);
@@ -155,6 +157,9 @@ export function ChordScaleLadder({
         </div>
 
         <div className="controls-row">
+          {/* Which strings the ladder climbs on — labelled so it reads at a
+              glance on a shared screen. */}
+          <span className="control-label">Strings</span>
           <div className="control-group" role="group" aria-label="String set">
             {commonSets.map((key) => (
               <button
@@ -165,20 +170,6 @@ export function ChordScaleLadder({
                 {setLabel(key)}
               </button>
             ))}
-          </div>
-          <div className="control-group" role="group" aria-label="Labels">
-            <button
-              className={labelMode === 'degree' ? 'pill pill--on' : 'pill'}
-              onClick={() => setLabelMode('degree')}
-            >
-              Degrees
-            </button>
-            <button
-              className={labelMode === 'note' ? 'pill pill--on' : 'pill'}
-              onClick={() => setLabelMode('note')}
-            >
-              Notes
-            </button>
           </div>
         </div>
       </div>

@@ -25,6 +25,7 @@ export function ScaleExplorer({
   scale,
   onPickRoot,
   focus,
+  labelMode = 'degree',
 }: {
   root: Note;
   scale: ScaleDefinition;
@@ -34,8 +35,9 @@ export function ScaleExplorer({
   // the mode lands "in position" where they clicked. `seq` bumps per click so the
   // same fret clicked twice still re-pins.
   focus?: { fret: number; seq: number };
+  // What the dots say — a global display setting, owned by the view above.
+  labelMode?: 'note' | 'degree';
 }) {
-  const [labelMode, setLabelMode] = useState<'note' | 'degree'>('degree');
   // Which fingering system: 3-notes-per-string, in-position (Positional), or the
   // hybrid (2 on the low E, then 3 per string).
   const [fingering, setFingering] = useState<'3nps' | 'box' | 'hybrid'>('3nps');
@@ -106,8 +108,8 @@ export function ScaleExplorer({
   return (
     <>
       <div className="view-controls">
+        {/* Row 1 — the primary choice (which fingering system) + the play action. */}
         <div className="controls-row">
-          {/* The fingering system: 3 notes per string vs in-position box. */}
           <div className="control-group" role="group" aria-label="Fingering">
             <button
               className={fingering === '3nps' ? 'pill pill--on' : 'pill'}
@@ -128,17 +130,16 @@ export function ScaleExplorer({
               Hybrid
             </button>
           </div>
-          {/* See every position's box at once, or focus one. */}
           <button
-            className={showAll ? 'pill pill--on' : 'pill'}
-            onClick={() => {
-              setShowAll((v) => !v);
-              setPinnedShape(null);
-            }}
+            className="pill pill--play"
+            onClick={() => playPosition(shapes[activeShape ?? 0] ?? [])}
           >
-            All positions
+            ▶ Play position
           </button>
-          {/* Read/play the run up or down. */}
+        </div>
+
+        {/* Row 2 — how to read it: direction of the run, one box vs all boxes. */}
+        <div className="controls-row">
           <div className="control-group" role="group" aria-label="Direction">
             <button
               className={direction === 'up' ? 'pill pill--on' : 'pill'}
@@ -153,25 +154,14 @@ export function ScaleExplorer({
               Descending
             </button>
           </div>
-          <div className="control-group" role="group" aria-label="Labels">
-            <button
-              className={labelMode === 'degree' ? 'pill pill--on' : 'pill'}
-              onClick={() => setLabelMode('degree')}
-            >
-              Degrees
-            </button>
-            <button
-              className={labelMode === 'note' ? 'pill pill--on' : 'pill'}
-              onClick={() => setLabelMode('note')}
-            >
-              Notes
-            </button>
-          </div>
           <button
-            className="pill pill--play"
-            onClick={() => playPosition(shapes[0] ?? [])}
+            className={showAll ? 'pill pill--on' : 'pill'}
+            onClick={() => {
+              setShowAll((v) => !v);
+              setPinnedShape(null);
+            }}
           >
-            ▶ Play position
+            All positions
           </button>
         </div>
       </div>

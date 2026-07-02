@@ -283,6 +283,10 @@ function StudyArea({
   const [rootIndex, setRootIndex] = useState(0); // the Key
   const [scaleId, setScaleId] = useState(SCALE_LIST[0].id); // the Scale type
   const [degree, setDegree] = useState(0); // scale degree (Roman numeral), 0-based
+  // What the neck's dots say — a GLOBAL display setting, set once here so it
+  // persists across Scales/Harmony and every explore mode (it used to live in
+  // each view separately, and reset whenever you switched).
+  const [labelMode, setLabelMode] = useState<'note' | 'degree'>('degree');
   // The fret of the last note clicked on the neck, so the re-rooted mode can land
   // in that position. `seq` bumps each click so re-clicking the same fret re-pins.
   const [focus, setFocus] = useState<{ fret: number; seq: number } | null>(null);
@@ -330,34 +334,50 @@ function StudyArea({
           ))}
         </div>
 
-        {/* Degree (Roman numeral) — the persistent selector. In Scales it sets
-            the mode; in Harmony it sets the chord. */}
-        <div className="control-group control-group--wrap" role="group" aria-label="Degree">
-          {romanLabels.map((roman, i) => (
+        {/* One row: Degree (the persistent selector — in Scales it sets the mode,
+            in Harmony the chord), the Scales/Harmony switch, and — far right —
+            the global Labels display toggle.
+            ('chord', the absolute key-less chord explorer, is intentionally NOT
+            offered in the Mode list — it isn't useful on this key-oriented page
+            yet. The view + ChordExplorer are kept below for a future, less
+            key-centric section; re-add 'chord' to the list to show it.) */}
+        <div className="controls-row">
+          <div className="control-group" role="group" aria-label="Degree">
+            {romanLabels.map((roman, i) => (
+              <button
+                key={i}
+                className={i === deg ? 'pill pill--on' : 'pill'}
+                onClick={() => setDegree(i)}
+              >
+                {roman}
+              </button>
+            ))}
+          </div>
+          <div className="control-group" role="group" aria-label="Mode">
+            {(['scale', 'harmony'] as Mode[]).map((m) => (
+              <button
+                key={m}
+                className={mode === m ? 'pill pill--on' : 'pill'}
+                onClick={() => setMode(m)}
+              >
+                {m === 'scale' ? 'Scales' : 'Harmony'}
+              </button>
+            ))}
+          </div>
+          <div className="control-group control-group--right" role="group" aria-label="Labels">
             <button
-              key={i}
-              className={i === deg ? 'pill pill--on' : 'pill'}
-              onClick={() => setDegree(i)}
+              className={labelMode === 'degree' ? 'pill pill--on' : 'pill'}
+              onClick={() => setLabelMode('degree')}
             >
-              {roman}
+              Degrees
             </button>
-          ))}
-        </div>
-
-        {/* 'chord' (the absolute, key-less chord explorer) is intentionally NOT
-            offered here — it isn't useful on this key-oriented page yet. The
-            view + ChordExplorer are kept below for a future, less key-centric
-            section (e.g. Ear Training); re-add 'chord' to this list to show it. */}
-        <div className="control-group" role="group" aria-label="Mode">
-          {(['scale', 'harmony'] as Mode[]).map((m) => (
             <button
-              key={m}
-              className={mode === m ? 'pill pill--on' : 'pill'}
-              onClick={() => setMode(m)}
+              className={labelMode === 'note' ? 'pill pill--on' : 'pill'}
+              onClick={() => setLabelMode('note')}
             >
-              {m === 'scale' ? 'Scales' : 'Harmony'}
+              Notes
             </button>
-          ))}
+          </div>
         </div>
       </div>
 
@@ -368,6 +388,7 @@ function StudyArea({
           degree={deg}
           focus={focus}
           onPickNote={pickNote}
+          labelMode={labelMode}
         />
       )}
       {mode === 'chord' && <ChordView root={root} />}
@@ -378,6 +399,7 @@ function StudyArea({
           degree={deg}
           onAddChord={onAddChord}
           songLength={songLength}
+          labelMode={labelMode}
         />
       )}
     </>
@@ -393,12 +415,14 @@ function ScaleView({
   degree,
   focus,
   onPickNote,
+  labelMode,
 }: {
   root: Note;
   scale: ScaleDefinition;
   degree: number;
   focus: { fret: number; seq: number } | null;
   onPickNote: (degree: number, fret: number) => void;
+  labelMode: 'note' | 'degree';
 }) {
   const { modeRoot, modeScale } = modeAt(root, scale, degree);
   const tones = realizeScale(modeRoot, modeScale);
@@ -425,6 +449,7 @@ function ScaleView({
         scale={modeScale}
         onPickRoot={pickRoot}
         focus={focus ?? undefined}
+        labelMode={labelMode}
       />
 
       <footer className="footnote">
@@ -477,12 +502,14 @@ function HarmonyView({
   degree,
   onAddChord,
   songLength,
+  labelMode,
 }: {
   root: Note;
   scale: ScaleDefinition;
   degree: number;
   onAddChord: (rootIndex: number, chordId: string) => void;
   songLength: number;
+  labelMode: 'note' | 'degree';
 }) {
   const [seventh, setSeventh] = useState(false);
   // Three ways to explore the harmony: ONE chord in every voicing; the whole CHORD
@@ -586,17 +613,17 @@ function HarmonyView({
       {explore === 'chord' && (
         <>
           {/* The chosen diatonic chord, explored with the shared voicing UI. */}
-          <ChordExplorer root={selected.chordRoot} chord={selected.chord} />
+          <ChordExplorer root={selected.chordRoot} chord={selected.chord} labelMode={labelMode} />
           <footer className="footnote">
             Each chord's quality comes from where it's built in the key.
           </footer>
         </>
       )}
       {explore === 'scale' && (
-        <ChordScaleLadder root={root} scale={scale} seventh={seventh} />
+        <ChordScaleLadder root={root} scale={scale} seventh={seventh} labelMode={labelMode} />
       )}
       {explore === 'inversions' && (
-        <InversionLadder root={selected.chordRoot} chord={selected.chord} />
+        <InversionLadder root={selected.chordRoot} chord={selected.chord} labelMode={labelMode} />
       )}
     </>
   );

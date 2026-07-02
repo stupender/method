@@ -640,3 +640,25 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Duplication note** — InversionLadder and ChordScaleLadder share their controls,
   render, and the tiny layout helpers (stringSetKey/octaveUp/loFret). Kept separate
   + self-contained for now; a shared ladder could dedup them later if it's worth it.
+
+## Session 8 — the design-audit pass (Fable 5)
+
+- **Audit-then-implement** — walked every view against DESIGN.md's principles and
+  Stu's notes, then fixed in one pass rather than piecemeal:
+- **Display settings belong to the app, not the view** — Labels (Degrees/Notes)
+  lived as separate state in FOUR components, so it reset whenever you switched
+  views. Lifted to StudyArea as one global toggle passed down (optional prop with a
+  default, so parked views still compile). Symptom worth remembering: duplicated
+  buttons usually mean state at the wrong altitude.
+- **Group by job, not by arrival order** — the Play transport's eight controls
+  became three clusters (playback | practice options | song actions) divided by
+  quiet rules; ScaleExplorer's five clusters became two rows (primary choice + play,
+  then reading options). Nothing hidden — the Lesson/Studio lesson — just grouped.
+- **The disclosure pattern for duplicated input paths** — the 23 root/quality pills
+  duplicate the text input, so they tuck behind "Pick visually", same as the paste
+  box. The text field leads (Stu's call).
+- **Verification gotcha** — a closed `<details>` in newer Chrome keeps layout boxes
+  (content-visibility), so `offsetParent !== null` lies about visibility; use
+  `el.checkVisibility()` instead.
+- **Flow bug found by the audit** — ▶ Play position/chord always played shapes[0]
+  even with another pinned; now plays the active shape.
