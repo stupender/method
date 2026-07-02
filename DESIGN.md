@@ -193,8 +193,11 @@ The audit below was implemented; kept for the record:
 2. **Reorganize the shell around the teaching loop** — Song → Analyze →
    Voicings/Scales → Practice. Navigation + priority order mirror the lesson even if
    views barely change.
-3. **Add the persistent Context strip** above the neck — the search engine made
-   visible.
+3. ~~**Add the persistent Context strip**~~ **(done — Arc 1)**: in Play, above the
+   score — key hypotheses (click to re-read), the progression as functions
+   (V7/x + borrowed in accent), and a direction-aware narrowing readout
+   ("anchors / keeps / narrows N readings"). Built on `interpretInKey` +
+   `rankKeys`. Still open: unify the old strict reveal with tolerant readings.
 4. **Lead Play with Song input**; demote single-chord entry inside it; ~~demote the
    pill grids behind "pick visually ▾"~~ **(pill grids demoted — Fable-5 pass;**
    the full Song/Section input — paste a URL, lyrics-with-chords — is still to come).
