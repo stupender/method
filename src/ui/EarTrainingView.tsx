@@ -18,6 +18,7 @@ import { ROOT_CHOICES } from '../data/roots';
 import { spellNoteFromInterval, midiOf, noteName } from '../theory/notes';
 import { playChord } from '../audio/player';
 import { FunctionQuizView } from './FunctionQuizView';
+import { Segmented } from './Segmented';
 
 const CHORD_LIST = Object.values(CHORDS);
 
@@ -29,20 +30,15 @@ export function EarTrainingView() {
   return (
     <>
       <div className="controls">
-        <div className="control-group" role="group" aria-label="Quiz">
-          <button
-            className={quiz === 'quality' ? 'pill pill--on' : 'pill'}
-            onClick={() => setQuiz('quality')}
-          >
-            Chord quality
-          </button>
-          <button
-            className={quiz === 'function' ? 'pill pill--on' : 'pill'}
-            onClick={() => setQuiz('function')}
-          >
-            Function
-          </button>
-        </div>
+        <Segmented
+          ariaLabel="Quiz"
+          options={[
+            { value: 'quality' as const, label: 'Chord quality' },
+            { value: 'function' as const, label: 'Function' },
+          ]}
+          value={quiz}
+          onChange={setQuiz}
+        />
       </div>
       {quiz === 'quality' ? <QualityQuiz /> : <FunctionQuizView />}
     </>

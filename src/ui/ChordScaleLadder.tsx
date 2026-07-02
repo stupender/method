@@ -30,6 +30,7 @@ import { midiOf, noteName } from '../theory/notes';
 import { playChord } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
 import { TabView } from '../render/TabView';
+import { Segmented } from './Segmented';
 
 // A stable key for a shape's string set, e.g. "0-1-2-3".
 const stringSetKey = (shape: PlacedNote[]) =>
@@ -126,51 +127,39 @@ export function ChordScaleLadder({
     <>
       <div className="view-controls">
         <div className="controls-row">
-          <div className="control-group" role="group" aria-label="Structure">
-            {structures.map((s) => (
-              <button
-                key={s.id}
-                className={s.id === structure.id ? 'pill pill--on' : 'pill'}
-                onClick={() => setStructureId(s.id)}
-              >
-                {structureName(s, voiceCount)}
-              </button>
-            ))}
-          </div>
+          <Segmented
+            ariaLabel="Structure"
+            options={structures.map((s) => ({
+              value: s.id,
+              label: structureName(s, voiceCount),
+            }))}
+            value={structure.id}
+            onChange={setStructureId}
+          />
           <button className="pill pill--play" onClick={playScale}>
             ▶ Play chord scale
           </button>
         </div>
 
         <div className="controls-row">
-          <div className="control-group" role="group" aria-label="Bass note">
-            {bassOptions.map((o) => (
-              <button
-                key={o.degree}
-                className={o.inv === inversion ? 'pill pill--on' : 'pill'}
-                onClick={() => setInversionIndex(o.inv)}
-              >
-                {bassNoteName(o.degree)}
-              </button>
-            ))}
-          </div>
+          <Segmented
+            ariaLabel="Bass note"
+            options={bassOptions.map((o) => ({ value: o.inv, label: bassNoteName(o.degree) }))}
+            value={inversion}
+            onChange={setInversionIndex}
+          />
         </div>
 
         <div className="controls-row">
           {/* Which strings the ladder climbs on — labelled so it reads at a
               glance on a shared screen. */}
           <span className="control-label">Strings</span>
-          <div className="control-group" role="group" aria-label="String set">
-            {commonSets.map((key) => (
-              <button
-                key={key}
-                className={key === chosenSet ? 'pill pill--on' : 'pill'}
-                onClick={() => setStringSet(key)}
-              >
-                {setLabel(key)}
-              </button>
-            ))}
-          </div>
+          <Segmented
+            ariaLabel="String set"
+            options={commonSets.map((key) => ({ value: key, label: setLabel(key) }))}
+            value={chosenSet ?? ''}
+            onChange={setStringSet}
+          />
         </div>
       </div>
 

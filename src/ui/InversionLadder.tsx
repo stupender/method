@@ -27,6 +27,7 @@ import { midiOf, noteName } from '../theory/notes';
 import { playChord } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
 import { TabView } from '../render/TabView';
+import { Segmented } from './Segmented';
 
 // (These small layout helpers are shared in spirit with ChordScaleLadder; kept
 // local so each ladder file stays self-contained.)
@@ -100,17 +101,15 @@ export function InversionLadder({
     <>
       <div className="view-controls">
         <div className="controls-row">
-          <div className="control-group" role="group" aria-label="Structure">
-            {structures.map((s) => (
-              <button
-                key={s.id}
-                className={s.id === structure.id ? 'pill pill--on' : 'pill'}
-                onClick={() => setStructureId(s.id)}
-              >
-                {structureName(s, voiceCount)}
-              </button>
-            ))}
-          </div>
+          <Segmented
+            ariaLabel="Structure"
+            options={structures.map((s) => ({
+              value: s.id,
+              label: structureName(s, voiceCount),
+            }))}
+            value={structure.id}
+            onChange={setStructureId}
+          />
           <button className="pill pill--play" onClick={playAll}>
             ▶ Play inversions
           </button>
@@ -120,17 +119,12 @@ export function InversionLadder({
           {/* Which strings the ladder climbs on — labelled so it reads at a
               glance on a shared screen. */}
           <span className="control-label">Strings</span>
-          <div className="control-group" role="group" aria-label="String set">
-            {commonSets.map((key) => (
-              <button
-                key={key}
-                className={key === chosenSet ? 'pill pill--on' : 'pill'}
-                onClick={() => setStringSet(key)}
-              >
-                {setLabel(key)}
-              </button>
-            ))}
-          </div>
+          <Segmented
+            ariaLabel="String set"
+            options={commonSets.map((key) => ({ value: key, label: setLabel(key) }))}
+            value={chosenSet ?? ''}
+            onChange={setStringSet}
+          />
         </div>
       </div>
 

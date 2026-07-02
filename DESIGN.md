@@ -145,6 +145,23 @@ Not all content is equal, and the distinction is the long-term promise of Method
 
 Not a v1 requirement, but the data model should anticipate it.
 
+## The control grammar (implemented — Stu's "many buttons" note)
+
+Three visually distinct roles, so a control's *meaning* is legible before you read
+its label:
+
+- **Segmented track** (`ui/Segmented.tsx`) — choose exactly ONE: a recessed track
+  holds the options as a single connected unit; the chosen segment sits raised on
+  it like a paper chip. Used for Key, Scale type, Degree, Scales/Harmony, Labels,
+  Fingering, Direction, Explore, Chord size, Bass note, Structure, String set,
+  and the Quality/Function quiz switch.
+- **Pill** — an independent on/off toggle (Metronome, Count-in, All positions,
+  Voice-lead…) or a multi-select pool (the ear-training pools).
+- **Accent pill** — an action (▶ Play …).
+
+Dynamic data chips (songbook tabs, key hypotheses, the reveal, suggestions) stay
+chips — they're content, not settings.
+
 ## Design principles (for the live-teaching tool)
 
 1. **The neck, TAB, and score are the stars.** Controls support; never out-shout

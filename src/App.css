@@ -161,6 +161,46 @@
   margin-bottom: 28px;
 }
 
+/* --- Segmented control: the either/or choice ------------------------------ */
+/* One connected unit for "pick exactly one": a gently recessed track; the
+   chosen segment sits raised on it like a paper chip. Distinct from pills
+   (independent toggles / multi-select) and the accent play pill (actions). */
+.seg {
+  display: inline-flex;
+  flex-wrap: wrap; /* long tracks (all 12 keys) fold instead of overflowing */
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  background: #ede8dd; /* recessed into the paper */
+  border-radius: 999px;
+  width: fit-content; /* don't stretch to fill column layouts */
+}
+.seg__btn {
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  padding: 5px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.seg__btn:hover {
+  color: var(--ink);
+}
+/* The chosen one: lifted off the track. */
+.seg__btn--on {
+  background: var(--bg);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(28, 26, 23, 0.14);
+}
+
 /* The shared button look: a calm outlined pill. */
 .pill {
   font-family: var(--sans);

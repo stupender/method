@@ -31,6 +31,7 @@ import { midiOf } from '../theory/notes';
 import { playChord } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
 import { TabView } from '../render/TabView';
+import { Segmented } from './Segmented';
 
 export function ChordExplorer({
   root,
@@ -104,17 +105,12 @@ export function ChordExplorer({
     <>
       <div className="view-controls">
         <div className="controls-row">
-          <div className="control-group" role="group" aria-label="Bass note">
-            {bassOptions.map((o) => (
-              <button
-                key={o.degree}
-                className={o.inv === inversion ? 'pill pill--on' : 'pill'}
-                onClick={() => setInversionIndex(o.inv)}
-              >
-                {bassNoteName(o.degree)}
-              </button>
-            ))}
-          </div>
+          <Segmented
+            ariaLabel="Bass note"
+            options={bassOptions.map((o) => ({ value: o.inv, label: bassNoteName(o.degree) }))}
+            value={inversion}
+            onChange={setInversionIndex}
+          />
           <button
             className="pill pill--play"
             onClick={() => playShape(shapes[activeShape ?? 0] ?? [])}
@@ -124,17 +120,15 @@ export function ChordExplorer({
         </div>
 
         <div className="controls-row">
-          <div className="control-group" role="group" aria-label="Structure">
-            {structures.map((s) => (
-              <button
-                key={s.id}
-                className={s.id === structure.id ? 'pill pill--on' : 'pill'}
-                onClick={() => setStructureId(s.id)}
-              >
-                {structureName(s, voiceCount)}
-              </button>
-            ))}
-          </div>
+          <Segmented
+            ariaLabel="Structure"
+            options={structures.map((s) => ({
+              value: s.id,
+              label: structureName(s, voiceCount),
+            }))}
+            value={structure.id}
+            onChange={setStructureId}
+          />
         </div>
       </div>
 

@@ -742,3 +742,18 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Answer slots, one at a time** — chords 2–4 asked in sequence ("Next chord →"),
   then "Next progression →"; same green/red + running-score rhythm as the quality
   quiz, so the two drills feel like one tool.
+
+## Session 8f — the control grammar: segmented tracks for either/or choices
+
+- **Stu's call: "MANY buttons" whose either/or-ness was invisible.** Every control
+  was a pill, so exclusive choices, on/off toggles and actions all looked alike.
+- **The grammar** — three visually distinct roles (now in DESIGN.md): a SEGMENTED
+  TRACK for pick-exactly-one (recessed track, chosen segment raised like a paper
+  chip); PILLS for independent toggles and multi-select pools; the ACCENT pill for
+  actions. A control's meaning is legible before you read its label.
+- **One tiny component** (`ui/Segmented.tsx`, ~40 lines) replaced ~14 hand-rolled
+  button groups across six files. Generic over the value type; `role="radiogroup"`
+  + `aria-checked` for free accessibility.
+- **Two CSS gotchas** — a flex COLUMN stretches children, so the track needed
+  `width: fit-content` to hug its segments; and long tracks (the 12 keys) get
+  `flex-wrap: wrap` so they fold instead of overflowing the page.

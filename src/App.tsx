@@ -21,6 +21,7 @@ import { ChordExplorer } from './ui/ChordExplorer';
 import { ChordScaleLadder } from './ui/ChordScaleLadder';
 import { InversionLadder } from './ui/InversionLadder';
 import { ScaleExplorer } from './ui/ScaleExplorer';
+import { Segmented } from './ui/Segmented';
 import { SongView, type ChartChord } from './ui/SongView';
 import { EarTrainingView } from './ui/EarTrainingView';
 import './App.css';
@@ -308,31 +309,22 @@ function StudyArea({
 
   return (
     <>
-      {/* Controls in priority order: Key → Scale type → Degree → Mode. */}
+      {/* Controls in priority order: Key → Scale type → Degree → Mode. Each is
+          an either/or choice, so each is a SEGMENTED track (see Segmented.tsx). */}
       <div className="controls">
-        <div className="control-group" role="group" aria-label="Key">
-          {ROOT_CHOICES.map((note, i) => (
-            <button
-              key={`${note.letter}${note.accidental}`}
-              className={i === rootIndex ? 'pill pill--on' : 'pill'}
-              onClick={() => setRootIndex(i)}
-            >
-              {noteName(note)}
-            </button>
-          ))}
-        </div>
+        <Segmented
+          ariaLabel="Key"
+          options={ROOT_CHOICES.map((note, i) => ({ value: i, label: noteName(note) }))}
+          value={rootIndex}
+          onChange={setRootIndex}
+        />
 
-        <div className="control-group control-group--wrap" role="group" aria-label="Scale type">
-          {SCALE_LIST.map((s) => (
-            <button
-              key={s.id}
-              className={s.id === scaleId ? 'pill pill--on' : 'pill'}
-              onClick={() => setScaleId(s.id)}
-            >
-              {s.name}
-            </button>
-          ))}
-        </div>
+        <Segmented
+          ariaLabel="Scale type"
+          options={SCALE_LIST.map((s) => ({ value: s.id, label: s.name }))}
+          value={scaleId}
+          onChange={setScaleId}
+        />
 
         {/* One row: Degree (the persistent selector — in Scales it sets the mode,
             in Harmony the chord), the Scales/Harmony switch, and — far right —
@@ -342,42 +334,31 @@ function StudyArea({
             yet. The view + ChordExplorer are kept below for a future, less
             key-centric section; re-add 'chord' to the list to show it.) */}
         <div className="controls-row">
-          <div className="control-group" role="group" aria-label="Degree">
-            {romanLabels.map((roman, i) => (
-              <button
-                key={i}
-                className={i === deg ? 'pill pill--on' : 'pill'}
-                onClick={() => setDegree(i)}
-              >
-                {roman}
-              </button>
-            ))}
-          </div>
-          <div className="control-group" role="group" aria-label="Mode">
-            {(['scale', 'harmony'] as Mode[]).map((m) => (
-              <button
-                key={m}
-                className={mode === m ? 'pill pill--on' : 'pill'}
-                onClick={() => setMode(m)}
-              >
-                {m === 'scale' ? 'Scales' : 'Harmony'}
-              </button>
-            ))}
-          </div>
-          <div className="control-group control-group--right" role="group" aria-label="Labels">
-            <button
-              className={labelMode === 'degree' ? 'pill pill--on' : 'pill'}
-              onClick={() => setLabelMode('degree')}
-            >
-              Degrees
-            </button>
-            <button
-              className={labelMode === 'note' ? 'pill pill--on' : 'pill'}
-              onClick={() => setLabelMode('note')}
-            >
-              Notes
-            </button>
-          </div>
+          <Segmented
+            ariaLabel="Degree"
+            options={romanLabels.map((roman, i) => ({ value: i, label: roman }))}
+            value={deg}
+            onChange={setDegree}
+          />
+          <Segmented
+            ariaLabel="Mode"
+            options={[
+              { value: 'scale' as Mode, label: 'Scales' },
+              { value: 'harmony' as Mode, label: 'Harmony' },
+            ]}
+            value={mode}
+            onChange={setMode}
+          />
+          <Segmented
+            ariaLabel="Labels"
+            className="control-group--right"
+            options={[
+              { value: 'degree' as const, label: 'Degrees' },
+              { value: 'note' as const, label: 'Notes' },
+            ]}
+            value={labelMode}
+            onChange={setLabelMode}
+          />
         </div>
       </div>
 
@@ -557,43 +538,28 @@ function HarmonyView({
       <div className="view-controls">
         <div className="controls-row">
           {/* What we're laddering: this one chord, or the whole chord scale. */}
-          <div className="control-group" role="group" aria-label="Explore">
-            <button
-              className={explore === 'chord' ? 'pill pill--on' : 'pill'}
-              onClick={() => setExplore('chord')}
-            >
-              This chord
-            </button>
-            <button
-              className={explore === 'scale' ? 'pill pill--on' : 'pill'}
-              onClick={() => setExplore('scale')}
-            >
-              Chord scale
-            </button>
-            <button
-              className={explore === 'inversions' ? 'pill pill--on' : 'pill'}
-              onClick={() => setExplore('inversions')}
-            >
-              Inversions
-            </button>
-          </div>
+          <Segmented
+            ariaLabel="Explore"
+            options={[
+              { value: 'chord' as const, label: 'This chord' },
+              { value: 'scale' as const, label: 'Chord scale' },
+              { value: 'inversions' as const, label: 'Inversions' },
+            ]}
+            value={explore}
+            onChange={setExplore}
+          />
 
           {/* Triads vs seventh chords (the degree is chosen by the shared selector
               above). */}
-          <div className="control-group" role="group" aria-label="Chord size">
-            <button
-              className={!seventh ? 'pill pill--on' : 'pill'}
-              onClick={() => setSeventh(false)}
-            >
-              Triads
-            </button>
-            <button
-              className={seventh ? 'pill pill--on' : 'pill'}
-              onClick={() => setSeventh(true)}
-            >
-              Sevenths
-            </button>
-          </div>
+          <Segmented
+            ariaLabel="Chord size"
+            options={[
+              { value: 'triads', label: 'Triads' },
+              { value: 'sevenths', label: 'Sevenths' },
+            ]}
+            value={seventh ? 'sevenths' : 'triads'}
+            onChange={(v) => setSeventh(v === 'sevenths')}
+          />
         </div>
 
         {/* Send the selected chord over to the Play song (chord mode only). */}

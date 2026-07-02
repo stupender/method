@@ -18,6 +18,7 @@ import { midiOf } from '../theory/notes';
 import { playSequence } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
 import { TabSequence } from '../render/TabSequence';
+import { Segmented } from './Segmented';
 import type { PlacedNote } from '../theory/types';
 
 export function ScaleExplorer({
@@ -110,26 +111,16 @@ export function ScaleExplorer({
       <div className="view-controls">
         {/* Row 1 — the primary choice (which fingering system) + the play action. */}
         <div className="controls-row">
-          <div className="control-group" role="group" aria-label="Fingering">
-            <button
-              className={fingering === '3nps' ? 'pill pill--on' : 'pill'}
-              onClick={() => setFingering('3nps')}
-            >
-              3 per string
-            </button>
-            <button
-              className={fingering === 'box' ? 'pill pill--on' : 'pill'}
-              onClick={() => setFingering('box')}
-            >
-              Positional
-            </button>
-            <button
-              className={fingering === 'hybrid' ? 'pill pill--on' : 'pill'}
-              onClick={() => setFingering('hybrid')}
-            >
-              Hybrid
-            </button>
-          </div>
+          <Segmented
+            ariaLabel="Fingering"
+            options={[
+              { value: '3nps' as const, label: '3 per string' },
+              { value: 'box' as const, label: 'Positional' },
+              { value: 'hybrid' as const, label: 'Hybrid' },
+            ]}
+            value={fingering}
+            onChange={setFingering}
+          />
           <button
             className="pill pill--play"
             onClick={() => playPosition(shapes[activeShape ?? 0] ?? [])}
@@ -140,20 +131,15 @@ export function ScaleExplorer({
 
         {/* Row 2 — how to read it: direction of the run, one box vs all boxes. */}
         <div className="controls-row">
-          <div className="control-group" role="group" aria-label="Direction">
-            <button
-              className={direction === 'up' ? 'pill pill--on' : 'pill'}
-              onClick={() => setDirection('up')}
-            >
-              Ascending
-            </button>
-            <button
-              className={direction === 'down' ? 'pill pill--on' : 'pill'}
-              onClick={() => setDirection('down')}
-            >
-              Descending
-            </button>
-          </div>
+          <Segmented
+            ariaLabel="Direction"
+            options={[
+              { value: 'up' as const, label: 'Ascending' },
+              { value: 'down' as const, label: 'Descending' },
+            ]}
+            value={direction}
+            onChange={setDirection}
+          />
           <button
             className={showAll ? 'pill pill--on' : 'pill'}
             onClick={() => {
