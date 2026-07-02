@@ -5,13 +5,36 @@ from [CLAUDE.md](CLAUDE.md) holds — most arrive as DATA + small pure functions
 the existing engine, not as rearchitecting. Each item notes roughly where it
 plugs into the layers (`data → theory → render → audio → ui`).
 
-**Where we are now (built & live):** two top-level areas —
-**Study** (Scales as position boxes / modes; Harmony = diatonic chords with Roman
-numerals; chord voicings as constellations + TAB across all string sets) and
-**Song** (lead-sheet score: chords in bars with rhythm, drag-resize, line-wrap,
-tempo, playback; the GPS "possibility" reveal that narrows as you add chords;
-auto voice-leading from an anchor; the TAB staff integrated under the chords).
-Everything below is the forward plan.
+**Where we are now (built & live):** three areas. **Possibility** (scales/modes in
+three fingering systems with click-to-re-root; Harmony's three explore axes — one
+chord / chord scale ladder / inversions ladder — with bass-note labels and string
+sets), **Play** (songbook with persistence + per-song meter; text/paste chord entry;
+full transport with playhead, scrub, count-in, metronome; the GPS reveal; auto
+voice-leading), and **Ear Training** (chord-quality quiz). Plus the design pass
+(global Labels, grouped transport, text-first editing).
+
+## The road ahead — five arcs (the working structure)
+
+Ordered by what unlocks what. The key dependency: **Arc 1's function/ranking
+engine is the substrate** for the heat maps, the Context strip, AND ear training's
+function layer — build once, reuse everywhere.
+
+1. **The function engine & heat maps** ← CURRENT. `theory` module ranking a
+   chord's interpretations by harmonic distance (diatonic → inversion → secondary
+   dominant → borrowed → related keys), on `keysContaining`. Then: **bass-first
+   input → chord-suggestion heat map** (Stu's songwriting/transcription flow);
+   the **Context strip**; slash-chord + extension data. *Includes the palette
+   FOUNDATION: the heat ramp is the first real aesthetic token, designed to keep.*
+2. **Ear training, deepened** — inversions + parameter panel → progression
+   dictation (bass motion + quality) → the function quiz (rides Arc 1).
+3. **The practice loop** — per-bar unit types + the palta/sequence generator;
+   add scales/patterns from Possibility to Play; Loop / Play-along intents;
+   practice-card skeleton.
+4. **Sound & song fidelity** — a tasteful instrument voice; sections/repeats;
+   rests/tuplets; voice-leading same-string-set bias; per-chord manual voicing.
+5. **Reach** — import (iReal/MIDI/Ableton), accounts & saved prefs, the FULL
+   art-book identity pass (after the IA settles — its foundation lands in Arc 1),
+   ukulele/alt tunings, other cultures, IP/distribution.
 
 ---
 

@@ -662,3 +662,26 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   `el.checkVisibility()` instead.
 - **Flow bug found by the audit** — ▶ Play position/chord always played shapes[0]
   even with another pinned; now plays the active shape.
+
+## Session 8b — Arc 1 begins: the function engine + the bass-first heat map
+
+- **The roadmap** — the backlog now leads with five arcs; Arc 1 is the function
+  engine (interpretation + ranking), which is the shared substrate for the heat
+  maps, the Context strip, and ear training's function layer.
+- **`theory/suggest.ts`** — the engine's first face. `chordsOverBass(bass, key)`
+  ranks every chord that could sit over a bass note: tier 0 = diatonic with the
+  bass as ROOT; tier 1 = diatonic with the bass as 3rd/5th/7th (a slash /
+  inversion); tier 2 = a secondary dominant (V7/x) containing the bass — the
+  reveal read inward. `keysContainingNotes` = the note-level `keysContainingAll`:
+  the bass line ALONE narrows the key space.
+- **Bass-first flow in Play** — "Start from a bass line": type bare notes
+  ("A F C G") → one dashed bass-only bar each (they play as a bass line, an
+  octave down). Selecting one shows candidate working keys + the suggestion HEAT
+  MAP; clicking a chip commits the chord and the bar resolves. `ChartChord` gained
+  an optional `bassOnly` flag (older saved songs unaffected).
+- **The heat ramp is a palette token, not throwaway styling** — `--heat-0..3` in
+  index.css, tints of the one accent fading into the paper: the first deliberate
+  token of the art-book palette (per the "aesthetic foundation lands in Arc 1"
+  decision).
+- Verified against real theory: A over C major gives Am/Am7 → F/A, Dm7/A, Bm7♭5/A
+  → A7 (V7/ii), D7/A (V7/V) — exactly the space a teacher would sketch.

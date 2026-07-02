@@ -16,6 +16,15 @@
   /* One accent (a restrained coral, from the original prototypes) */
   --accent: #e0705b;
 
+  /* The HEAT RAMP — the accent fading into the paper. Used wherever we rank
+     harmonic choices from most obvious to farthest out (the suggestion heat
+     map, later the reveal heat map). The first deliberate token of the
+     art-book palette: tints of the one accent, not new colours. */
+  --heat-0: #e0705b; /* obvious — full accent (white text) */
+  --heat-1: #ecab9e; /* close — an inversion / slash away (ink text) */
+  --heat-2: #f4d2c9; /* reaching — secondary dominants, borrowed */
+  --heat-3: #f9e9e4; /* far — related keys */
+
   /* Type: a calm serif for display, a clean sans for everything else.
      System fonts only — no web-font dependency to load or maintain. */
   --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;

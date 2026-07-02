@@ -583,6 +583,62 @@
   line-height: 1;
 }
 
+/* A bar that only has its bass so far — the chord is an open question. */
+.tl-chord--open {
+  border-left-style: dashed;
+}
+
+/* --- Bass-first suggestions: the heat map -------------------------------- */
+/* Chips ranked most obvious -> farthest out; the background is the heat ramp
+   (see index.css). Click a chip to fill the bar with that chord. */
+.sugg-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+.sugg-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 86px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.12s ease;
+}
+.sugg-chip:hover {
+  border-color: var(--ink);
+}
+.sugg-chip__name {
+  font-family: var(--serif);
+  font-size: 18px;
+  color: var(--ink);
+}
+.sugg-chip__fn {
+  font-size: 12px;
+  color: var(--muted);
+}
+.heat-0 {
+  background: var(--heat-0);
+}
+.heat-0 .sugg-chip__name,
+.heat-0 .sugg-chip__fn {
+  color: #fff;
+}
+.heat-1 {
+  background: var(--heat-1);
+}
+.heat-2 {
+  background: var(--heat-2);
+}
+.heat-3 {
+  background: var(--heat-3);
+}
+
 /* --- Songwriter / GPS reveal -------------------------------------------- */
 .reveal {
   margin-top: 28px;

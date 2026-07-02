@@ -41,6 +41,12 @@ import {
 } from '../theory/chord';
 import { voiceLeadProgression } from '../theory/voiceLeading';
 import { parseChordSymbol, parseProgression } from '../theory/chordParser';
+import {
+  chordsOverBass,
+  keysContainingNotes,
+  type BassSuggestion,
+} from '../theory/suggest';
+import { bassNoteName } from '../theory/chord';
 import { noteName, pitchClassOf, spellNoteFromInterval, midiOf } from '../theory/notes';
 import { startPlayback, getAudioContext, type Playback } from '../audio/player';
 
@@ -106,16 +112,23 @@ export interface ChartChord {
   rootIndex: number;
   chordId: string;
   durationBeats: number;
+  // A bar that so far holds ONLY a bass note (the bass-first flow): the chord on
+  // top is still an open question — the suggestion heat map answers it.
+  bassOnly?: boolean;
 }
 
-// The MIDI notes of a chord (close root position) — for playback.
+// The MIDI notes of a chord (close root position) — for playback. A bass-only
+// bar plays just its bass note, an octave down, so it sounds like a bass line.
 function chordMidis(c: ChartChord): number[] {
   const root = ROOT_CHOICES[c.rootIndex];
+  if (c.bassOnly) return [midiOf(root) - 12];
   return CHORDS[c.chordId].intervals.map((iv) => midiOf(spellNoteFromInterval(root, iv)));
 }
 
 const chordLabel = (c: ChartChord) =>
-  `${noteName(ROOT_CHOICES[c.rootIndex])}${CHORDS[c.chordId].symbol}`;
+  c.bassOnly
+    ? `${noteName(ROOT_CHOICES[c.rootIndex])} ?`
+    : `${noteName(ROOT_CHOICES[c.rootIndex])}${CHORDS[c.chordId].symbol}`;
 
 // A stable key for a (tonic, scale) pair, by pitch class so spelling doesn't matter.
 const keyId = (tonic: Note, scaleId: string) => `${pitchClassOf(tonic)}:${scaleId}`;
@@ -167,6 +180,11 @@ export function SongView({
   const [chordTextError, setChordTextError] = useState(false);
   const [pasteText, setPasteText] = useState('');
   const [pasteError, setPasteError] = useState(false);
+  // Bass-first entry: a bass line typed as plain notes, and the working key the
+  // suggestions are read against (null = the first candidate).
+  const [bassText, setBassText] = useState('');
+  const [bassError, setBassError] = useState(false);
+  const [workingKeyId, setWorkingKeyId] = useState<string | null>(null);
   // Voice leading: when on, the SELECTED chord is the anchor; its voicing
   // (structure + inversion) seeds smooth voicings for the rest.
   const [voiceLead, setVoiceLead] = useState(false);
@@ -221,6 +239,20 @@ export function SongView({
   const fitCount = selectedKeys.filter((m) =>
     progressionKeyIds.has(keyId(m.tonic, m.scale.id)),
   ).length;
+
+  // --- Bass-first: suggestions for a bass-only bar --------------------------
+  // Candidate keys come from the WHOLE bass line (every bar's bottom note) —
+  // the bass line alone narrows the key space. Suggestions for the selected
+  // bass are then read against the chosen working key.
+  const bassKeys = selected.bassOnly
+    ? keysContainingNotes(chords.map((c) => ROOT_CHOICES[c.rootIndex]))
+    : [];
+  const workingKey =
+    bassKeys.find((k) => keyId(k.tonic, k.scale.id) === workingKeyId) ?? bassKeys[0];
+  const suggestions: BassSuggestion[] =
+    selected.bassOnly && workingKey
+      ? chordsOverBass(selRoot, workingKey.tonic, workingKey.scale)
+      : [];
 
   // --- Editing the chart --------------------------------------------------
   const editSelected = (patch: Partial<ChartChord>) => {
@@ -406,6 +438,43 @@ export function SongView({
     setOpenKey(null);
   };
 
+  // Bass-first: read a bass line ("A F C G") into one bass-only bar per note.
+  // Each token must be a bare note — the chords on top are decided afterwards,
+  // bar by bar, from the suggestion heat map.
+  const applyBassLine = () => {
+    const tokens = bassText.trim().split(/\s+/).filter(Boolean);
+    const bars: ChartChord[] = [];
+    for (const t of tokens) {
+      const parsed = /^[A-Ga-g][#♯b♭]*$/.test(t) ? parseChordSymbol(t) : null;
+      if (!parsed) {
+        setBassError(true);
+        return;
+      }
+      bars.push({
+        rootIndex: parsed.rootIndex,
+        chordId: 'major-triad', // a placeholder — bassOnly bars ignore the quality
+        durationBeats: beatsPerBar,
+        bassOnly: true,
+      });
+    }
+    if (bars.length === 0) {
+      setBassError(true);
+      return;
+    }
+    setBassError(false);
+    setChords(bars);
+    setSelectedIndex(0);
+    setOpenKey(null);
+  };
+
+  // Commit a suggestion: the bass-only bar becomes that chord.
+  const applySuggestion = (s: BassSuggestion) => {
+    const idx = ROOT_CHOICES.findIndex(
+      (n) => pitchClassOf(n) === pitchClassOf(s.chordRoot),
+    );
+    if (idx >= 0) editSelected({ rootIndex: idx, chordId: s.chord.id, bassOnly: false });
+  };
+
   // Clean up the transport if this view ever unmounts mid-playback.
   useEffect(() => {
     return () => {
@@ -566,7 +635,8 @@ export function SongView({
                     className={
                       'tl-chord' +
                       (i === selectedIndex ? ' tl-chord--on' : '') +
-                      (isStart ? '' : ' tl-chord--cont')
+                      (isStart ? '' : ' tl-chord--cont') +
+                      (c.bassOnly ? ' tl-chord--open' : '')
                     }
                     style={{
                       left: (segStart - rowStart) * PX_PER_BEAT,
@@ -742,6 +812,43 @@ export function SongView({
         </p>
       </details>
 
+      {/* Bass-first: type just the bass notes (songwriting / transcription),
+          then answer each bar from the suggestion heat map below. */}
+      <details className="paste-box">
+        <summary>Start from a bass line</summary>
+        <form
+          className="chord-input"
+          style={{ marginTop: 12 }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            applyBassLine();
+          }}
+        >
+          <input
+            type="text"
+            value={bassText}
+            placeholder="Just the bass notes — e.g.  A  F  C  G"
+            aria-label="Bass line"
+            onChange={(e) => {
+              setBassText(e.target.value);
+              setBassError(false);
+            }}
+          />
+          <button type="submit" className="pill">
+            Lay out bars
+          </button>
+          {bassError && (
+            <span className="control-hint control-hint--warn">
+              Bare notes only, e.g. A F C G.
+            </span>
+          )}
+        </form>
+        <p className="control-hint">
+          Replaces the chart with one bar per bass note. Select a bar and pick
+          what sits on top from the suggestions.
+        </p>
+      </details>
+
       {/* Duration is set by dragging the chord's edges on the timeline. */}
       <p className="control-hint">
         {chordLabel(selected)} lasts {formatBeats(selected.durationBeats)} — drag
@@ -782,6 +889,68 @@ export function SongView({
         </div>
       )}
 
+      {selected.bassOnly ? (
+        /* --- Bass-first heat map: what could sit over this bass note? ------- */
+        <>
+          <p className="tagline">
+            <strong>{noteName(selRoot)}</strong> in the bass — what could sit on
+            top? ({bassKeys.length} keys hold this bass line)
+          </p>
+
+          {/* The working key the suggestions are read against. */}
+          <div className="controls-row">
+            <span className="control-label">Working key</span>
+            <div className="control-group" role="group" aria-label="Working key">
+              {bassKeys.slice(0, 8).map((k) => {
+                const id = keyId(k.tonic, k.scale.id);
+                const on = workingKey && id === keyId(workingKey.tonic, workingKey.scale.id);
+                return (
+                  <button
+                    key={id}
+                    className={on ? 'pill pill--on' : 'pill'}
+                    onClick={() => setWorkingKeyId(id)}
+                  >
+                    {noteName(k.tonic)} {k.scale.name}
+                  </button>
+                );
+              })}
+              {bassKeys.length > 8 && (
+                <span className="control-label">+{bassKeys.length - 8} more</span>
+              )}
+            </div>
+          </div>
+
+          {/* The suggestions, most obvious -> farthest out (the heat ramp). */}
+          <div className="sugg-grid" role="group" aria-label="Chord suggestions">
+            {suggestions.map((s, i) => {
+              const slash =
+                s.bassRole === '1' ? '' : `/${noteName(selRoot)}`;
+              return (
+                <button
+                  key={i}
+                  className={`sugg-chip heat-${s.tier}`}
+                  onClick={() => applySuggestion(s)}
+                >
+                  <span className="sugg-chip__name">
+                    {noteName(s.chordRoot)}
+                    {s.chord.symbol}
+                    {slash}
+                  </span>
+                  <span className="sugg-chip__fn">
+                    {s.roman}
+                    {s.bassRole !== '1' && <> · {bassNoteName(s.bassRole)}</>}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="control-hint">
+            Deeper colour = more obvious. Slashes put your bass inside the chord;
+            V7/x chords reach outside the key. Click one to fill the bar.
+          </p>
+        </>
+      ) : (
+        <>
       <p className="tagline">
         <strong>{chordLabel(selected)}</strong> exists in {selectedKeys.length} keys
         {chords.length > 1 && (
@@ -837,6 +1006,8 @@ export function SongView({
       </div>
 
       {openKey && <KeyDetail match={openKey} />}
+        </>
+      )}
     </>
   );
 }
