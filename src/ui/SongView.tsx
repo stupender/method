@@ -115,20 +115,30 @@ export interface ChartChord {
   // A bar that so far holds ONLY a bass note (the bass-first flow): the chord on
   // top is still an open question — the suggestion heat map answers it.
   bassOnly?: boolean;
+  // A slash chord's bass ("C/E" -> E) — the note kept under the chord, whether it
+  // came from typing a slash or from committing an inversion suggestion.
+  bassIndex?: number;
 }
 
 // The MIDI notes of a chord (close root position) — for playback. A bass-only
-// bar plays just its bass note, an octave down, so it sounds like a bass line.
+// bar plays just its bass note, an octave down, so it sounds like a bass line;
+// a slash chord gets its bass added underneath the same way.
 function chordMidis(c: ChartChord): number[] {
   const root = ROOT_CHOICES[c.rootIndex];
   if (c.bassOnly) return [midiOf(root) - 12];
-  return CHORDS[c.chordId].intervals.map((iv) => midiOf(spellNoteFromInterval(root, iv)));
+  const tones = CHORDS[c.chordId].intervals.map((iv) =>
+    midiOf(spellNoteFromInterval(root, iv)),
+  );
+  if (c.bassIndex != null) tones.unshift(midiOf(ROOT_CHOICES[c.bassIndex]) - 12);
+  return tones;
 }
 
-const chordLabel = (c: ChartChord) =>
-  c.bassOnly
-    ? `${noteName(ROOT_CHOICES[c.rootIndex])} ?`
-    : `${noteName(ROOT_CHOICES[c.rootIndex])}${CHORDS[c.chordId].symbol}`;
+const chordLabel = (c: ChartChord) => {
+  const root = noteName(ROOT_CHOICES[c.rootIndex]);
+  if (c.bassOnly) return `${root} ?`;
+  const slash = c.bassIndex != null ? `/${noteName(ROOT_CHOICES[c.bassIndex])}` : '';
+  return `${root}${CHORDS[c.chordId].symbol}${slash}`;
+};
 
 // A stable key for a (tonic, scale) pair, by pitch class so spelling doesn't matter.
 const keyId = (tonic: Note, scaleId: string) => `${pitchClassOf(tonic)}:${scaleId}`;
@@ -408,14 +418,20 @@ export function SongView({
   };
 
   // --- Text entry: type one chord, or paste a whole progression ------------
-  // Type a chord by name -> set the selected chord's root + quality.
+  // Type a chord by name -> set the selected chord's root + quality (and, for a
+  // slash like "C/E", its bass). A plain chord clears any previous slash.
   const applyChordText = () => {
     const parsed = parseChordSymbol(chordText);
     if (!parsed) {
       setChordTextError(true);
       return;
     }
-    editSelected({ rootIndex: parsed.rootIndex, chordId: parsed.chordId });
+    editSelected({
+      rootIndex: parsed.rootIndex,
+      chordId: parsed.chordId,
+      bassIndex: parsed.bassIndex,
+      bassOnly: false,
+    });
     setChordText('');
     setChordTextError(false);
   };
@@ -467,12 +483,19 @@ export function SongView({
     setOpenKey(null);
   };
 
-  // Commit a suggestion: the bass-only bar becomes that chord.
+  // Commit a suggestion: the bass-only bar becomes that chord. If the bass was a
+  // chord tone other than the root, keep it underneath as a slash (F/A).
   const applySuggestion = (s: BassSuggestion) => {
     const idx = ROOT_CHOICES.findIndex(
       (n) => pitchClassOf(n) === pitchClassOf(s.chordRoot),
     );
-    if (idx >= 0) editSelected({ rootIndex: idx, chordId: s.chord.id, bassOnly: false });
+    if (idx < 0) return;
+    editSelected({
+      rootIndex: idx,
+      chordId: s.chord.id,
+      bassOnly: false,
+      bassIndex: s.bassRole === '1' ? undefined : selected.rootIndex,
+    });
   };
 
   // Clean up the transport if this view ever unmounts mid-playback.
@@ -938,6 +961,7 @@ export function SongView({
                   </span>
                   <span className="sugg-chip__fn">
                     {s.roman}
+                    {s.borrowed && <> · borrowed</>}
                     {s.bassRole !== '1' && <> · {bassNoteName(s.bassRole)}</>}
                   </span>
                 </button>

@@ -685,3 +685,20 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   decision).
 - Verified against real theory: A over C major gives Am/Am7 → F/A, Dm7/A, Bm7♭5/A
   → A7 (V7/ii), D7/A (V7/V) — exactly the space a teacher would sketch.
+
+## Session 8c — borrowed chords + real slash chords
+
+- **The borrowed tier (tier 3)** — chords from the PARALLEL minor of a major
+  working key. Natural minor is deliberately NOT in the SCALES data (it would
+  double every relative major in the reveal), so it's DERIVED: aeolian on the
+  tonic = the 6th mode of the major scale a minor 3rd up (C aeolian = E♭ major's
+  notes from C), via `modeAt`. Numerals are re-labelled against the MAJOR key —
+  the minor's 3rd/6th/7th degrees get a ♭ (III of the minor = ♭III of the key) —
+  so chips read iv, ♭VI, ♭VII7, the way players write them.
+- **Slash chords are now stored, not just suggested** — `ChartChord.bassIndex`
+  keeps the note under the chord. Committing an inversion suggestion keeps your
+  bass (F/A); typing "C/E" parses the slash (parser refactored with one
+  `parseNoteAt` used for root and bass; "C/C" drops the redundant bass); labels
+  show it; playback puts it underneath an octave down; localStorage carries it.
+- Still open in the heat map: TRUE slash chords (bass as a NON-chord tone),
+  richer qualities, re-narrowing working keys as bars commit.

@@ -16,11 +16,13 @@ import { ROOT_CHOICES } from '../data/roots';
 import { pitchClassOf } from './notes';
 
 // A parsed chord as the chart stores it: which root (index into ROOT_CHOICES),
-// which chord type (a CHORDS id), and how long it lasts in beats.
+// which chord type (a CHORDS id), how long it lasts in beats, and — for slash
+// chords like "C/E" — which note sits in the bass.
 export interface ParsedChord {
   rootIndex: number;
   chordId: string;
   durationBeats: number;
+  bassIndex?: number;
 }
 
 // Every way we accept a chord QUALITY written, mapped to a CHORDS id. Keys are
@@ -96,29 +98,50 @@ function normalizeQuality(q: string): string {
 
 // Parse one chord symbol, e.g. "F-7" -> { rootIndex: <F>, chordId: 'minor-seventh' }.
 // Returns null if the root or the quality isn't recognised. A slash bass ("C/E")
-// is accepted but ignored for now (slash chords aren't modelled yet).
-export function parseChordSymbol(
-  text: string,
-): { rootIndex: number; chordId: string } | null {
-  const main = text.trim().split('/')[0]; // drop any "/bass"
-  // Root: a letter A–G, then any run of sharps/flats.
-  const match = main.match(/^([A-Ga-g])([#♯b♭]*)/);
+// becomes `bassIndex` — the note under the chord.
+//
+// Read a note (letter + accidentals) off the FRONT of a string. Returns its
+// index into ROOT_CHOICES (matched by pitch class) and how many characters the
+// note took up, or null. Used for both the chord root and the slash bass.
+function parseNoteAt(text: string): { index: number; length: number } | null {
+  const match = text.match(/^([A-Ga-g])([#♯b♭]*)/);
   if (!match) return null;
   const letter = match[1].toUpperCase();
   let accidental = 0;
   for (const ch of match[2]) accidental += ch === '#' || ch === '♯' ? 1 : -1;
+  const note: Note = {
+    letter: letter as Note['letter'],
+    accidental: accidental as Note['accidental'],
+    octave: 4,
+  };
+  const pc = pitchClassOf(note);
+  const index = ROOT_CHOICES.findIndex((n) => pitchClassOf(n) === pc);
+  return index < 0 ? null : { index, length: match[0].length };
+}
 
-  const root: Note = { letter: letter as Note['letter'], accidental: accidental as Note['accidental'], octave: 4 };
-  const pc = pitchClassOf(root);
-  const rootIndex = ROOT_CHOICES.findIndex((n) => pitchClassOf(n) === pc);
-  if (rootIndex < 0) return null;
+export function parseChordSymbol(
+  text: string,
+): { rootIndex: number; chordId: string; bassIndex?: number } | null {
+  const [main, bassPart] = text.trim().split('/');
+
+  const root = parseNoteAt(main);
+  if (!root) return null;
 
   // Quality: whatever follows the root.
-  const quality = normalizeQuality(main.slice(match[0].length));
+  const quality = normalizeQuality(main.slice(root.length));
   const chordId = QUALITY_ALIASES[quality];
   if (!chordId || !CHORDS[chordId]) return null;
 
-  return { rootIndex, chordId };
+  // The slash bass, if written. "C/E" keeps E under the chord; a bass that's
+  // just the root again ("C/C") is redundant, so it's dropped.
+  let bassIndex: number | undefined;
+  if (bassPart !== undefined) {
+    const bass = parseNoteAt(bassPart.trim());
+    if (!bass || bass.length !== bassPart.trim().length) return null; // bad bass
+    if (bass.index !== root.index) bassIndex = bass.index;
+  }
+
+  return { rootIndex: root.index, chordId, bassIndex };
 }
 
 // Read a whole progression. Bars are separated by "|", "," or a newline; chords

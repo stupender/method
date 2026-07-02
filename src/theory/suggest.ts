@@ -13,29 +13,32 @@
 //   tier 1 — a diatonic chord with the bass as another chord tone (an
 //            inversion / slash chord: the bass is its 3rd, 5th or 7th)
 //   tier 2 — a SECONDARY DOMINANT (V7 of some degree) containing the bass
+//   tier 3 — a chord BORROWED from the parallel minor (major keys only)
 //
 // This is the GPS reveal read inward (Stu's note): "A7 lives in D's key" is the
-// same fact as "A7 is the V7 pointing at D". Later tiers (borrowed chords from
-// the parallel key, chords of related keys, true slash chords over non-chord
-// tones) extend the same list — see BACKLOG "Bass-first input".
+// same fact as "A7 is the V7 pointing at D". Later extensions (chords of related
+// keys, true slash chords over non-chord tones) join the same list — see BACKLOG
+// "Bass-first input".
 // ============================================================================
 
 import type { Note, ChordDefinition, ScaleDefinition } from './types';
 import { pitchClassOf, spellNoteFromInterval } from './notes';
 import { realizeScale } from './scale';
 import { diatonicChords } from './harmony';
-import { SCALES } from '../data/scales';
+import { modeAt } from './mode';
+import { SCALES, MAJOR_SCALE } from '../data/scales';
 import { ROOT_CHOICES } from '../data/roots';
 import { DOMINANT_SEVENTH } from '../data/chords';
-import { P5 } from '../data/intervals';
+import { P5, m3 } from '../data/intervals';
 
 // One suggested chord over the bass.
 export interface BassSuggestion {
   chordRoot: Note; // the suggested chord's root, correctly spelled
   chord: ChordDefinition; // its quality
   bassRole: string; // which chord tone the bass is: '1' | '3' | '5' | '7'
-  tier: number; // 0 = most obvious … 2 = secondary dominant
+  tier: number; // 0 = most obvious … 3 = borrowed
   roman: string; // its function in the key, e.g. "ii7" or "V7/IV"
+  borrowed?: boolean; // true = from the parallel minor, not the key itself
 }
 
 // Which chord tone (if any) a bass pitch class is in a chord — '1'/'3'/'5'/'7',
@@ -117,6 +120,40 @@ export function chordsOverBass(
       tier: 2,
       roman: `V7/${target.roman}`,
     });
+  }
+
+  // Tier 3 — chords BORROWED from the parallel (natural) minor, for major keys.
+  // Natural minor is deliberately NOT in the SCALES data (every natural minor is
+  // its relative major's notes, so listing it would double every key in the
+  // reveal). Derive it instead: aeolian on this tonic = the 6th mode of the
+  // major scale a minor 3rd up (C aeolian = the notes of E♭ major, from C).
+  if (scale.id === MAJOR_SCALE.id) {
+    const relativeMajor = spellNoteFromInterval(tonic, m3);
+    const { modeRoot, modeScale } = modeAt(relativeMajor, MAJOR_SCALE, 5);
+    for (const seventh of [false, true]) {
+      let borrowedChords;
+      try {
+        borrowedChords = diatonicChords(modeRoot, modeScale, seventh);
+      } catch {
+        continue;
+      }
+      for (const d of borrowedChords) {
+        const role = roleOfBass(d.chordRoot, d.chord, bassPc);
+        if (!role) continue;
+        // Convention labels borrowed chords AGAINST THE MAJOR key: the minor's
+        // 3rd, 6th and 7th degrees sit a half-step below major's, so their
+        // numerals get a ♭ (III of the minor = ♭III of the major key).
+        const flat = d.degree === 2 || d.degree === 5 || d.degree === 6 ? '♭' : '';
+        add({
+          chordRoot: d.chordRoot,
+          chord: d.chord,
+          bassRole: role,
+          tier: 3,
+          roman: flat + d.roman,
+          borrowed: true,
+        });
+      }
+    }
   }
 
   // Most obvious first: by tier, then root-in-bass before slashes, then by the

@@ -22,8 +22,8 @@
      art-book palette: tints of the one accent, not new colours. */
   --heat-0: #e0705b; /* obvious — full accent (white text) */
   --heat-1: #ecab9e; /* close — an inversion / slash away (ink text) */
-  --heat-2: #f4d2c9; /* reaching — secondary dominants, borrowed */
-  --heat-3: #f9e9e4; /* far — related keys */
+  --heat-2: #f4d2c9; /* reaching — secondary dominants */
+  --heat-3: #f9e9e4; /* far — borrowed from the parallel minor, related keys */
 
   /* Type: a calm serif for display, a clean sans for everything else.
      System fonts only — no web-font dependency to load or maintain. */
