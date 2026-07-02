@@ -93,10 +93,17 @@ root/inversion, key-agnostic) → (2) progression dictation (quality + root moti
 
 ~~**Step 1 — chord-QUALITY quiz**~~ (done — `ui/EarTrainingView.tsx`, a new top-level
 area). Plays a chord on a random root; you name the quality; narrow/widen the
-quality pool; immediate green/red feedback + running score. Still to come for the
-quiz module: **inversion** identification; **root/bass relative to a played tonic**;
-a richer parameter panel (which roots, octave range); progression dictation; then
-the function layer.
+quality pool; immediate green/red feedback + running score.
+
+~~**Step 3 — the FUNCTION quiz**~~ (done, MVP — `ui/FunctionQuizView.tsx`; Ear
+Training now toggles Quality / Function). A random major key, four chords with the
+I always first (the anchor); name chords 2–4 by function. Pool = "In key" (seven
+diatonic sevenths) + "Reaching out" (secondary dominants V7/ii…V7/vi). Still to
+come for the quiz module: **inversion** identification; **bass-line dictation**
+(root motion, step 2 — partially subsumed but still worth isolating);
+**borrowed chords** in the function pool (♭VI, iv…, riding `interpretInKey`);
+minor keys; tempo/voicing options; and (later) quizzing REAL pasted progressions
+instead of generated ones.
 
 ---
 
