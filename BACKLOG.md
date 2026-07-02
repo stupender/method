@@ -255,11 +255,15 @@ bars that play as a bass line; candidate working keys from the whole line; ranke
 suggestions with slash names + function labels (tier 0 diatonic root-in-bass,
 tier 1 slash/inversion, tier 2 secondary dominants); click to fill the bar. The
 heat ramp `--heat-0..3` is the first art-book palette token.)
-Still to come: a **borrowed-chords tier** (parallel minor — needs a natural-minor
-scale definition), **true slash chords** (bass as a NON-chord tone under an upper
-structure), richer qualities (6ths/extensions data), storing the chosen
-inversion/bass on the chart chord (so the slash survives into playback/voicing),
-and re-ranking as bars commit (committed chords should narrow the working keys).
+~~A **borrowed-chords tier**~~ (done — tier 3, parallel minor derived via `modeAt`,
+numerals labelled against the major key: ♭III/♭VI/♭VII). ~~Storing the chosen
+inversion/bass on the chart~~ (done — `ChartChord.bassIndex`: committed slashes
+like F/A survive into the label, playback and localStorage; "C/E" also parses from
+text/paste). Still to come: **true slash chords** (bass as a NON-chord tone under
+an upper structure), richer qualities (6ths/extensions data), the slash reaching
+**voicing/voice-leading** (it's playback-only today), and re-ranking as bars
+commit (committed chords should narrow the working keys — mind the open-numeral
+subtlety: a committed V7/ii must NOT rule out its key).
 
 ### Heat map of harmonic possibilities
 
