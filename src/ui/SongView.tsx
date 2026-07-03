@@ -66,7 +66,7 @@ function formatBeats(b: number): string {
 const PX_PER_BEAT = 46; // timeline scale
 const SNAP = 0.25; // drag snaps to a sixteenth note
 const MIN_DUR = 0.25; // a chord must last at least this
-const CHORD_LANE_H = 40; // height of the chord-symbol lane (top of a system)
+const CHORD_LANE_H = 54; // chord-symbol lane height (symbol + its function label)
 const STAFF_GAP = 16; // breathing room between the chord lane and the TAB staff
 const STRING_GAP = 15; // vertical gap between TAB staff string lines
 
@@ -264,6 +264,12 @@ export function SongView({
   const ctxKey =
     ranked.find((k) => keyId(k.tonic, k.scale.id) === workingKeyId) ?? ranked[0];
   const explainedNow = ranked.filter((k) => k.allExplained).length;
+  // Each bar's function IN the working key, looked up by chart index — drawn on
+  // the chord itself in the score (the numeral belongs with its chord, like a
+  // lead-sheet analysis), so switching the hypothesis re-labels the score.
+  const fnByIndex = new Map(
+    ctxKey ? committed.map(({ i }, j) => [i, ctxKey.labels[j]] as const) : [],
+  );
   // What the SELECTED bar does to the search: how many keys fully explained the
   // progression without it, vs with it. The narrowing, in numbers.
   const selCommittedPos = committed.findIndex(({ i }) => i === selectedIndex);
@@ -628,11 +634,11 @@ export function SongView({
         </div>
       </div>
 
-      {/* The CONTEXT STRIP — the search engine, visible. The working key
-          hypothesis (click a candidate to re-read everything), the progression
-          as functions in that key (secondary dominants and borrowed chords in
-          accent — the chords that reach), and what the selected bar just did
-          to the search. */}
+      {/* The CONTEXT STRIP — the search engine, visible: the working-key
+          hypotheses (click one to re-read everything) and what the selected bar
+          just did to the search. The chord-by-chord FUNCTIONS are drawn on the
+          bars themselves in the score below — the analysis lives with the
+          chords, and switching the hypothesis re-labels the score. */}
       {committed.length > 0 && ctxKey && (
         <div className="context-strip">
           <span className="context-label">Context</span>
@@ -653,23 +659,6 @@ export function SongView({
             {ranked.length > 3 && (
               <span className="ctx-more">+{ranked.length - 3}</span>
             )}
-          </div>
-          <div className="ctx-romans" role="group" aria-label="Functions">
-            {committed.map(({ i }, j) => (
-              <button
-                key={i}
-                className={
-                  `ctx-roman ctx-roman--${ctxKey.labels[j].kind}` +
-                  (i === selectedIndex ? ' ctx-roman--on' : '')
-                }
-                onClick={() => {
-                  setSelectedIndex(i);
-                  setOpenKey(null);
-                }}
-              >
-                {ctxKey.labels[j].label}
-              </button>
-            ))}
           </div>
           {explainedWithout != null && (
             <span className="ctx-narrow">
@@ -753,6 +742,15 @@ export function SongView({
                     }}
                   >
                     {isStart && <span className="tl-chord__label">{chordLabel(c)}</span>}
+                    {/* The chord's function in the working key, written under
+                        its symbol — the analysis lives WITH the chord. */}
+                    {isStart && !c.bassOnly && fnByIndex.has(i) && (
+                      <span
+                        className={`tl-chord__fn tl-chord__fn--${fnByIndex.get(i)!.kind}`}
+                      >
+                        {fnByIndex.get(i)!.label}
+                      </span>
+                    )}
                     {isStart && chords.length > 1 && (
                       <button
                         className="tl-chord__remove"

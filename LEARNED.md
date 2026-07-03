@@ -757,3 +757,17 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Two CSS gotchas** — a flex COLUMN stretches children, so the track needed
   `width: fit-content` to hug its segments; and long tracks (the 12 keys) get
   `flex-wrap: wrap` so they fold instead of overflowing the page.
+
+## Session 8g — the analysis lives WITH the chord (Stu's call)
+
+- **Numerals moved from the Context strip onto the bars** — each chord block in
+  the score now shows its function in the working key right under its symbol
+  (C over "I", A7 over an accented "V7/ii"), like a marked-up lead sheet. THAT's
+  where the connection lands; a separate numerals row in the strip kept the
+  analysis at arm's length from the music.
+- **Switching the hypothesis re-labels the score itself** — the strip keeps the
+  search-engine jobs (key hypotheses + the narrowing readout); the functions ride
+  the chords. One state (`ctxKey`), two surfaces.
+- Chord lane grew 40 → 54px for the stacked label; bass-only bars show no
+  function (they're open questions); kind colours carried over (secondary/
+  borrowed = accent, outside = quiet).

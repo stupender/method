@@ -465,9 +465,9 @@
 .tl-chord {
   position: absolute;
   top: 0;
-  height: 40px;
+  height: 54px; /* room for the chord symbol + its function label */
   box-sizing: border-box;
-  padding: 7px 8px 0 10px;
+  padding: 6px 8px 0 10px;
   border-left: 3px solid var(--ink);
   background: rgba(0, 0, 0, 0.015);
   cursor: pointer;
@@ -484,10 +484,30 @@
   border-left: 2px dashed var(--line);
 }
 .tl-chord__label {
+  display: block;
   font-family: var(--serif);
   font-size: 21px;
+  line-height: 1.15;
   color: var(--ink);
   white-space: nowrap;
+}
+/* The chord's function in the working key, written under its symbol — the
+   analysis lives WITH the chord. Reaching chords (V7/x, borrowed) wear the
+   accent; chords the key can't explain go quiet. */
+.tl-chord__fn {
+  display: block;
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.tl-chord__fn--secondary,
+.tl-chord__fn--borrowed {
+  color: var(--accent);
+}
+.tl-chord__fn--outside {
+  color: var(--muted);
+  opacity: 0.6;
 }
 .tl-chord__remove {
   position: absolute;
@@ -647,38 +667,6 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: var(--muted);
-}
-/* The progression read as functions in the working key. */
-.ctx-romans {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 2px;
-}
-.ctx-roman {
-  font-family: var(--serif);
-  font-size: 16px;
-  color: var(--ink);
-  background: transparent;
-  border: none;
-  padding: 2px 7px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.ctx-roman:hover {
-  background: rgba(0, 0, 0, 0.05);
-}
-.ctx-roman--on {
-  background: var(--heat-3);
-}
-/* Chords that REACH — secondary dominants and borrowed — wear the accent;
-   chords the key can't explain go quiet. */
-.ctx-roman--secondary,
-.ctx-roman--borrowed {
-  color: var(--accent);
-}
-.ctx-roman--outside {
   color: var(--muted);
 }
 /* The narrowing readout: what the selected bar did to the search. */
