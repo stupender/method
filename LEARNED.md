@@ -771,3 +771,26 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - Chord lane grew 40 → 54px for the stacked label; bass-only bars show no
   function (they're open questions); kind colours carried over (secondary/
   borrowed = accent, outside = quiet).
+
+## Session 8h — one engine: the reveal now speaks the strip's tolerant language
+
+- **Two engines, one screen, opposite answers — resolved.** Play showed the SAME
+  progression two ways: the Context strip (new, tolerant `rankKeys`) said "6
+  readings" and labelled the bars; the older reveal below (strict
+  `keysContainingAll`) said "0 fit the whole progression" and greyed every chip.
+  One chromatic chord (an A7 that's really V7/ii) killed every key in the strict
+  view. "Explain, don't eliminate" won: the reveal now reads against the SAME
+  `ranked` list the strip computes, so a lit chip is always one of the strip's
+  readings — they can't disagree.
+- **Strict intersection retired** — `keysContainingAll` is no longer called
+  (`keysContaining`, "this chord's home keys," stays for the reveal's grouping).
+- **The "0" became a teaching moment.** For a chord whose home keys don't explain
+  the song, the tagline no longer says a bald "0 fit" — it names the role the chord
+  plays instead ("A7 exists in 5 keys — but here it's the V7/ii in C Major, a
+  secondary dominant reaching outside the key"), reusing the chord's own working-
+  key reading (the very label drawn on its bar). Bar + strip + reveal now tell one
+  story.
+- **Two lenses, guaranteed nested.** Strip counts keys that explain the whole song
+  (any role for the chord); the reveal counts THIS chord's home keys that survive
+  ("of those, 3 explain…"). The reveal set is always a subset of the strip's, so
+  the numbers can differ without contradicting.

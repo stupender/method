@@ -26,11 +26,7 @@ import { ROOT_CHOICES } from '../data/roots';
 import { STRUCTURES } from '../data/voicings';
 import { GUITAR } from '../data/instruments';
 import { GUITAR_STANDARD } from '../data/tunings';
-import {
-  keysContaining,
-  keysContainingAll,
-  type KeyMatch,
-} from '../theory/keys';
+import { keysContaining, type KeyMatch } from '../theory/keys';
 import { diatonicChords } from '../theory/harmony';
 import {
   placeVoicingAll,
@@ -239,17 +235,12 @@ export function SongView({
   // A "system" (row) is the chord lane plus, when voiced, a TAB staff under it.
   const staffHeight = (GUITAR.stringCount - 1) * STRING_GAP;
 
-  // The selected chord's keys, and the keys that fit the WHOLE progression.
+  // Every key the SELECTED chord is at home in (where it's a diatonic chord) —
+  // the reveal below lists these, grouped by scale system. Which of them survive
+  // once the WHOLE progression is considered is decided TOLERANTLY, from `ranked`
+  // (computed just below), not by the old strict "contains every chord"
+  // intersection — so the reveal speaks the same language as the Context strip.
   const selectedKeys = keysContaining(selRoot, selChord);
-  const progressionKeys = keysContainingAll(
-    chords.map((c) => ({ root: ROOT_CHOICES[c.rootIndex], chord: CHORDS[c.chordId] })),
-  );
-  const progressionKeyIds = new Set(
-    progressionKeys.map((m) => keyId(m.tonic, m.scale.id)),
-  );
-  const fitCount = selectedKeys.filter((m) =>
-    progressionKeyIds.has(keyId(m.tonic, m.scale.id)),
-  ).length;
 
   // --- The Context strip: the search engine, visible ------------------------
   // Rank every key by how well it explains the COMMITTED bars (bass-only bars
@@ -264,6 +255,18 @@ export function SongView({
   const ctxKey =
     ranked.find((k) => keyId(k.tonic, k.scale.id) === workingKeyId) ?? ranked[0];
   const explainedNow = ranked.filter((k) => k.allExplained).length;
+  // The tolerant "does the whole song fit here?" set, SHARED with the reveal
+  // below: keys that EXPLAIN every committed chord (each reads as diatonic,
+  // secondary or borrowed — nothing left 'outside'). A reveal chip stays lit iff
+  // its key is in here, so every lit chip is one of the strip's readings — the
+  // two displays can no longer contradict each other.
+  const explainedKeyIds = new Set(
+    ranked.filter((k) => k.allExplained).map((k) => keyId(k.tonic, k.scale.id)),
+  );
+  // Of the selected chord's home keys, how many still explain the whole song.
+  const fitCount = selectedKeys.filter((m) =>
+    explainedKeyIds.has(keyId(m.tonic, m.scale.id)),
+  ).length;
   // Each bar's function IN the working key, looked up by chart index — drawn on
   // the chord itself in the score (the numeral belongs with its chord, like a
   // lead-sheet analysis), so switching the hypothesis re-labels the score.
@@ -279,6 +282,11 @@ export function SongView({
           (k) => k.allExplained,
         ).length
       : null;
+  // The selected chord's OWN reading in the working key (the same label drawn on
+  // its bar). When none of the chord's home keys explain the song (fitCount 0),
+  // this says WHY: it's a visitor here — a secondary dominant or a borrowed chord.
+  const selReading =
+    selCommittedPos >= 0 && ctxKey ? ctxKey.labels[selCommittedPos] : undefined;
 
   // --- Bass-first: suggestions for a bass-only bar --------------------------
   // Candidate keys come from the WHOLE bass line (every bar's bottom note) —
@@ -1057,16 +1065,34 @@ export function SongView({
         <>
       <p className="tagline">
         <strong>{chordLabel(selected)}</strong> exists in {selectedKeys.length} keys
-        {chords.length > 1 && (
+        {/* Multi-chord: how the whole progression narrows this chord's identity.
+            If some of its home keys still explain the song, count them; if none
+            do, the chord is a VISITOR here — name the role it plays instead. */}
+        {chords.length > 1 && fitCount > 0 && (
           <>
-            , <strong>{fitCount}</strong> fit the whole progression
+            {' '}— of those, <strong>{fitCount}</strong> explain the whole progression
           </>
         )}
+        {chords.length > 1 &&
+          fitCount === 0 &&
+          selReading &&
+          selReading.kind !== 'outside' &&
+          ctxKey && (
+            <>
+              {' '}— but here it's the <strong>{selReading.label}</strong> in{' '}
+              {noteName(ctxKey.tonic)} {ctxKey.scale.name},{' '}
+              {selReading.kind === 'secondary'
+                ? 'a secondary dominant reaching outside the key'
+                : 'borrowed from the parallel minor'}
+            </>
+          )}
         .
       </p>
 
-      {/* The possibility space for the selected chord. Keys that also fit the
-          whole progression stay lit; the rest dim — the narrowing in place. */}
+      {/* The possibility space for the selected chord. Keys that also EXPLAIN the
+          whole progression — tolerantly, the same set the Context strip ranks, so
+          an out-of-key chord reads as V7/x or borrowed rather than eliminating the
+          key — stay lit; the rest dim. The narrowing, in place. */}
       <div className="reveal">
         {SCALE_ORDER.map((scale) => {
           const inSystem = selectedKeys.filter((m) => m.scale.id === scale.id);
@@ -1085,7 +1111,7 @@ export function SongView({
                       openKey.degree === m.degree;
                     const fits =
                       chords.length === 1 ||
-                      progressionKeyIds.has(keyId(m.tonic, m.scale.id));
+                      explainedKeyIds.has(keyId(m.tonic, m.scale.id));
                     const cls =
                       'key-chip' +
                       (isOpen ? ' key-chip--on' : '') +
