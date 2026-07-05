@@ -216,7 +216,11 @@ The audit below was implemented; kept for the record:
    FUNCTIONS are drawn **on the bars themselves** (Stu's call: the analysis lives
    with the chord — an accented V7/ii sits right under its A7, and switching the
    hypothesis re-labels the score). Built on `interpretInKey` + `rankKeys`.
-   Still open: unify the old strict reveal with tolerant readings.
+   ~~Still open: unify the old strict reveal with tolerant readings.~~ **(done —
+   the reveal now reads against the same `ranked` list, so a lit chip is always a
+   strip reading; the strict `keysContainingAll` "0 fit" is retired. A chord whose
+   home keys don't explain the song names its role instead — "here it's the V7/ii
+   in C Major, a secondary dominant reaching outside the key".)**
 4. **Lead Play with Song input**; demote single-chord entry inside it; ~~demote the
    pill grids behind "pick visually ▾"~~ **(pill grids demoted — Fable-5 pass;**
    the full Song/Section input — paste a URL, lyrics-with-chords — is still to come).
