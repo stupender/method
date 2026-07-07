@@ -195,12 +195,13 @@ export function keysContainingNotes(notes: Note[]): NoteKeyMatch[] {
 // ---------------------------------------------------------------------------
 // The other face of the engine: given a chord and a key, what IS it there?
 // This is what the Context strip shows, and what ear training's function layer
-// will quiz. Checked from nearest to farthest — the first reading wins.
+// will quiz. Checked from nearest to farthest — the first reading wins:
+//   diatonic → secondary dominant (V7/x) → borrowed → tritone sub (subV7/x).
 // ---------------------------------------------------------------------------
 
 export interface Interpretation {
-  label: string; // "ii7", "V7/IV", "♭VI", or "?" when the key can't explain it
-  kind: 'diatonic' | 'secondary' | 'borrowed' | 'outside';
+  label: string; // "ii7", "V7/IV", "subV7", "♭VI", or "?" when unexplained
+  kind: 'diatonic' | 'secondary' | 'borrowed' | 'tritone' | 'outside';
 }
 
 export function interpretInKey(
@@ -250,7 +251,26 @@ export function interpretInKey(
         return { label: flat + hit.roman, kind: 'borrowed' };
       }
     } catch {
-      /* fall through to outside */
+      /* fall through to tritone / outside */
+    }
+  }
+
+  // 4. Tritone substitution — a dom7 standing in for a secondary dominant, its
+  // root a HALF-STEP ABOVE the target (so it shares that dominant's tritone and
+  // resolves down by a half step). D♭7 subs for G7 → "subV7"; A♭7 subs for D7
+  // (=V7/V) → "subV7/V". Checked AFTER borrowed, so a chord with a stronger
+  // in-key reading (e.g. B♭7 = the backdoor ♭VII7) keeps it. Standard jazz label:
+  // "subV7" of the tonic, "subV7/x" otherwise.
+  if (chord.id === 'dominant-seventh') {
+    const tones = realizeScale(tonic, scale);
+    const triads = diatonicChords(tonic, scale, false);
+    for (let degree = 0; degree < tones.length; degree++) {
+      if (triads[degree].chord.id === 'diminished-triad') continue; // don't tonicize vii°
+      const subPc = (pitchClassOf(tones[degree].note) + 1) % 12; // half step above target
+      if (subPc === rootPc) {
+        const label = degree === 0 ? 'subV7' : `subV7/${triads[degree].roman}`;
+        return { label, kind: 'tritone' };
+      }
     }
   }
 

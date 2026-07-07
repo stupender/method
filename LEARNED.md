@@ -794,3 +794,24 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   (any role for the chord); the reveal counts THIS chord's home keys that survive
   ("of those, 3 explain…"). The reveal set is always a subset of the strip's, so
   the numbers can differ without contradicting.
+
+## Session 8i — tritone substitutions (subV7), the fifth reading
+
+- **A dom7 that fits no key is usually a dominant on loan.** The engine already
+  read single secondary dominants AND whole fifths-chains (B7 E7 A7 D7 G7 all
+  labelled V7/iii … V7). Two things were still "outside": the backdoor dominant
+  (B♭7 → already covered as the borrowed ♭VII7) and the TRITONE SUBSTITUTION.
+- **Tritone sub = a dom7 a half-step ABOVE its target** (so it shares that
+  dominant's tritone and resolves down a half step). D♭7 subs for G7 → "subV7";
+  A♭7 subs for D7=V7/V → "subV7/V". Standard Berklee-style label: subV7 of the
+  tonic, subV7/x otherwise. Stu wanted "most standard jazz practice" → subV7.
+- **Order of reading matters.** Checked diatonic → secondary → borrowed → tritone,
+  so B♭7 in C keeps its stronger backdoor ♭VII7 reading instead of flipping to
+  subV7/vi. Nearest/most-common function wins.
+- New `kind: 'tritone'` on `Interpretation`; it counts as EXPLAINED (not
+  'outside'), wears the accent on the bar like the other reaching chords, and the
+  reveal's "visitor" tagline names it ("a tritone substitute — a dominant a
+  half-step above its target").
+- **Still on the table** (Stu's fuller list): the diminished-scale minor-third
+  dominant family (four dom7s a m3 apart), the M3-approach dominant, the vii°
+  chain link, and making these quizzable in Ear Training. subV7 is the common one.

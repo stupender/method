@@ -1083,7 +1083,9 @@ export function SongView({
               {noteName(ctxKey.tonic)} {ctxKey.scale.name},{' '}
               {selReading.kind === 'secondary'
                 ? 'a secondary dominant reaching outside the key'
-                : 'borrowed from the parallel minor'}
+                : selReading.kind === 'tritone'
+                  ? 'a tritone substitute — a dominant a half-step above its target'
+                  : 'borrowed from the parallel minor'}
             </>
           )}
         .
