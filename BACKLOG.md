@@ -91,6 +91,16 @@ where it points, don't force a global key label.
 root/inversion, key-agnostic) → (2) progression dictation (quality + root motion) →
 (3) function layer with secondary dominants & tonicizations on the GPS reveal.
 
+**Dominant-substitution family (`interpretInKey`)** — a dom7 that fits no key is
+usually a dominant on loan. DONE: secondary dominants V7/x, fifths-chains of them,
+the backdoor ♭VII7 (as a borrowed chord), and the **tritone substitution** (subV7 /
+subV7/x — a dom7 a half-step above its target). STILL TO ADD (Stu's fuller list):
+the **diminished-scale minor-third family** (the four dom7s a m3 apart that share a
+tritone/dim scale and can all sub for one V), the **major-third-approach** dominant
+(e.g. E7 into C), and the **vii° chain link** (a secondary dominant that tonicizes
+the diminished degree, which we currently skip). Then make these quizzable in Ear
+Training's Function drill (a "Reaching further" pool tier).
+
 ~~**Step 1 — chord-QUALITY quiz**~~ (done — `ui/EarTrainingView.tsx`, a new top-level
 area). Plays a chord on a random root; you name the quality; narrow/widen the
 quality pool; immediate green/red feedback + running score.
