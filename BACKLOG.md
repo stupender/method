@@ -5,13 +5,17 @@ from [CLAUDE.md](CLAUDE.md) holds — most arrive as DATA + small pure functions
 the existing engine, not as rearchitecting. Each item notes roughly where it
 plugs into the layers (`data → theory → render → audio → ui`).
 
-**Where we are now (built & live):** three areas. **Possibility** (scales/modes in
-three fingering systems with click-to-re-root; Harmony's three explore axes — one
-chord / chord scale ladder / inversions ladder — with bass-note labels and string
-sets), **Play** (songbook with persistence + per-song meter; text/paste chord entry;
-full transport with playhead, scrub, count-in, metronome; the GPS reveal; auto
-voice-leading), and **Ear Training** (chord-quality quiz). Plus the design pass
-(global Labels, grouped transport, text-first editing).
+**Where we are now (built & live, 2026-07):** three areas. **Possibility**
+(scales/modes in three fingering systems with click-to-re-root; Harmony's three
+explore axes — one chord / chord scale ladder / inversions ladder — with bass-note
+labels and string sets), **Play** (songbook + per-song meter; text/paste/bass-first
+entry; full transport with playhead, scrub, count-in, metronome; the FUNCTION
+ENGINE live everywhere — Context strip key hypotheses, function labels drawn on the
+bars, the tolerant reveal, the bass-first heat map; slash chords; auto
+voice-leading), and **Ear Training** (chord-quality quiz + the FUNCTION quiz).
+Plus the design passes (global Labels, grouped transport, text-first editing, the
+segmented-track control grammar). Arc 1 is essentially DONE; Arc 2 is half done
+(the function quiz shipped ahead of dictation/inversions).
 
 ## The road ahead — five arcs (the working structure)
 
@@ -35,6 +39,59 @@ function layer — build once, reuse everywhere.
 5. **Reach** — import (iReal/MIDI/Ableton), accounts & saved prefs, the FULL
    art-book identity pass (after the IA settles — its foundation lands in Arc 1),
    ukulele/alt tunings, other cultures, IP/distribution.
+
+---
+
+## Next-session briefs (handoff, written 2026-07-06)
+
+Self-contained specs for the next sessions — the design decisions are already
+made (or explicitly flagged as Stu's call). Pick ONE per session, verify in the
+browser, ship, and update this section. General method: probe theory with a tiny
+`npx tsx` script at the repo root (relative imports need it there; delete after);
+verify UI with the preview tools — note the preview resets to the Possibility
+area on reload, so drive each check in ONE self-contained eval (navigate → act →
+read), find the visible area via the non-`hidden` child of `.page`, and set
+textarea values via the native setter + `input` event.
+
+### Brief A — persist songs & settings (mechanical, zero design risk)
+Songs currently vanish on reload. In `App.tsx`, serialize the songbook state
+(songs: chords/meter/names, open song id) plus the global `labelMode` to
+`localStorage` under one versioned key (`method-state-v1`) in a `useEffect`;
+hydrate once on mount with a try/catch fallback to the defaults (bad/old JSON →
+start fresh). `ChartChord` is already plain JSON. Verify: paste a progression,
+reload, it's still there; corrupt the stored JSON by hand, app still boots.
+
+### Brief B — borrowed chords in the Function quiz pool
+`ui/FunctionQuizView.tsx` has two pool groups (diatonic `d0..d6`, secondary
+`s{i}`). Add a third, "Borrowed" (`b{i}`), from the parallel minor:
+`parallelMinorOf(tonic)` + `diatonicChords(modeRoot, modeScale, true)` (both in
+`theory/suggest.ts` / `theory/harmony.ts`) — offer iv7, ♭VImaj7, ♭VII7 (degrees
+3, 5, 6 of the minor; label with the ♭ convention already used by
+`interpretInKey`, i.e. ♭ on minor degrees 2/5/6). Default them OFF. Follow the
+existing patterns exactly: `chordFor`/`midisFor` switch on `kind`, the pool is
+snapshotted per question, reveal says "the ♭VII7 in F major". UI row label:
+"Borrowed" (sits under "Reaching out").
+
+### Brief C — dominant families, part 2 (NEEDS STU: theory calls first)
+`interpretInKey` now reads diatonic → V7/x → borrowed → subV7/x, so every dom7
+root gets SOME reading in a major key. Open expert calls before coding more:
+(1) blues dominants — F7 in C currently reads subV7/iii; a blues IV7 label may
+serve teaching better (and I7 for C7 instead of V7/IV when it's the tonic
+sound); (2) minor keys — mostly sane (probed: ii7/V7/subV7 fine in C melodic
+minor) but A♭maj7 in C harmonic minor reads "VImaj7" (♭VImaj7?) and B♭7 reads
+"V7/III+" (tonicizing an augmented chord — musically odd; suppress?); (3) the
+diminished-scale m3 dominant family and M3-approach labels. Ask Stu in-lesson,
+then implement as more steps in `interpretInKey`.
+
+### Brief D — unify the Possibility/Play TAB look (quick win, visual)
+The score's TAB staff in Play and the TabView cards in Possibility use different
+spacing/typography. Extract shared CSS values (string gap, fret-number font)
+into variables in `index.css` and align. Screenshot both before/after.
+
+Known-and-intended (don't "fix"): the Context strip counts keys explaining the
+whole song; the reveal counts the SELECTED chord's home keys that survive — the
+reveal set is a subset, so the numbers legitimately differ. The reveal's strict
+`keysContainingAll` is retired; don't reintroduce it.
 
 ---
 

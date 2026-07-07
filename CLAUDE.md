@@ -77,23 +77,31 @@ must match the repo name (`/method/`).
 2. **Fretboard engine — render from tuning data, light up arbitrary notes.** ← done.
 3. **Scales + intervals + Web Audio playback.** ← done.
 4. **Chords (triads + 7ths) with voicings + TAB.** ← done.
-5. **The "Search Engine / GPS" reveal** — chord → all keys it could live in →
-   their chords. The signature interaction. ← MVP done. It lives in the **Song**
-   area, a top-level part of the app (peer to **Study** = Scales/Harmony). Song
-   grows into a lead-sheet workbench (chords in bars, with rhythm; click a chord
-   to reveal where to go). Next: multi-chord charts that intersect/narrow the
-   candidate keys, then rhythm/timing, import (iReal/MIDI), voice-leading.
-6. VexFlow notation + polish + case study.
+5. **The "Search Engine / GPS" reveal** ← done, and grown into the FUNCTION
+   ENGINE (`src/theory/suggest.ts`): `interpretInKey` names any chord's role in
+   a key, checked nearest-first (diatonic → secondary dominant V7/x → borrowed →
+   tritone sub subV7/x); `rankKeys` ranks keys by how well they EXPLAIN a whole
+   progression (tolerant — an out-of-key chord reads as a visitor, it doesn't
+   kill the key); `chordsOverBass` powers the bass-first heat map. In Play: the
+   Context strip shows key hypotheses, every bar wears its function label, and
+   the reveal shares the same tolerant engine (never contradict the strip).
+   Next: rhythm depth, import (iReal/MIDI), richer voice-leading.
+6. VexFlow notation + polish + case study. ← not started.
 7. Study guide (teaching pass, after ship).
 
-Note: the app now has two top-level AREAS — **Study** (Scales/Harmony) and
-**Song** (lead-sheet score). Stu may rename them **Possibility** & **Play**.
+Note: the app has three top-level AREAS — **Possibility** (scale/harmony study),
+**Play** (the lead-sheet workbench + analysis), **Ear Training** (chord-quality
+and function quizzes). The UI follows a strict control grammar (segmented track
+= pick-one; pill = independent toggle / multi-select; accent pill = action) —
+see DESIGN.md. **Start any new session by reading BACKLOG.md "Next-session
+briefs".**
 
 ## Backlog — see [BACKLOG.md](BACKLOG.md) for the full triaged plan. In short:
 
-- **Quick wins:** rename areas to Possibility/Play?; "Fm exists in 9 keys" copy;
-  never render a blank voicing (show the most-playable with a "very difficult"
-  note instead); flexible time-signature input; unify the Study/Song TAB look.
+- **Quick wins:** ~~rename areas to Possibility/Play~~ (done); ~~"exists in 9
+  keys" copy~~ (done); never render a blank voicing (show the most-playable with
+  a "very difficult" note instead); ~~flexible time-signature input~~ (done);
+  unify the Possibility/Play TAB look.
 - **Study restructure:** lift the Roman numeral above Scale/Harmony so it persists
   (in Scale it picks the MODE, the TAB then explores its positions; in Harmony the
   chord degree); click a note to generate the scale/mode from that degree in
