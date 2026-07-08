@@ -31,11 +31,13 @@ function layer — build once, reuse everywhere.
    FOUNDATION: the heat ramp is the first real aesthetic token, designed to keep.*
 2. **Ear training, deepened** — inversions + parameter panel → progression
    dictation (bass motion + quality) → the function quiz (rides Arc 1).
-3. **The practice loop** ← STARTED. Done: **Loop** (gapless vamp), **Ramp**
-   (+5 bpm each pass, the speed trainer), and the first **per-bar unit type**
-   (`ChartChord.unit`: chord | arpeggio — the data seam). Next: scale-run and
-   interval-pattern units (the palta/sequence generator rides the same field);
-   add scales/patterns from Possibility to Play; practice-card skeleton.
+3. **The practice loop** ← WELL UNDERWAY. Done: **Loop** (gapless vamp),
+   **Ramp** (+5 bpm each pass), and per-bar units **chord | arpeggio | scale**
+   (a scale bar runs its chord scale — the working key's mode when diatonic,
+   else the quality's default, via `theory/chordScale.ts`; the editor names the
+   run in place). Next: interval-pattern units (the palta/sequence generator —
+   direction, grouping 1235/thirds — rides the same seam); add scales/patterns
+   from Possibility to Play; practice-card skeleton.
 4. **Sound & song fidelity** — a tasteful instrument voice; sections/repeats;
    rests/tuplets; voice-leading same-string-set bias; per-chord manual voicing.
 5. **Reach** — import (iReal/MIDI/Ableton), accounts & saved prefs, the FULL
