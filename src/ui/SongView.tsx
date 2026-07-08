@@ -1173,7 +1173,9 @@ export function SongView({
                 ? 'a secondary dominant reaching outside the key'
                 : selReading.kind === 'tritone'
                   ? 'a tritone substitute — a dominant a half-step above its target'
-                  : 'borrowed from the parallel minor'}
+                  : selReading.kind === 'blues'
+                    ? 'the blues colour — a dominant on the fourth degree'
+                    : 'borrowed from the parallel minor'}
             </>
           )}
         .

@@ -145,16 +145,14 @@ export function chordsOverBass(
       for (const d of borrowedChords) {
         const role = roleOfBass(d.chordRoot, d.chord, bassPc);
         if (!role) continue;
-        // Convention labels borrowed chords AGAINST THE MAJOR key: the minor's
-        // 3rd, 6th and 7th degrees sit a half-step below major's, so their
-        // numerals get a ♭ (III of the minor = ♭III of the major key).
-        const flat = d.degree === 2 || d.degree === 5 || d.degree === 6 ? '♭' : '';
+        // The roman already carries the ♭ against the major key (III of the
+        // minor arrives as ♭III) — harmony.ts prefixes all numerals that way.
         add({
           chordRoot: d.chordRoot,
           chord: d.chord,
           bassRole: role,
           tier: 3,
-          roman: flat + d.roman,
+          roman: d.roman,
           borrowed: true,
         });
       }
@@ -196,12 +194,13 @@ export function keysContainingNotes(notes: Note[]): NoteKeyMatch[] {
 // The other face of the engine: given a chord and a key, what IS it there?
 // This is what the Context strip shows, and what ear training's function layer
 // will quiz. Checked from nearest to farthest — the first reading wins:
-//   diatonic → secondary dominant (V7/x) → borrowed → tritone sub (subV7/x).
+//   diatonic → secondary dominant (V7/x) → borrowed → blues IV7 →
+//   tritone sub (subV7/x).
 // ---------------------------------------------------------------------------
 
 export interface Interpretation {
-  label: string; // "ii7", "V7/IV", "subV7", "♭VI", or "?" when unexplained
-  kind: 'diatonic' | 'secondary' | 'borrowed' | 'tritone' | 'outside';
+  label: string; // "ii7", "V7/IV", "subV7", "♭VI", "IV7", or "?" when unexplained
+  kind: 'diatonic' | 'secondary' | 'borrowed' | 'blues' | 'tritone' | 'outside';
 }
 
 export function interpretInKey(
@@ -246,16 +245,23 @@ export function interpretInKey(
       const hit = diatonicChords(modeRoot, modeScale, seventh).find(
         (c) => pitchClassOf(c.chordRoot) === rootPc && c.chord.id === chord.id,
       );
-      if (hit) {
-        const flat = hit.degree === 2 || hit.degree === 5 || hit.degree === 6 ? '♭' : '';
-        return { label: flat + hit.roman, kind: 'borrowed' };
-      }
+      // The roman already carries the ♭ against the major key (harmony.ts).
+      if (hit) return { label: hit.roman, kind: 'borrowed' };
     } catch {
       /* fall through to tritone / outside */
     }
   }
 
-  // 4. Tritone substitution — a dom7 standing in for a secondary dominant, its
+  // 4. The blues subdominant — a dominant 7th ON the fourth degree of a major
+  // key (F7 in C). Everyone calls this IV7 (the blues colour on IV), never the
+  // technically-derivable subV7/iii — Stu's call: label IV7 here, but a tonic
+  // dominant (C7 in C) KEEPS its V7/IV arrow, which names the pull toward IV.
+  if (chord.id === 'dominant-seventh' && scale.id === MAJOR_SCALE.id) {
+    const fourth = realizeScale(tonic, scale)[3].note;
+    if (pitchClassOf(fourth) === rootPc) return { label: 'IV7', kind: 'blues' };
+  }
+
+  // 5. Tritone substitution — a dom7 standing in for a secondary dominant, its
   // root a HALF-STEP ABOVE the target (so it shares that dominant's tritone and
   // resolves down by a half step). D♭7 subs for G7 → "subV7"; A♭7 subs for D7
   // (=V7/V) → "subV7/V". Checked AFTER borrowed, so a chord with a stronger

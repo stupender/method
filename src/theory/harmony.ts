@@ -62,6 +62,12 @@ const ROMAN_STYLE: Record<string, { upper: boolean; suffix: string }> = {
 
 const ROMAN_BASE = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
 
+// Jazz convention (Stu's call): numerals measure AGAINST THE MAJOR SCALE on
+// the same tonic. A degree whose root sits a half-step below major's gets a ♭
+// (E♭ in any C minor scale is ♭III, A♭ is ♭VI, B♭ is ♭VII); a half-step above
+// gets a ♯. The major scale itself gets no prefixes, by construction.
+const MAJOR_OFFSETS = [0, 2, 4, 5, 7, 9, 11];
+
 // Build the diatonic chords of a key. `seventh` chooses 4-note (7th) chords
 // instead of 3-note triads. Returns one DiatonicChord per scale degree.
 export function diatonicChords(
@@ -97,10 +103,14 @@ export function diatonicChords(
     const numeral = style.upper
       ? ROMAN_BASE[degree]
       : ROMAN_BASE[degree].toLowerCase();
+    // The ♭/♯ prefix: how this degree's root sits relative to the major scale's.
+    const off = (pitchClassOf(chordRoot) - pitchClassOf(root) + 12) % 12;
+    const diff = (off - MAJOR_OFFSETS[degree] + 12) % 12;
+    const prefix = diff === 11 ? '♭' : diff === 1 ? '♯' : '';
 
     return {
       degree,
-      roman: numeral + style.suffix,
+      roman: prefix + numeral + style.suffix,
       chordRoot,
       chord,
       name: `${noteName(chordRoot)} ${chord.name}`,

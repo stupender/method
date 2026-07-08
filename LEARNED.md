@@ -867,3 +867,22 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   collector duplicates entries per eval hook and persists across reloads.
   Verified clean: one Play event, 100→115 on the exact pass schedule, and a
   60-second unattended run ramping to the 280 ceiling and looping there.
+
+## Session 9d — Brief C's theory calls (Stu ruled; the code obeyed)
+
+- **Blues IV7.** A dominant 7th ON the fourth degree of a major key reads "IV7"
+  (kind 'blues') — everyone's name for that colour — never the derivable
+  subV7/iii. The TONIC dominant deliberately keeps its V7/IV arrow (it names the
+  pull toward IV); a context-free "I7" claim would often be wrong. Stu: IV7 only.
+- **♭ numerals everywhere, ONE convention, ONE place.** Jazz numerals measure
+  against the MAJOR scale on the same tonic — so harmony.ts now prefixes ♭/♯
+  right where romans are built (compare each degree's pc offset to the major
+  scale's). C harmonic minor: i(maj7) iiø7 ♭IIImaj7♯5 iv7 V7 ♭VImaj7 vii°7.
+  This let us DELETE the manual ♭-hacks in three places (chordsOverBass,
+  interpretInKey's borrowed branch, the quiz's borrowed options) — they would
+  have double-flattened. Fix the source, not the consumers.
+- **V7/III+ kept** (Stu's call — leave the formal derivation), and it now reads
+  V7/♭III+, consistent with the new labels.
+- Verified: majors unflatted; no double-flats (B♭7 in C stays ♭VII7); blues bars
+  read I·IV7·V7·I; Possibility's degree track and the quiz pools all carry the
+  convention.

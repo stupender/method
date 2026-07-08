@@ -49,14 +49,12 @@ for (const [i, t] of diatonicChords(C, MAJOR_SCALE, false).entries()) {
 }
 {
   // Borrowed from the parallel minor — the three every jazz/pop tune leans on:
-  // iv7, ♭VImaj7 and ♭VII7 (the backdoor dominant). Same ♭-labelling convention
-  // as interpretInKey: the minor's 3rd/6th/7th degrees sit a half-step below
-  // major's, so degrees 2/5/6 get a ♭ (iv, at degree 3, doesn't).
+  // iv7, ♭VImaj7 and ♭VII7 (the backdoor dominant). The romans already carry
+  // the ♭ against the major key (harmony.ts labels every scale that way).
   const { modeRoot, modeScale } = parallelMinorOf(C);
   for (const i of [3, 5, 6]) {
     const d = diatonicChords(modeRoot, modeScale, true)[i];
-    const flat = i === 2 || i === 5 || i === 6 ? '♭' : '';
-    OPTIONS.push({ id: `b${i}`, label: flat + d.roman, kind: 'borrowed', degree: i });
+    OPTIONS.push({ id: `b${i}`, label: d.roman, kind: 'borrowed', degree: i });
   }
 }
 const OPTION_BY_ID = new Map(OPTIONS.map((o) => [o.id, o]));

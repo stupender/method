@@ -503,7 +503,8 @@
 }
 .tl-chord__fn--secondary,
 .tl-chord__fn--borrowed,
-.tl-chord__fn--tritone {
+.tl-chord__fn--tritone,
+.tl-chord__fn--blues {
   color: var(--accent);
 }
 .tl-chord__fn--outside {
