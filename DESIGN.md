@@ -230,7 +230,11 @@ The audit below was implemented; kept for the record:
    sharing machinery. **Loop is done** (a Practice-options pill; gapless — the whole
    song is scheduled several passes up front and only the playhead wraps; toggling
    mid-play takes effect immediately). Play-along and Practice card still to come.
-7. **Scaffold the Practice zone** (constraint cards). Skeleton-only for v1.
+7. ~~**Scaffold the Practice zone** (constraint cards). Skeleton-only for v1.~~
+   **(done, skeleton — session 10d)** Practice cards in Play: freeze the open
+   chart (chords + per-bar units + meter + tempo) beside a typed instruction,
+   saved locally; reopen to restore. The first seed of the per-student Palette —
+   next: group cards by student, capture loop/ramp intent, a voice-memo button.
 
 The earlier tidy-ups still happen *inside* these — regroup the transport into
 Playback / Options, group the Scales sub-controls, establish a shared control-row
