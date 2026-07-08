@@ -227,7 +227,9 @@ The audit below was implemented; kept for the record:
 5. ~~**Unify Labels into one global display setting**~~ **(done — Fable-5 pass)**;
    the **Constellation** axis (single / overlay / off) is still to come.
 6. **Split Play actions into Loop / Play-along / Practice card** as distinct intents
-   sharing machinery.
+   sharing machinery. **Loop is done** (a Practice-options pill; gapless — the whole
+   song is scheduled several passes up front and only the playhead wraps; toggling
+   mid-play takes effect immediately). Play-along and Practice card still to come.
 7. **Scaffold the Practice zone** (constraint cards). Skeleton-only for v1.
 
 The earlier tidy-ups still happen *inside* these — regroup the transport into

@@ -53,13 +53,12 @@ area on reload, so drive each check in ONE self-contained eval (navigate → act
 read), find the visible area via the non-`hidden` child of `.page`, and set
 textarea values via the native setter + `input` event.
 
-### Brief A — persist songs & settings (mechanical, zero design risk)
-Songs currently vanish on reload. In `App.tsx`, serialize the songbook state
-(songs: chords/meter/names, open song id) plus the global `labelMode` to
-`localStorage` under one versioned key (`method-state-v1`) in a `useEffect`;
-hydrate once on mount with a try/catch fallback to the defaults (bad/old JSON →
-start fresh). `ChartChord` is already plain JSON. Verify: paste a progression,
-reload, it's still there; corrupt the stored JSON by hand, app still boots.
+### ~~Brief A — persist songs & settings~~ (WITHDRAWN — already built)
+This brief was written on a stale assumption: songbook persistence already
+ships (`method.songbook.v1` in `App.tsx` — songs, meters, tempos, names, open
+song id; versioned key, normalize-on-load, id-counter advance). The only
+session-only display state is the global Labels toggle — persist it if it ever
+annoys Stu, not before.
 
 ### Brief B — borrowed chords in the Function quiz pool
 `ui/FunctionQuizView.tsx` has two pool groups (diatonic `d0..d6`, secondary
