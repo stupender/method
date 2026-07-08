@@ -443,7 +443,7 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: #d8d0c0;
+  background: var(--tab-line);
 }
 /* A fret number sitting on its string line. */
 .staff-fret {
@@ -452,7 +452,7 @@
   background: var(--bg);
   padding: 0 3px;
   font-family: var(--sans);
-  font-size: 12px;
+  font-size: var(--tab-fret-size);
   font-weight: 600;
   color: var(--ink);
 }

@@ -79,10 +79,12 @@ stands). Still open, lower priority: the diminished-scale m3 dominant family
 and M3-approach as EXPLICIT teaching labels (they all already get *a* reading),
 and a minor-key deep-dive for the strip/quiz.
 
-### Brief D — unify the Possibility/Play TAB look (quick win, visual)
-The score's TAB staff in Play and the TabView cards in Possibility use different
-spacing/typography. Extract shared CSS values (string gap, fret-number font)
-into variables in `index.css` and align. Screenshot both before/after.
+### ~~Brief D — unify the Possibility/Play TAB look~~ (done — session 10c)
+The visual identity was already aligned by an earlier pass (same line colour,
+same paper-masked numbers); now it's STRUCTURAL: `--tab-line` and
+`--tab-fret-size` tokens in `index.css`, used by all three TAB surfaces
+(TabView cards, the horizontal TabSequence, Play's score staff) so they can't
+drift. Verified all three compute identical values.
 
 Known-and-intended (don't "fix"): the Context strip counts keys explaining the
 whole song; the reveal counts the SELECTED chord's home keys that survive — the

@@ -42,7 +42,7 @@
   right: 0;
   top: 50%;
   height: 1px;
-  background: #d8d0c0;
+  background: var(--tab-line);
 }
 
 /* The open-string name at the left of each row. */
@@ -59,7 +59,7 @@
   z-index: 1;
   background: var(--bg);
   color: var(--ink);
-  font-size: 12px;
+  font-size: var(--tab-fret-size);
   font-weight: 600;
   padding: 0 3px;
 }

@@ -25,6 +25,12 @@
   --heat-2: #f4d2c9; /* reaching — secondary dominants */
   --heat-3: #f9e9e4; /* far — borrowed from the parallel minor, related keys */
 
+  /* TAB, everywhere it appears (Possibility's cards, Play's score staff, the
+     horizontal scale TAB): one string-line colour and one fret-number size, so
+     every TAB in the app reads as the same notation. */
+  --tab-line: #d8d0c0; /* string lines — a shade warmer than --line */
+  --tab-fret-size: 12px; /* fret numbers */
+
   /* Type: a calm serif for display, a clean sans for everything else.
      System fonts only — no web-font dependency to load or maintain. */
   --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;

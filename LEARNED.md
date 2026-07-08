@@ -959,3 +959,11 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - Answer pills come from the QUESTION's chord intervals, so triads offer three
   choices and sevenths four, labelled generically from diatonicSteps (a sus
   chord's "4th in bass" would label itself).
+
+## Session 10c — TAB tokens (Brief D closed)
+
+- The three TAB surfaces (Possibility's TabView cards, the horizontal
+  TabSequence, Play's score staff) already LOOKED the same — an earlier pass
+  matched them by copying values. Now they SHARE them: `--tab-line` and
+  `--tab-fret-size` in index.css. Copied values drift; tokens can't. Verified
+  all three compute identical line colour + fret size in the browser.
