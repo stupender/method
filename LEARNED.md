@@ -944,3 +944,18 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   and a looped run schedules thousands of notes).
 - The palta/interval-pattern generator extends this same seam next (direction,
   grouping — 1235, thirds…).
+
+## Session 10b — the inversion quiz (Arc 2's missing ear skill)
+
+- **Ear Training is now three skills**: Chord quality / Inversion / Function.
+  The inversion quiz plays a chord on a random root, ROTATED so a random tone
+  is lowest, and you name the bass: Root / 3rd / 5th (/ 7th for sevenths).
+- **The teaching frame** (in the footnote): root position *sits*, 3rd-in-bass
+  *leans*, 5th *floats*, 7th *pulls down* — you're naming a feeling, and the
+  random root guarantees it's the SHAPE you hear, not a pitch.
+- **Voicing construction is one rotation**: tones below the chosen bass jump up
+  an octave (`[...tones.slice(k), ...tones.slice(0,k).map(+12)]`) — the same
+  close-position rotation the theory layer uses for inversions.
+- Answer pills come from the QUESTION's chord intervals, so triads offer three
+  choices and sevenths four, labelled generically from diatonicSteps (a sus
+  chord's "4th in bass" would label itself).

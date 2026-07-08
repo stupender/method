@@ -18,15 +18,17 @@ import { ROOT_CHOICES } from '../data/roots';
 import { spellNoteFromInterval, midiOf, noteName } from '../theory/notes';
 import { playChord } from '../audio/player';
 import { FunctionQuizView } from './FunctionQuizView';
+import { InversionQuizView } from './InversionQuizView';
 import { Segmented } from './Segmented';
 
 const CHORD_LIST = Object.values(CHORDS);
 
 // The Ear Training area: a shell that picks WHICH skill to drill. Quality =
-// "what did I hear?" (key-agnostic); Function = "what is it doing in the key?"
-// (roman numerals + secondary dominants, riding the function engine).
+// "what did I hear?" (key-agnostic); Inversion = "which tone is on the bottom?"
+// (the lean of a voicing); Function = "what is it doing in the key?" (roman
+// numerals + secondary dominants + borrowed, riding the function engine).
 export function EarTrainingView() {
-  const [quiz, setQuiz] = useState<'quality' | 'function'>('quality');
+  const [quiz, setQuiz] = useState<'quality' | 'inversion' | 'function'>('quality');
   return (
     <>
       <div className="controls">
@@ -34,13 +36,20 @@ export function EarTrainingView() {
           ariaLabel="Quiz"
           options={[
             { value: 'quality' as const, label: 'Chord quality' },
+            { value: 'inversion' as const, label: 'Inversion' },
             { value: 'function' as const, label: 'Function' },
           ]}
           value={quiz}
           onChange={setQuiz}
         />
       </div>
-      {quiz === 'quality' ? <QualityQuiz /> : <FunctionQuizView />}
+      {quiz === 'quality' ? (
+        <QualityQuiz />
+      ) : quiz === 'inversion' ? (
+        <InversionQuizView />
+      ) : (
+        <FunctionQuizView />
+      )}
     </>
   );
 }
