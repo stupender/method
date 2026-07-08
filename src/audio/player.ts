@@ -81,13 +81,21 @@ function scheduleNote(
   const freq = frequencyOfMidi(midi);
 
   // Two slightly-detuned tone generators (the "two strings" of the voice).
+  // Short notes (scale runs, fast arpeggios) get just one: the 6-cent beating
+  // is too slow to hear in under half a second, and a looped chart schedules
+  // thousands of notes — half the oscillators is a real saving.
+  const oscs: OscillatorNode[] = [];
   const osc = ctx.createOscillator();
   osc.type = 'triangle';
   osc.frequency.value = freq;
-  const osc2 = ctx.createOscillator();
-  osc2.type = 'triangle';
-  osc2.frequency.value = freq;
-  osc2.detune.value = 6; // cents — a whisker sharp, for a gentle shimmer
+  oscs.push(osc);
+  if (duration >= 0.4) {
+    const osc2 = ctx.createOscillator();
+    osc2.type = 'triangle';
+    osc2.frequency.value = freq;
+    osc2.detune.value = 6; // cents — a whisker sharp, for a gentle shimmer
+    oscs.push(osc2);
+  }
 
   // A gentle low-pass filter rounds off the harsh high harmonics.
   const filter = ctx.createBiquadFilter();
@@ -105,18 +113,17 @@ function scheduleNote(
   gain.gain.exponentialRampToValueAtTime(0.05, when + ring * 0.4); // fast early decay
   gain.gain.exponentialRampToValueAtTime(0.0001, when + ring); // the tail
 
-  // Wire the graph (both oscillators -> filter -> envelope -> out) and run it.
+  // Wire the graph (oscillators -> filter -> envelope -> out) and run it.
   // `destination` defaults to the shared compressor; the transport passes its
   // own master gain (which feeds the compressor) so Pause can cut everything.
   // The oscillators are returned so the transport can stop them early.
-  osc.connect(filter);
-  osc2.connect(filter);
   filter.connect(gain).connect(destination);
-  osc.start(when);
-  osc2.start(when);
-  osc.stop(when + ring + 0.05);
-  osc2.stop(when + ring + 0.05);
-  return [osc, osc2];
+  for (const o of oscs) {
+    o.connect(filter);
+    o.start(when);
+    o.stop(when + ring + 0.05);
+  }
+  return oscs;
 }
 
 // A short metronome click — a dry percussive blip, not a tone. The downbeat (the

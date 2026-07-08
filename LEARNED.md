@@ -923,3 +923,24 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   endgame per CLAUDE.md — this pass just makes the seam pleasant until then.
 - Tone can't be judged through a headless browser: verified every playback path
   runs clean (sequence, chord, transport + clicks); Stu's ears are the test.
+
+## Session 10 — scale-run units: the bar that runs its chord scale
+
+- **The third unit type**: Bar plays Chord / Arpeggio / **Scale**. A scale bar
+  runs its chord scale ascending across the bar (7 tones + octave) and wears ∿.
+- **Which scale? Two answers, tried in order** (`theory/chordScale.ts`, pure):
+  (1) IN THE KEY — if the chord is diatonic to the working key, the run is the
+  key heard from the chord's root (the MODE on that degree): Dm7 in C → D
+  dorian. Quality must match too, so a blues F7 in C falls through (Fmaj7 ≠ F7)
+  and correctly gets mixolydian, not lydian. (2) FROM THE QUALITY — visitors
+  get the standard jazz pairing: maj7→ionian, 7→mixolydian, m7→dorian,
+  ø7→locrian, m(maj7)→melodic minor; dim/aug honestly null → chord tones.
+- **The Context strip changes what a bar PLAYS now, not just its label**:
+  verified the same Am7 bar runs A aeolian under the C-major hypothesis and A
+  dorian under G major. One working key, three surfaces (label, reveal, run).
+- The editor names the run in place ("runs D Dorian") — the teaching moment.
+- New DATA: the m2 interval (locrian's parent sits a half-step up). Performance:
+  notes under 0.4s use one oscillator (detune beating is inaudible that fast,
+  and a looped run schedules thousands of notes).
+- The palta/interval-pattern generator extends this same seam next (direction,
+  grouping — 1235, thirds…).

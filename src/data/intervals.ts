@@ -17,6 +17,7 @@ import type { Interval } from '../theory/types';
 // Perfect / major intervals within one octave, plus the few altered ones we
 // need for seventh chords. Add more here as new scales/chords require them.
 export const P1: Interval = { name: 'P1', diatonicSteps: 0, semitones: 0 };  // unison / root
+export const m2: Interval = { name: 'm2', diatonicSteps: 1, semitones: 1 };  // minor 2nd
 export const M2: Interval = { name: 'M2', diatonicSteps: 1, semitones: 2 };  // major 2nd
 export const m3: Interval = { name: 'm3', diatonicSteps: 2, semitones: 3 };  // minor 3rd
 export const M3: Interval = { name: 'M3', diatonicSteps: 2, semitones: 4 };  // major 3rd
