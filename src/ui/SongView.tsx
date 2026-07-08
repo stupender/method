@@ -63,6 +63,8 @@ const PX_PER_BEAT = 46; // timeline scale
 const SNAP = 0.25; // drag snaps to a sixteenth note
 const MIN_DUR = 0.25; // a chord must last at least this
 const CHORD_LANE_H = 54; // chord-symbol lane height (symbol + its function label)
+const RAMP_BPM_STEP = 5; // Ramp adds this much each time the loop comes round
+const MAX_BPM = 280; // same ceiling as the tempo +/- buttons
 const STAFF_GAP = 16; // breathing room between the chord lane and the TAB staff
 const STRING_GAP = 15; // vertical gap between TAB staff string lines
 
@@ -182,6 +184,9 @@ export function SongView({
   // Loop: play the song round and round (the teaching vamp — set it going and
   // improvise over it). See startSong for how it stays gapless.
   const [loop, setLoop] = useState(false);
+  // Ramp: while looping, nudge the tempo up each time round (the classic
+  // speed-trainer drill). The reached tempo is saved with the song.
+  const [ramp, setRamp] = useState(false);
   // The playhead doubles as a CURSOR: while stopped it marks where Play will start
   // from (click the score to move it); while playing it sweeps. null = the top.
   const [playheadBeat, setPlayheadBeat] = useState<number | null>(null);
@@ -380,77 +385,81 @@ export function SongView({
   // Start playing from `fromBeat`, optionally with a one-bar count-in. Schedules
   // the audio, then animates the playhead off the audio clock so the line and the
   // sound stay locked together (the clock is the single source of truth).
-  // `loopOn` is passed explicitly (defaulting to the toggle) so flipping Loop
-  // mid-playback can restart with the NEW value, not the stale closure's.
-  const startSong = (fromBeat: number, withCountIn: boolean, loopOn: boolean = loop) => {
+  // `loopOn`/`rampOn` are passed explicitly (defaulting to the toggles) so
+  // flipping either mid-playback can restart with the NEW value, not the stale
+  // closure's.
+  const startSong = (
+    fromBeat: number,
+    withCountIn: boolean,
+    loopOn: boolean = loop,
+    rampOn: boolean = ramp,
+  ) => {
     // A "beat" is the time-signature's bottom note; tempo (♩) is the quarter.
-    const secPerBeat = (60 / bpm) * (4 / denominator);
+    const secPerBeatAt = (b: number) => (60 / b) * (4 / denominator);
     const countInBeats = withCountIn ? beatsPerBar : 0;
-    const countInSec = countInBeats * secPerBeat;
+    const countInSec = countInBeats * secPerBeatAt(bpm);
 
-    // Loop = schedule the whole song SEVERAL TIMES UP FRONT (capped at ~10
-    // minutes), so there's no restart seam at the loop point — Web Audio plays
-    // straight through and only the playhead wraps. Pass 1 runs from the cursor
-    // to the end; every later pass is the full song, top to tail.
-    const passSec = totalBeats * secPerBeat;
-    const passes =
-      loopOn && passSec > 0 ? Math.max(2, Math.min(200, Math.ceil(600 / passSec))) : 1;
-    // Where pass p (1-based; p >= 1) begins, in seconds on the audio clock.
-    const passStartSec = (p: number) =>
-      countInSec + (totalBeats - fromBeat + (p - 1) * totalBeats) * secPerBeat;
+    // THE PASS PLAN. Loop = schedule the whole song SEVERAL TIMES UP FRONT
+    // (capped at ~10 minutes), so there's no restart seam at the loop point —
+    // Web Audio plays one continuous schedule and only the playhead wraps.
+    // Ramp = each pass simply carries its own (faster) tempo in the same plan.
+    // Pass 0 runs from the cursor to the end; every later pass is the full song.
+    interface Pass {
+      startSec: number; // when this pass begins, on the audio clock
+      secPerBeat: number;
+      fromBeat: number; // 0 except for pass 0 (the cursor)
+      bpmHere: number; // what the tempo readout should show during this pass
+    }
+    const plan: Pass[] = [];
+    {
+      let t = countInSec;
+      let bpmHere = bpm;
+      const passLimit = loopOn ? 500 : 1;
+      for (let p = 0; p < passLimit; p++) {
+        const from = p === 0 ? fromBeat : 0;
+        const spb = secPerBeatAt(bpmHere);
+        plan.push({ startSec: t, secPerBeat: spb, fromBeat: from, bpmHere });
+        t += (totalBeats - from) * spb;
+        if (t - countInSec > 600) break; // enough audio; the tick resets at the end
+        if (rampOn && loopOn) bpmHere = Math.min(MAX_BPM, bpmHere + RAMP_BPM_STEP);
+      }
+    }
+    const last = plan[plan.length - 1];
+    const endSec = last.startSec + (totalBeats - last.fromBeat) * last.secPerBeat;
 
-    // Chords whose tail is still ahead of the cursor — clipped to start at the
-    // cursor, and pushed back by the count-in.
-    const chordEvents = muteChords
-      ? []
-      : chords.flatMap((c, i) => {
-          const end = starts[i] + c.durationBeats;
-          if (end <= fromBeat) return [];
-          const from = Math.max(starts[i], fromBeat);
-          return [
-            {
-              midis:
-                voiceLead && voicedShapes[i]
-                  ? voicedShapes[i].map((p) => midiOf(p.note))
-                  : chordMidis(c),
-              atSec: countInSec + (from - fromBeat) * secPerBeat,
-              durSec: (end - from) * secPerBeat,
-            },
-          ];
-        });
-    // The looped passes: every chord, full length, offset to its pass.
+    // Chords, pass by pass. In pass 0, chords whose tail is behind the cursor
+    // are dropped and the one under it is clipped to start there.
+    const chordEvents: { midis: number[]; atSec: number; durSec: number }[] = [];
     if (!muteChords) {
-      for (let p = 1; p < passes; p++) {
+      for (const pass of plan) {
         chords.forEach((c, i) => {
+          const end = starts[i] + c.durationBeats;
+          if (end <= pass.fromBeat) return;
+          const from = Math.max(starts[i], pass.fromBeat);
           chordEvents.push({
             midis:
               voiceLead && voicedShapes[i]
                 ? voicedShapes[i].map((pn) => midiOf(pn.note))
                 : chordMidis(c),
-            atSec: passStartSec(p) + starts[i] * secPerBeat,
-            durSec: c.durationBeats * secPerBeat,
+            atSec: pass.startSec + (from - pass.fromBeat) * pass.secPerBeat,
+            durSec: (end - from) * pass.secPerBeat,
           });
         });
       }
     }
 
     // Clicks: the count-in bar (always audible when counting in), then — if the
-    // metronome is on — a click on every remaining beat, accented on downbeats.
+    // metronome is on — a click on every beat of every pass, accented on
+    // downbeats, at that pass's tempo.
     const clicks: { atSec: number; accent: boolean }[] = [];
     for (let b = 0; b < countInBeats; b++) {
-      clicks.push({ atSec: b * secPerBeat, accent: b % beatsPerBar === 0 });
+      clicks.push({ atSec: b * secPerBeatAt(bpm), accent: b % beatsPerBar === 0 });
     }
     if (metronome) {
-      for (let gb = Math.ceil(fromBeat - 1e-6); gb < totalBeats; gb++) {
-        clicks.push({
-          atSec: countInSec + (gb - fromBeat) * secPerBeat,
-          accent: gb % beatsPerBar === 0,
-        });
-      }
-      for (let p = 1; p < passes; p++) {
-        for (let gb = 0; gb < totalBeats; gb++) {
+      for (const pass of plan) {
+        for (let gb = Math.ceil(pass.fromBeat - 1e-6); gb < totalBeats; gb++) {
           clicks.push({
-            atSec: passStartSec(p) + gb * secPerBeat,
+            atSec: pass.startSec + (gb - pass.fromBeat) * pass.secPerBeat,
             accent: gb % beatsPerBar === 0,
           });
         }
@@ -462,19 +471,27 @@ export function SongView({
     setIsPlaying(true);
 
     const ctx = getAudioContext();
+    let shownBpm = bpm; // the tempo the readout currently shows (ramp display)
     const tick = () => {
-      // Elapsed since the song proper began (after the count-in).
-      const songElapsed = ctx.currentTime - pb.startTime - countInSec;
-      const beat = fromBeat + songElapsed / secPerBeat;
-      if (beat >= totalBeats * passes) {
+      const sinceStart = ctx.currentTime - pb.startTime;
+      if (sinceStart >= endSec) {
         reset(); // out of scheduled passes — rewind to the top
         return;
       }
-      // Past the first pass, wrap the playhead back into the song each time
-      // round (the audio is one continuous schedule; only the line wraps).
-      const shown =
-        beat < totalBeats ? Math.max(fromBeat, beat) : (beat - totalBeats) % totalBeats;
-      setPlayheadBeat(shown); // (the max holds the line still during count-in)
+      // Which pass are we in? (The plan is short and ordered — a scan is fine.)
+      let p = plan.length - 1;
+      while (p > 0 && sinceStart < plan[p].startSec) p--;
+      const pass = plan[p];
+      // The beat within this pass; clamped so the line holds during count-in.
+      const beat =
+        pass.fromBeat + Math.max(0, sinceStart - pass.startSec) / pass.secPerBeat;
+      setPlayheadBeat(Math.min(beat, totalBeats));
+      // Ramp: surface (and persist) the tempo of the pass we're in. Display
+      // only — the audio was scheduled above; this can't disturb it.
+      if (pass.bpmHere !== shownBpm) {
+        shownBpm = pass.bpmHere;
+        onMeter({ bpm: pass.bpmHere });
+      }
       raf.current = requestAnimationFrame(tick);
     };
     raf.current = requestAnimationFrame(tick);
@@ -485,14 +502,22 @@ export function SongView({
     else startSong(playheadBeat ?? 0, countIn);
   };
 
-  // Flip Loop. If the song is rolling, restart it in place with the new value
-  // (no count-in) so the toggle takes effect NOW, not at the next Play.
+  // Flip Loop / Ramp. If the song is rolling, restart it in place with the new
+  // value (no count-in) so the toggle takes effect NOW, not at the next Play.
   const toggleLoop = () => {
     const next = !loop;
     setLoop(next);
     if (isPlaying) {
       stopAudio();
-      startSong(playheadBeat ?? 0, false, next);
+      startSong(playheadBeat ?? 0, false, next, ramp);
+    }
+  };
+  const toggleRamp = () => {
+    const next = !ramp;
+    setRamp(next);
+    if (isPlaying) {
+      stopAudio();
+      startSong(playheadBeat ?? 0, false, loop, next);
     }
   };
 
@@ -684,6 +709,12 @@ export function SongView({
           <button className={loop ? 'pill pill--on' : 'pill'} onClick={toggleLoop}>
             Loop
           </button>
+          {/* Ramp only means something while looping — it appears with Loop. */}
+          {loop && (
+            <button className={ramp ? 'pill pill--on' : 'pill'} onClick={toggleRamp}>
+              Ramp +{RAMP_BPM_STEP}
+            </button>
+          )}
         </div>
 
         <div className="cluster" role="group" aria-label="Song actions">

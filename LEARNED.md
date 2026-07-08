@@ -847,3 +847,23 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   Same ♭-labelling convention too (♭ on the minor's degrees 2/5/6).
 - The FnOption/chordFor/pool-snapshot pattern absorbed the new kind with ~20
   lines — the quiz architecture paid off.
+
+## Session 9c — Ramp (the speed trainer), and a debugging lesson
+
+- **Ramp = the woodshed drill**: while looping, each time round adds +5 bpm
+  (capped at 280, where it keeps looping). The reached tempo persists with the
+  song — "we got it to 140 today" is saved. The pill appears only when Loop is
+  on (disclosure by relevance).
+- **Design lesson: scheduling beats restarting.** The first attempt restarted
+  playback at each pass boundary (flag + a [bpm] effect) — a fragile async dance
+  across React state and the audio clock. The fix: build a PASS PLAN up front
+  (each pass carries its own tempo) and schedule it all as one continuous Web
+  Audio timeline. The tick just reports which pass it's in (playhead position +
+  tempo readout). No restarts → no race → and the ramp is gapless too.
+- **Debugging lesson: beware the observer.** The "bug" that survived the rewrite
+  was my own test harness — overlapping browser evals clicking the transport
+  button mid-run. In-page event tracing (window array + timestamps + stack
+  slices) settled it where console logs couldn't: the preview's console
+  collector duplicates entries per eval hook and persists across reloads.
+  Verified clean: one Play event, 100→115 on the exact pass schedule, and a
+  60-second unattended run ramping to the 280 ceiling and looping there.
