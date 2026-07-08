@@ -904,3 +904,22 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - Also explains a day of intermittent test results: the preview tab's
   visibility fluctuates. Browser-verify animations only in a visible tab; verify
   STATE (storage, DOM, classes) any time.
+
+## Session 9f — the voice, de-annoyed (Stu's field note: "the sound is a bit annoying")
+
+- **Three causes, three fixes, one file** (audio/player.ts — the seam built for
+  exactly this):
+  1. **Droning**: notes sustained at full volume for their whole duration, so a
+     4-beat bar = 2.4s of continuous organ tone. Now a PLUCK envelope — fast
+     attack, most of the decay early, ring time capped ~1.9s — so a bar rings
+     and settles like a strummed chord.
+  2. **Clipping**: five voices × 0.28 gain summed past full volume — the harsh
+     "cheap synth" edge. Now: per-note peak 0.16 AND a shared master COMPRESSOR
+     (threshold −18dB, soft knee) that everything routes through.
+  3. **The piercing click**: 2kHz square → a low-mid sine "tock" (1150/820Hz).
+- Also: two triangle oscillators 6 cents apart per note — the slow beating
+  between them reads as warmth/body, the cheapest chorus there is.
+- The REAL instrument voice (Stu's Archive/Soundscape synth code) remains the
+  endgame per CLAUDE.md — this pass just makes the seam pleasant until then.
+- Tone can't be judged through a headless browser: verified every playback path
+  runs clean (sequence, chord, transport + clicks); Stu's ears are the test.
