@@ -815,3 +815,23 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Still on the table** (Stu's fuller list): the diminished-scale minor-third
   dominant family (four dom7s a m3 apart), the M3-approach dominant, the vii°
   chain link, and making these quizzable in Ear Training. subV7 is the common one.
+
+## Session 9 — Loop (the first embodiment intent lands)
+
+- **Loop = the teaching vamp**: set a chord or progression going round and round
+  and improvise over it (DESIGN.md's first of three "Play actions are embodiment
+  moves": Loop / Play-along / Practice card). A Loop pill in Practice options.
+- **Gapless by scheduling, not by restarting.** Restarting audio at the loop
+  point would put a ~120ms seam in every pass. Instead startSong schedules the
+  whole song SEVERAL passes up front (capped ~10 minutes / 200 passes) as one
+  continuous Web Audio timeline; only the PLAYHEAD wraps (`(beat - totalBeats) %
+  totalBeats`). Pass 1 runs cursor→end, later passes top→tail.
+- **Mid-play toggling must not read stale state.** `startSong` takes `loopOn`
+  as an explicit parameter (defaulting to the toggle) so flipping Loop while
+  playing restarts in place with the NEW value — a closure would still see the
+  old one. React state + Web Audio scheduling live on different clocks; pass
+  values explicitly across that boundary.
+- Also: the handoff brief claimed songs vanish on reload — WRONG, songbook
+  persistence already shipped (`method.songbook.v1` in App.tsx). Corrected in
+  BACKLOG. Lesson: verify "current state" claims against code before writing
+  briefs.

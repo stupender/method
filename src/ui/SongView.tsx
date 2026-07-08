@@ -179,6 +179,9 @@ export function SongView({
   const [metronome, setMetronome] = useState(false);
   const [muteChords, setMuteChords] = useState(false);
   const [countIn, setCountIn] = useState(false);
+  // Loop: play the song round and round (the teaching vamp — set it going and
+  // improvise over it). See startSong for how it stays gapless.
+  const [loop, setLoop] = useState(false);
   // The playhead doubles as a CURSOR: while stopped it marks where Play will start
   // from (click the score to move it); while playing it sweeps. null = the top.
   const [playheadBeat, setPlayheadBeat] = useState<number | null>(null);
@@ -377,11 +380,24 @@ export function SongView({
   // Start playing from `fromBeat`, optionally with a one-bar count-in. Schedules
   // the audio, then animates the playhead off the audio clock so the line and the
   // sound stay locked together (the clock is the single source of truth).
-  const startSong = (fromBeat: number, withCountIn: boolean) => {
+  // `loopOn` is passed explicitly (defaulting to the toggle) so flipping Loop
+  // mid-playback can restart with the NEW value, not the stale closure's.
+  const startSong = (fromBeat: number, withCountIn: boolean, loopOn: boolean = loop) => {
     // A "beat" is the time-signature's bottom note; tempo (♩) is the quarter.
     const secPerBeat = (60 / bpm) * (4 / denominator);
     const countInBeats = withCountIn ? beatsPerBar : 0;
     const countInSec = countInBeats * secPerBeat;
+
+    // Loop = schedule the whole song SEVERAL TIMES UP FRONT (capped at ~10
+    // minutes), so there's no restart seam at the loop point — Web Audio plays
+    // straight through and only the playhead wraps. Pass 1 runs from the cursor
+    // to the end; every later pass is the full song, top to tail.
+    const passSec = totalBeats * secPerBeat;
+    const passes =
+      loopOn && passSec > 0 ? Math.max(2, Math.min(200, Math.ceil(600 / passSec))) : 1;
+    // Where pass p (1-based; p >= 1) begins, in seconds on the audio clock.
+    const passStartSec = (p: number) =>
+      countInSec + (totalBeats - fromBeat + (p - 1) * totalBeats) * secPerBeat;
 
     // Chords whose tail is still ahead of the cursor — clipped to start at the
     // cursor, and pushed back by the count-in.
@@ -402,6 +418,21 @@ export function SongView({
             },
           ];
         });
+    // The looped passes: every chord, full length, offset to its pass.
+    if (!muteChords) {
+      for (let p = 1; p < passes; p++) {
+        chords.forEach((c, i) => {
+          chordEvents.push({
+            midis:
+              voiceLead && voicedShapes[i]
+                ? voicedShapes[i].map((pn) => midiOf(pn.note))
+                : chordMidis(c),
+            atSec: passStartSec(p) + starts[i] * secPerBeat,
+            durSec: c.durationBeats * secPerBeat,
+          });
+        });
+      }
+    }
 
     // Clicks: the count-in bar (always audible when counting in), then — if the
     // metronome is on — a click on every remaining beat, accented on downbeats.
@@ -416,6 +447,14 @@ export function SongView({
           accent: gb % beatsPerBar === 0,
         });
       }
+      for (let p = 1; p < passes; p++) {
+        for (let gb = 0; gb < totalBeats; gb++) {
+          clicks.push({
+            atSec: passStartSec(p) + gb * secPerBeat,
+            accent: gb % beatsPerBar === 0,
+          });
+        }
+      }
     }
 
     const pb = startPlayback({ chordEvents, clicks, leadInSec: 0.12 });
@@ -427,11 +466,15 @@ export function SongView({
       // Elapsed since the song proper began (after the count-in).
       const songElapsed = ctx.currentTime - pb.startTime - countInSec;
       const beat = fromBeat + songElapsed / secPerBeat;
-      if (beat >= totalBeats) {
-        reset(); // reached the end — rewind to the top
+      if (beat >= totalBeats * passes) {
+        reset(); // out of scheduled passes — rewind to the top
         return;
       }
-      setPlayheadBeat(Math.max(fromBeat, beat)); // hold at the start during count-in
+      // Past the first pass, wrap the playhead back into the song each time
+      // round (the audio is one continuous schedule; only the line wraps).
+      const shown =
+        beat < totalBeats ? Math.max(fromBeat, beat) : (beat - totalBeats) % totalBeats;
+      setPlayheadBeat(shown); // (the max holds the line still during count-in)
       raf.current = requestAnimationFrame(tick);
     };
     raf.current = requestAnimationFrame(tick);
@@ -440,6 +483,17 @@ export function SongView({
   const togglePlay = () => {
     if (isPlaying) pause();
     else startSong(playheadBeat ?? 0, countIn);
+  };
+
+  // Flip Loop. If the song is rolling, restart it in place with the new value
+  // (no count-in) so the toggle takes effect NOW, not at the next Play.
+  const toggleLoop = () => {
+    const next = !loop;
+    setLoop(next);
+    if (isPlaying) {
+      stopAudio();
+      startSong(playheadBeat ?? 0, false, next);
+    }
   };
 
   // Click the score to move the playhead (a scrub). While playing, this seeks:
@@ -626,6 +680,9 @@ export function SongView({
             onClick={() => setCountIn((c) => !c)}
           >
             Count-in
+          </button>
+          <button className={loop ? 'pill pill--on' : 'pill'} onClick={toggleLoop}>
+            Loop
           </button>
         </div>
 
