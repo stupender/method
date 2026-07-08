@@ -22,6 +22,7 @@ import { DOMINANT_SEVENTH } from '../data/chords';
 import { P5 } from '../data/intervals';
 import { diatonicChords } from '../theory/harmony';
 import { realizeScale } from '../theory/scale';
+import { parallelMinorOf } from '../theory/suggest';
 import { spellNoteFromInterval, midiOf, noteName } from '../theory/notes';
 import { playChord } from '../audio/player';
 
@@ -29,9 +30,10 @@ import { playChord } from '../audio/player';
 // the same string in every major key), so we compute them once from C.
 interface FnOption {
   id: string;
-  label: string; // "ii7", "V7/IV", ...
-  kind: 'diatonic' | 'secondary';
-  degree: number; // diatonic: the degree itself; secondary: the TARGET degree
+  label: string; // "ii7", "V7/IV", "♭VII7", ...
+  kind: 'diatonic' | 'secondary' | 'borrowed';
+  degree: number; // diatonic: the degree itself; secondary: the TARGET degree;
+  // borrowed: the degree IN THE PARALLEL MINOR
 }
 
 const C = ROOT_CHOICES[0];
@@ -45,12 +47,29 @@ for (const [i, t] of diatonicChords(C, MAJOR_SCALE, false).entries()) {
   if (i === 0 || t.chord.id === 'diminished-triad') continue;
   OPTIONS.push({ id: `s${i}`, label: `V7/${t.roman}`, kind: 'secondary', degree: i });
 }
+{
+  // Borrowed from the parallel minor — the three every jazz/pop tune leans on:
+  // iv7, ♭VImaj7 and ♭VII7 (the backdoor dominant). Same ♭-labelling convention
+  // as interpretInKey: the minor's 3rd/6th/7th degrees sit a half-step below
+  // major's, so degrees 2/5/6 get a ♭ (iv, at degree 3, doesn't).
+  const { modeRoot, modeScale } = parallelMinorOf(C);
+  for (const i of [3, 5, 6]) {
+    const d = diatonicChords(modeRoot, modeScale, true)[i];
+    const flat = i === 2 || i === 5 || i === 6 ? '♭' : '';
+    OPTIONS.push({ id: `b${i}`, label: flat + d.roman, kind: 'borrowed', degree: i });
+  }
+}
 const OPTION_BY_ID = new Map(OPTIONS.map((o) => [o.id, o]));
 
 // The actual chord an option means in a given key.
 function chordFor(o: FnOption, tonic: Note) {
   if (o.kind === 'diatonic') {
     const d = diatonicChords(tonic, MAJOR_SCALE, true)[o.degree];
+    return { root: d.chordRoot, chord: d.chord };
+  }
+  if (o.kind === 'borrowed') {
+    const { modeRoot, modeScale } = parallelMinorOf(tonic);
+    const d = diatonicChords(modeRoot, modeScale, true)[o.degree];
     return { root: d.chordRoot, chord: d.chord };
   }
   const target = realizeScale(tonic, MAJOR_SCALE)[o.degree].note;
@@ -166,6 +185,7 @@ export function FunctionQuizView() {
 
   const diatonicOptions = OPTIONS.filter((o) => o.kind === 'diatonic');
   const secondaryOptions = OPTIONS.filter((o) => o.kind === 'secondary');
+  const borrowedOptions = OPTIONS.filter((o) => o.kind === 'borrowed');
 
   return (
     <>
@@ -193,6 +213,20 @@ export function FunctionQuizView() {
           <span className="control-label">Reaching out</span>
           <div className="control-group" role="group" aria-label="Secondary dominants">
             {secondaryOptions.map((o) => (
+              <button
+                key={o.id}
+                className={enabled.has(o.id) ? 'pill pill--on' : 'pill'}
+                onClick={() => toggle(o.id)}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="controls-row">
+          <span className="control-label">Borrowed</span>
+          <div className="control-group" role="group" aria-label="Borrowed chords">
+            {borrowedOptions.map((o) => (
               <button
                 key={o.id}
                 className={enabled.has(o.id) ? 'pill pill--on' : 'pill'}
@@ -257,7 +291,8 @@ export function FunctionQuizView() {
       <footer className="footnote">
         The key is random every round, so you're hearing each chord's{' '}
         <em>relationship</em> to the I, not absolute pitches. The V7/x chords step
-        outside the key — that pull is what you're learning to catch.
+        outside the key; borrowed chords (iv7, ♭VImaj7, ♭VII7) darken into the
+        parallel minor — those pulls and colours are what you're learning to catch.
       </footer>
     </>
   );

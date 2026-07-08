@@ -835,3 +835,15 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   persistence already shipped (`method.songbook.v1` in App.tsx). Corrected in
   BACKLOG. Lesson: verify "current state" claims against code before writing
   briefs.
+
+## Session 9b — borrowed chords join the Function quiz (Brief B)
+
+- **A third pool row, "Borrowed":** iv7, ♭VImaj7 and ♭VII7 (the backdoor
+  dominant) — the three parallel-minor colours every jazz/pop tune leans on.
+  Default OFF (they're the deep end of the dial).
+- **One source of truth for "the parallel minor":** `parallelMinorOf` exported
+  from theory/suggest.ts, so the quiz builds its borrowed chords from the SAME
+  derivation the analysis engine uses (aeolian = 6th mode of the major a m3 up).
+  Same ♭-labelling convention too (♭ on the minor's degrees 2/5/6).
+- The FnOption/chordFor/pool-snapshot pattern absorbed the new kind with ~20
+  lines — the quiz architecture paid off.

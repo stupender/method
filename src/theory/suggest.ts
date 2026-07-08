@@ -61,8 +61,8 @@ function roleOfBass(
 // NOT in the SCALES data (every natural minor is its relative major's notes, so
 // listing it would double every key in the reveal). Derive it instead: aeolian
 // on this tonic = the 6th mode of the major scale a minor 3rd up (C aeolian =
-// the notes of E♭ major, from C).
-function parallelMinorOf(tonic: Note) {
+// the notes of E♭ major, from C). Exported: the function quiz borrows from it too.
+export function parallelMinorOf(tonic: Note) {
   const relativeMajor = spellNoteFromInterval(tonic, m3);
   return modeAt(relativeMajor, MAJOR_SCALE, 5); // { modeRoot, modeScale }
 }
