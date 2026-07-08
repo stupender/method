@@ -60,16 +60,10 @@ song id; versioned key, normalize-on-load, id-counter advance). The only
 session-only display state is the global Labels toggle — persist it if it ever
 annoys Stu, not before.
 
-### Brief B — borrowed chords in the Function quiz pool
-`ui/FunctionQuizView.tsx` has two pool groups (diatonic `d0..d6`, secondary
-`s{i}`). Add a third, "Borrowed" (`b{i}`), from the parallel minor:
-`parallelMinorOf(tonic)` + `diatonicChords(modeRoot, modeScale, true)` (both in
-`theory/suggest.ts` / `theory/harmony.ts`) — offer iv7, ♭VImaj7, ♭VII7 (degrees
-3, 5, 6 of the minor; label with the ♭ convention already used by
-`interpretInKey`, i.e. ♭ on minor degrees 2/5/6). Default them OFF. Follow the
-existing patterns exactly: `chordFor`/`midisFor` switch on `kind`, the pool is
-snapshotted per question, reveal says "the ♭VII7 in F major". UI row label:
-"Borrowed" (sits under "Reaching out").
+### ~~Brief B — borrowed chords in the Function quiz pool~~ (done — session 9b)
+A third pool row "Borrowed" (iv7, ♭VImaj7, ♭VII7 from the parallel minor,
+default OFF); `parallelMinorOf` exported from `theory/suggest.ts` so quiz and
+analysis share one derivation and one ♭-labelling convention.
 
 ### Brief C — dominant families, part 2 (NEEDS STU: theory calls first)
 `interpretInKey` now reads diatonic → V7/x → borrowed → subV7/x, so every dom7
