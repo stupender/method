@@ -886,3 +886,21 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - Verified: majors unflatted; no double-flats (B♭7 in C stays ♭VII7); blues bars
   read I·IV7·V7·I; Possibility's degree track and the quiz pools all carry the
   convention.
+
+## Session 9e — per-bar units: a bar can DO something (Arc 3 opens)
+
+- **`ChartChord.unit`: 'chord' | 'arpeggio'.** A "Bar plays" segmented track in
+  the editor; an arpeggio bar spreads its chord tones evenly across the bar,
+  low to high, and wears a quiet ↗ after its symbol. This is the data seam that
+  scale runs and interval patterns (paltas) extend — songs as exercises.
+- **The hidden-tab discovery.** Browsers throttle requestAnimationFrame to ZERO
+  in hidden tabs. Method's playhead is rAF-driven, so in a backgrounded tab the
+  LINE freezes — but because all audio is scheduled up front on the Web Audio
+  clock (the pass plan), the MUSIC keeps playing correctly, and on return the
+  playhead recomputes from the audio clock and lands exactly right. This is why
+  the earlier restart-at-boundary ramp design was doomed: its logic lived in the
+  rAF tick. Rule of thumb: the audio clock is the timekeeper; rAF is only a
+  paintbrush.
+- Also explains a day of intermittent test results: the preview tab's
+  visibility fluctuates. Browser-verify animations only in a visible tab; verify
+  STATE (storage, DOM, classes) any time.

@@ -46,6 +46,7 @@ import {
 import { bassNoteName } from '../theory/chord';
 import { noteName, pitchClassOf, spellNoteFromInterval, midiOf } from '../theory/notes';
 import { startPlayback, getAudioContext, type Playback } from '../audio/player';
+import { Segmented } from './Segmented';
 
 const CHORD_LIST = Object.values(CHORDS);
 const SCALE_ORDER = Object.values(SCALES);
@@ -117,6 +118,10 @@ export interface ChartChord {
   // A slash chord's bass ("C/E" -> E) — the note kept under the chord, whether it
   // came from typing a slash or from committing an inversion suggestion.
   bassIndex?: number;
+  // What the bar DOES with its chord (the per-bar UNIT — songs as exercises):
+  // 'chord' (default) strikes it as a block; 'arpeggio' spreads the tones evenly
+  // across the bar. Scale runs and interval patterns join this list later.
+  unit?: 'chord' | 'arpeggio';
 }
 
 // The MIDI notes of a chord (close root position) — for playback. A bass-only
@@ -136,7 +141,9 @@ const chordLabel = (c: ChartChord) => {
   const root = noteName(ROOT_CHOICES[c.rootIndex]);
   if (c.bassOnly) return `${root} ?`;
   const slash = c.bassIndex != null ? `/${noteName(ROOT_CHOICES[c.bassIndex])}` : '';
-  return `${root}${CHORDS[c.chordId].symbol}${slash}`;
+  // An arpeggio bar wears a quiet rising glyph after its symbol.
+  const unit = c.unit === 'arpeggio' ? ' ↗' : '';
+  return `${root}${CHORDS[c.chordId].symbol}${slash}${unit}`;
 };
 
 // A stable key for a (tonic, scale) pair, by pitch class so spelling doesn't matter.
@@ -435,12 +442,32 @@ export function SongView({
         chords.forEach((c, i) => {
           const end = starts[i] + c.durationBeats;
           if (end <= pass.fromBeat) return;
+          const midis =
+            voiceLead && voicedShapes[i]
+              ? voicedShapes[i].map((pn) => midiOf(pn.note))
+              : chordMidis(c);
+          // An ARPEGGIO bar spreads its tones evenly across the bar, low to
+          // high — one event per tone, each clipped at the cursor like a chord.
+          if (c.unit === 'arpeggio' && midis.length > 0) {
+            const step = c.durationBeats / midis.length;
+            [...midis]
+              .sort((a, b) => a - b)
+              .forEach((m, k) => {
+                const tStart = starts[i] + k * step;
+                const tEnd = tStart + step;
+                if (tEnd <= pass.fromBeat) return; // behind the cursor
+                const from = Math.max(tStart, pass.fromBeat);
+                chordEvents.push({
+                  midis: [m],
+                  atSec: pass.startSec + (from - pass.fromBeat) * pass.secPerBeat,
+                  durSec: (tEnd - from) * pass.secPerBeat,
+                });
+              });
+            return;
+          }
           const from = Math.max(starts[i], pass.fromBeat);
           chordEvents.push({
-            midis:
-              voiceLead && voicedShapes[i]
-                ? voicedShapes[i].map((pn) => midiOf(pn.note))
-                : chordMidis(c),
+            midis,
             atSec: pass.startSec + (from - pass.fromBeat) * pass.secPerBeat,
             durSec: (end - from) * pass.secPerBeat,
           });
@@ -922,6 +949,22 @@ export function SongView({
       {/* Edit the selected chord: its root, then its quality. The two rows are
           stacked with a gap so the chord-quality names don't touch the roots. */}
       <div className="chord-editor">
+      {/* What the selected bar DOES with its chord — the per-bar unit type.
+          Arpeggio turns the bar into an exercise: tones spread across the bar. */}
+      {!selected.bassOnly && (
+        <div className="controls-row">
+          <span className="control-label">Bar plays</span>
+          <Segmented
+            ariaLabel="Bar unit"
+            options={[
+              { value: 'chord', label: 'Chord' },
+              { value: 'arpeggio', label: 'Arpeggio' },
+            ]}
+            value={selected.unit ?? 'chord'}
+            onChange={(v) => editSelected({ unit: v as ChartChord['unit'] })}
+          />
+        </div>
+      )}
       {/* Type a chord by name as a shortcut for the root + quality pills. */}
       <form
         className="chord-input"

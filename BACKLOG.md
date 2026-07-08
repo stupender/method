@@ -65,16 +65,15 @@ A third pool row "Borrowed" (iv7, ♭VImaj7, ♭VII7 from the parallel minor,
 default OFF); `parallelMinorOf` exported from `theory/suggest.ts` so quiz and
 analysis share one derivation and one ♭-labelling convention.
 
-### Brief C — dominant families, part 2 (NEEDS STU: theory calls first)
-`interpretInKey` now reads diatonic → V7/x → borrowed → subV7/x, so every dom7
-root gets SOME reading in a major key. Open expert calls before coding more:
-(1) blues dominants — F7 in C currently reads subV7/iii; a blues IV7 label may
-serve teaching better (and I7 for C7 instead of V7/IV when it's the tonic
-sound); (2) minor keys — mostly sane (probed: ii7/V7/subV7 fine in C melodic
-minor) but A♭maj7 in C harmonic minor reads "VImaj7" (♭VImaj7?) and B♭7 reads
-"V7/III+" (tonicizing an augmented chord — musically odd; suppress?); (3) the
-diminished-scale m3 dominant family and M3-approach labels. Ask Stu in-lesson,
-then implement as more steps in `interpretInKey`.
+### ~~Brief C — dominant families, part 2~~ (Stu ruled — done, session 9d)
+Rulings implemented: (1) blues **IV7** for a dom7 on the fourth degree of a
+major key (tonic dominant keeps V7/IV); (2) **♭/♯ numerals built at the source**
+(harmony.ts, measured against the parallel major) so C harmonic minor reads
+i(maj7) iiø7 ♭IIImaj7♯5 iv7 V7 ♭VImaj7 vii°7 app-wide — the manual ♭-hacks in
+suggest.ts and the quiz are deleted; (3) V7/♭III+ kept (formal derivation
+stands). Still open, lower priority: the diminished-scale m3 dominant family
+and M3-approach as EXPLICIT teaching labels (they all already get *a* reading),
+and a minor-key deep-dive for the strip/quiz.
 
 ### Brief D — unify the Possibility/Play TAB look (quick win, visual)
 The score's TAB staff in Play and the TabView cards in Possibility use different
