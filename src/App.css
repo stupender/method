@@ -338,6 +338,69 @@
   border-color: var(--muted);
 }
 
+/* --- Practice cards: the take-home step --------------------------------- */
+.practice-box {
+  margin-top: 18px;
+}
+.practice-box summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 14px;
+  width: fit-content;
+}
+.practice-box summary:hover {
+  color: var(--ink);
+}
+.practice-count {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.practice-new {
+  margin: 14px 0 8px;
+}
+.practice-new input {
+  width: 340px;
+  max-width: 100%;
+}
+.practice-list {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+/* One saved card: the instruction + progression on the left, actions on the
+   right. A quiet paper tile — the first hint of the eventual card aesthetic. */
+.practice-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.015);
+}
+.practice-card__note {
+  margin: 0 0 4px;
+  color: var(--ink);
+  font-size: 15px;
+}
+.practice-card__prog {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.practice-card__meta {
+  font-variant-numeric: tabular-nums;
+}
+.practice-card__actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 /* --- Songbook: switch between songs -------------------------------------- */
 .songbook {
   display: flex;

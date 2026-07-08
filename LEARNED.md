@@ -967,3 +967,24 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   matched them by copying values. Now they SHARE them: `--tab-line` and
   `--tab-fret-size` in index.css. Copied values drift; tokens can't. Verified
   all three compute identical line colour + fret size in the browser.
+
+## Session 10d — practice cards: the teaching loop's take-home step
+
+- **A practice card freezes the open chart** — chords (with per-bar units),
+  meter and tempo — beside a one-line instruction you type ("loop this ii-V,
+  arps only, to 120"). Reopen it to load the chart back. This closes the lesson
+  loop (Song -> Analyze -> Voicings/Scales -> **Practice**) and is the first
+  seed of DESIGN.md's Practice zone + per-student Palette.
+- **Skeleton by design**: the DATA MODEL is the deliverable. Loop/ramp intent
+  and per-student grouping layer on later without reshaping the card. Kept the
+  card to what App already owns (durable song content), so nothing had to be
+  lifted out of SongView's transient transport state.
+- **Own storage key** (`method.cards.v1`), same load/normalize/id-counter
+  pattern as the songbook — newest first, filtered to cards with >=1 chord.
+- **One labeler, two places**: exported `chordLabel` from SongView so a card's
+  summary shows the SAME labels (unit glyphs and all — verified the ∿ survives
+  the snapshot).
+- Verified full lifecycle in-browser: save (input clears, count/note/prog +
+  localStorage), mutate chart then Open -> restores, Remove, and persistence
+  across a real reload. Preview needed a manual nav to localhost after a reload
+  (the recurring stuck-proxy quirk).

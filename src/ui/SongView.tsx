@@ -140,7 +140,9 @@ function chordMidis(c: ChartChord): number[] {
   return tones;
 }
 
-const chordLabel = (c: ChartChord) => {
+// The chord's label — root + quality (+ slash bass, + a unit glyph). Exported so
+// the practice cards can summarise a snapshot with the very same labels.
+export const chordLabel = (c: ChartChord) => {
   const root = noteName(ROOT_CHOICES[c.rootIndex]);
   if (c.bassOnly) return `${root} ?`;
   const slash = c.bassIndex != null ? `/${noteName(ROOT_CHOICES[c.bassIndex])}` : '';

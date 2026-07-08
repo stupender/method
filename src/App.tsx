@@ -23,6 +23,7 @@ import { InversionLadder } from './ui/InversionLadder';
 import { ScaleExplorer } from './ui/ScaleExplorer';
 import { Segmented } from './ui/Segmented';
 import { SongView, type ChartChord } from './ui/SongView';
+import { PracticeCards, type PracticeCard } from './ui/PracticeCards';
 import { EarTrainingView } from './ui/EarTrainingView';
 import './App.css';
 
@@ -110,6 +111,33 @@ const initialSongbook = loadSongbook() ?? (() => {
   return { songs: [first], currentId: first.id };
 })();
 
+// --- Practice cards: the take-home step, saved next to the songbook ---------
+const CARDS_KEY = 'method.cards.v1';
+let cardCounter = 0;
+const nextCardId = () => `card-${++cardCounter}`;
+
+// Load saved cards (or [] if none / unreadable), advancing the id counter so new
+// cards don't collide. A card needs at least one chord to be worth restoring.
+function loadCards(): PracticeCard[] {
+  try {
+    const raw = localStorage.getItem(CARDS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    const cards = (parsed as PracticeCard[]).filter(
+      (c) => c && typeof c.id === 'string' && Array.isArray(c.chords) && c.chords.length > 0,
+    );
+    for (const c of cards) {
+      const n = Number(String(c.id).replace('card-', ''));
+      if (Number.isFinite(n)) cardCounter = Math.max(cardCounter, n);
+    }
+    return cards;
+  } catch {
+    return []; // corrupt or unavailable storage — start with none
+  }
+}
+const initialCards = loadCards();
+
 function App() {
   const [area, setArea] = useState<Area>('study');
 
@@ -170,6 +198,41 @@ function App() {
     setCurrentId(remaining[0].id);
   };
 
+  // --- Practice cards -----------------------------------------------------
+  const [cards, setCards] = useState<PracticeCard[]>(initialCards);
+
+  // Save the cards whenever they change (their own key, next to the songbook).
+  useEffect(() => {
+    try {
+      localStorage.setItem(CARDS_KEY, JSON.stringify(cards));
+    } catch {
+      /* storage full or blocked — not worth interrupting the user */
+    }
+  }, [cards]);
+
+  // Freeze the open song's content into a new card (newest first).
+  const saveCard = (instruction: string) => {
+    const card: PracticeCard = {
+      id: nextCardId(),
+      instruction,
+      chords: current.chords,
+      bpm: current.bpm,
+      beatsPerBar: current.beatsPerBar,
+      denominator: current.denominator,
+      createdAt: Date.now(),
+    };
+    setCards((cs) => [card, ...cs]);
+  };
+  // Open a card: load its frozen chart back into the OPEN song.
+  const openCard = (card: PracticeCard) =>
+    updateCurrent({
+      chords: card.chords,
+      bpm: card.bpm,
+      beatsPerBar: card.beatsPerBar,
+      denominator: card.denominator,
+    });
+  const removeCard = (id: string) => setCards((cs) => cs.filter((c) => c.id !== id));
+
   return (
     <main className="page page--wide">
       <header className="masthead masthead--compact">
@@ -210,6 +273,12 @@ function App() {
           beatsPerBar={current.beatsPerBar}
           denominator={current.denominator}
           onMeter={updateCurrent}
+        />
+        <PracticeCards
+          cards={cards}
+          onSave={saveCard}
+          onOpen={openCard}
+          onRemove={removeCard}
         />
       </div>
       <div hidden={area !== 'ear'}>
