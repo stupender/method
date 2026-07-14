@@ -36,10 +36,15 @@ function layer — build once, reuse everywhere.
    (`theory/chordScale.ts`), **interval patterns / paltas** (a Pattern dial on
    arpeggio/scale bars — repeating chains of directed steps, `data/patterns.ts`
    + `theory/pattern.ts`; add a pattern = add a data line), and the
-   **practice-card skeleton** (`ui/PracticeCards.tsx`). Remaining polish: more
-   pattern presets + a custom pattern entry ("↓4 ↓2 ↑4" as text); add
-   scales/patterns from Possibility to Play; Loop / Play-along as named
-   presets; per-student card grouping (the Palette); pattern glyph on the bar.
+   **practice-card skeleton** (`ui/PracticeCards.tsx`). Plus the REAL palta
+   generator in Possibility (Stu's spec): a **Patterns** mode — pair interval
+   (3rds–7ths) × contour (↑↑/↑↓/↓↑/↓↓) × direction over any scale/mode
+   (`theory/pairs.ts` + `ui/PatternExplorer.tsx`; the between-pair ANCHOR STEP
+   is an explicit parameter, ready for custom pairings). Next: **custom
+   pairings** (expose anchorStep + free chains in the UI, e.g. typed "↓4 ↓2
+   ↑4"); pattern TAB placed into position boxes; send-a-pattern-to-Play (unify
+   with the bar Pattern dial); Loop / Play-along as named presets; per-student
+   card grouping (the Palette); pattern glyph on the bar.
 4. **Sound & song fidelity** — a tasteful instrument voice; sections/repeats;
    rests/tuplets; voice-leading same-string-set bias; per-chord manual voicing.
 5. **Reach** — import (iReal/MIDI/Ableton), accounts & saved prefs, the FULL
