@@ -31,14 +31,15 @@ function layer — build once, reuse everywhere.
    FOUNDATION: the heat ramp is the first real aesthetic token, designed to keep.*
 2. **Ear training, deepened** — inversions + parameter panel → progression
    dictation (bass motion + quality) → the function quiz (rides Arc 1).
-3. **The practice loop** ← NEARLY DONE. Done: **Loop** (gapless vamp), **Ramp**
-   (+5 bpm each pass), per-bar units **chord | arpeggio | scale** (a scale bar
-   runs its chord scale via `theory/chordScale.ts`; the editor names the run),
-   and the **practice-card skeleton** (freeze a chart + instruction, reopen to
-   restore — `ui/PracticeCards.tsx`, `method.cards.v1`). Next: interval-pattern
-   units (the palta/sequence generator — direction, grouping 1235/thirds — rides
-   the unit seam); add scales/patterns from Possibility to Play; the Loop /
-   Play-along intents as named presets; per-student card grouping (the Palette).
+3. **The practice loop** ← DONE (first full pass). **Loop** (gapless vamp),
+   **Ramp** (+5 bpm each pass), per-bar units **chord | arpeggio | scale**
+   (`theory/chordScale.ts`), **interval patterns / paltas** (a Pattern dial on
+   arpeggio/scale bars — repeating chains of directed steps, `data/patterns.ts`
+   + `theory/pattern.ts`; add a pattern = add a data line), and the
+   **practice-card skeleton** (`ui/PracticeCards.tsx`). Remaining polish: more
+   pattern presets + a custom pattern entry ("↓4 ↓2 ↑4" as text); add
+   scales/patterns from Possibility to Play; Loop / Play-along as named
+   presets; per-student card grouping (the Palette); pattern glyph on the bar.
 4. **Sound & song fidelity** — a tasteful instrument voice; sections/repeats;
    rests/tuplets; voice-leading same-string-set bias; per-chord manual voicing.
 5. **Reach** — import (iReal/MIDI/Ableton), accounts & saved prefs, the FULL
