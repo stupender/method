@@ -12,7 +12,7 @@
 // sits on the chosen string set for every chord. No new placement code.
 // ============================================================================
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { Note, ScaleDefinition, PlacedNote } from '../theory/types';
 import { GUITAR } from '../data/instruments';
 import { GUITAR_STANDARD } from '../data/tunings';
@@ -31,6 +31,7 @@ import { playChord } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
 import { TabView } from '../render/TabView';
 import { Segmented } from './Segmented';
+import { ShapeStepper, useStepper } from './ShapeStepper';
 
 // A stable key for a shape's string set, e.g. "0-1-2-3".
 const stringSetKey = (shape: PlacedNote[]) =>
@@ -51,7 +52,10 @@ export function ChordScaleLadder({
   const [structureId, setStructureId] = useState('close');
   const [inversionIndex, setInversionIndex] = useState(0); // the bass note
   const [stringSet, setStringSet] = useState<string | null>(null);
+  // Pinned (clicked/stepped, stays lit) vs hovered (temporary preview).
+  const [pinned, setPinned] = useState<number | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
+  const active = hovered ?? pinned;
 
   const degrees = diatonicChords(root, scale, seventh);
   // All seven share a voice count (all triads, or all sevenths), so the structure
@@ -118,6 +122,16 @@ export function ChordScaleLadder({
   };
   const playRung = (i: number) =>
     ladder[i].length && playChord(ladder[i].map((p) => midiOf(p.note)));
+  // Clicking a rung (neck or TAB) plays it AND pins it as the selection.
+  const selectRung = (i: number) => {
+    setPinned(i);
+    playRung(i);
+  };
+
+  // Walk the ladder: ‹ › buttons or the ← → arrow keys move to the next/previous
+  // rung and play it (only while this view is visible).
+  const viewRef = useRef<HTMLDivElement>(null);
+  const stepRung = useStepper(viewRef, ladder.length, active, selectRung);
 
   // A string set named by its open-string notes, low -> high, e.g. "E A D G".
   const setLabel = (key: string) =>
@@ -125,7 +139,7 @@ export function ChordScaleLadder({
 
   return (
     <>
-      <div className="view-controls">
+      <div className="view-controls" ref={viewRef}>
         <div className="controls-row">
           <Segmented
             ariaLabel="Structure"
@@ -139,6 +153,12 @@ export function ChordScaleLadder({
           <button className="pill pill--play" onClick={playScale}>
             ▶ Play chord scale
           </button>
+          <ShapeStepper
+            index={active}
+            count={ladder.length}
+            onStep={stepRung}
+            label="chord"
+          />
         </div>
 
         <div className="controls-row">
@@ -170,9 +190,9 @@ export function ChordScaleLadder({
             instrument={GUITAR}
             tuning={GUITAR_STANDARD}
             shapes={ladder}
-            activeShapeIndex={hovered}
+            activeShapeIndex={active}
             onShapeHover={setHovered}
-            onShapeTap={playRung}
+            onShapeTap={selectRung}
             labelMode={labelMode}
           />
 
@@ -181,10 +201,10 @@ export function ChordScaleLadder({
             {degrees.map((d, i) => (
               <div
                 key={i}
-                className={i === hovered ? 'tab-card tab-card--on' : 'tab-card'}
+                className={i === active ? 'tab-card tab-card--on' : 'tab-card'}
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered(null)}
-                onClick={() => playRung(i)}
+                onClick={() => selectRung(i)}
               >
                 <TabView
                   instrument={GUITAR}

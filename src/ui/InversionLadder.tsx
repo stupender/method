@@ -10,7 +10,7 @@
 // we keep the shapes on the chosen string set and octave-copy them up the neck.
 // ============================================================================
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { Note, ChordDefinition, PlacedNote } from '../theory/types';
 import { GUITAR } from '../data/instruments';
 import { GUITAR_STANDARD } from '../data/tunings';
@@ -28,6 +28,7 @@ import { playChord } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
 import { TabView } from '../render/TabView';
 import { Segmented } from './Segmented';
+import { ShapeStepper, useStepper } from './ShapeStepper';
 
 // (These small layout helpers are shared in spirit with ChordScaleLadder; kept
 // local so each ladder file stays self-contained.)
@@ -56,7 +57,10 @@ export function InversionLadder({
 }) {
   const [structureId, setStructureId] = useState('close');
   const [stringSet, setStringSet] = useState<string | null>(null);
+  // Pinned (clicked/stepped, stays lit) vs hovered (temporary preview).
+  const [pinned, setPinned] = useState<number | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
+  const active = hovered ?? pinned;
 
   const voiceCount = inversionCount(chord);
   const structures = structuresForChord(chord, STRUCTURES);
@@ -94,12 +98,23 @@ export function InversionLadder({
     );
   const playRung = (i: number) =>
     shapes[i]?.length && playChord(shapes[i].map((p) => midiOf(p.note)));
+  // Clicking a rung (neck or TAB) plays it AND pins it as the selection.
+  const selectRung = (i: number) => {
+    setPinned(i);
+    playRung(i);
+  };
+
+  // Walk the inversions up the neck: ‹ › buttons or the ← → arrow keys move to
+  // the next/previous rung and play it (only while this view is visible).
+  const viewRef = useRef<HTMLDivElement>(null);
+  const stepRung = useStepper(viewRef, rungs.length, active, selectRung);
+
   const setLabel = (key: string) =>
     key.split('-').map((i) => noteName(GUITAR_STANDARD.openNotes[+i])).join(' ');
 
   return (
     <>
-      <div className="view-controls">
+      <div className="view-controls" ref={viewRef}>
         <div className="controls-row">
           <Segmented
             ariaLabel="Structure"
@@ -113,6 +128,12 @@ export function InversionLadder({
           <button className="pill pill--play" onClick={playAll}>
             ▶ Play inversions
           </button>
+          <ShapeStepper
+            index={active}
+            count={rungs.length}
+            onStep={stepRung}
+            label="inversion"
+          />
         </div>
 
         <div className="controls-row">
@@ -134,9 +155,9 @@ export function InversionLadder({
             instrument={GUITAR}
             tuning={GUITAR_STANDARD}
             shapes={shapes}
-            activeShapeIndex={hovered}
+            activeShapeIndex={active}
             onShapeHover={setHovered}
-            onShapeTap={playRung}
+            onShapeTap={selectRung}
             labelMode={labelMode}
           />
 
@@ -145,10 +166,10 @@ export function InversionLadder({
             {rungs.map((r, i) => (
               <div
                 key={i}
-                className={i === hovered ? 'tab-card tab-card--on' : 'tab-card'}
+                className={i === active ? 'tab-card tab-card--on' : 'tab-card'}
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered(null)}
-                onClick={() => playRung(i)}
+                onClick={() => selectRung(i)}
               >
                 <TabView
                   instrument={GUITAR}

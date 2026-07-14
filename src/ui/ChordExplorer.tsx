@@ -14,7 +14,7 @@
 // higher-priority Roman-numeral / triad-vs-7th choices live in the view above.)
 // ============================================================================
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { Note, ChordDefinition } from '../theory/types';
 import { GUITAR } from '../data/instruments';
 import { GUITAR_STANDARD } from '../data/tunings';
@@ -32,6 +32,7 @@ import { playChord } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
 import { TabView } from '../render/TabView';
 import { Segmented } from './Segmented';
+import { ShapeStepper, useStepper } from './ShapeStepper';
 
 export function ChordExplorer({
   root,
@@ -101,9 +102,14 @@ export function ChordExplorer({
     playShape(shapes[i] ?? []);
   };
 
+  // Walk the voicings up the neck: ‹ › buttons or the ← → arrow keys move to
+  // the next/previous shape and play it (only while this view is visible).
+  const viewRef = useRef<HTMLDivElement>(null);
+  const stepShape = useStepper(viewRef, shapes.length, activeShape, selectShape);
+
   return (
     <>
-      <div className="view-controls">
+      <div className="view-controls" ref={viewRef}>
         <div className="controls-row">
           <Segmented
             ariaLabel="Bass note"
@@ -117,6 +123,12 @@ export function ChordExplorer({
           >
             ▶ Play chord
           </button>
+          <ShapeStepper
+            index={activeShape}
+            count={shapes.length}
+            onStep={stepShape}
+            label="voicing"
+          />
         </div>
 
         <div className="controls-row">

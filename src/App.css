@@ -245,6 +245,21 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* The shape stepper: ‹ 3 / 7 › — walk the TAB shapes in playing order.
+   (The ← → arrow keys do the same; see ui/ShapeStepper.tsx.) */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.stepper__count {
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  min-width: 44px; /* steady width so the buttons don't shuffle as it counts */
+  text-align: center;
+}
+
 /* The play button wears the accent. */
 .pill--play {
   border-color: var(--accent);

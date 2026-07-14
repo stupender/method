@@ -988,3 +988,21 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   localStorage), mutate chart then Open -> restores, Remove, and persistence
   across a real reload. Preview needed a manual nav to localhost after a reload
   (the recurring stuck-proxy quirk).
+
+## Session 11 — the shape stepper (Stu's field note: "we play them one after another")
+
+- **Walk the TAB row the way you play it.** In Possibility, the shapes ARE a
+  sequence — positions up the neck, ladder rungs, voicings. A shared
+  `ui/ShapeStepper.tsx` adds ‹ 3 / 7 › buttons AND the ← → arrow keys: step to
+  the next/previous shape, pin it, play it. Wraps at the ends. Wired into all
+  four TAB views (ScaleExplorer, ChordExplorer, both ladders — the ladders
+  gained a pinned selection to step onto).
+- **Global key listeners need two guards**: (1) the app keeps hidden areas
+  MOUNTED (the `hidden` attribute), so every stepper's listener is always
+  alive — check `el.offsetParent === null` to ignore keys while your view is
+  off screen; (2) never hijack arrows inside INPUT/TEXTAREA/contentEditable.
+  Verified both: arrows in Play don't move Possibility's stepper; arrows in the
+  chord field don't step.
+- Hook + control shipped as one file: `useStepper` (owns the keys, returns
+  `step(delta)`) + `ShapeStepper` (the buttons + live count). They're only ever
+  used together.

@@ -9,7 +9,7 @@
 // chords — the only difference is where the shapes come from.
 // ============================================================================
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Note, ScaleDefinition } from '../theory/types';
 import { GUITAR } from '../data/instruments';
 import { GUITAR_STANDARD } from '../data/tunings';
@@ -19,6 +19,7 @@ import { playSequence } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
 import { TabSequence } from '../render/TabSequence';
 import { Segmented } from './Segmented';
+import { ShapeStepper, useStepper } from './ShapeStepper';
 import type { PlacedNote } from '../theory/types';
 
 export function ScaleExplorer({
@@ -106,9 +107,14 @@ export function ScaleExplorer({
     playPosition(shapes[i] ?? []);
   };
 
+  // Walk the positions in playing order: the ‹ › buttons or the ← → arrow keys
+  // move to the next/previous box and play it (only while this view is visible).
+  const viewRef = useRef<HTMLDivElement>(null);
+  const stepShape = useStepper(viewRef, shapes.length, activeShape, selectShape);
+
   return (
     <>
-      <div className="view-controls">
+      <div className="view-controls" ref={viewRef}>
         {/* Row 1 — the primary choice (which fingering system) + the play action. */}
         <div className="controls-row">
           <Segmented
@@ -127,6 +133,12 @@ export function ScaleExplorer({
           >
             ▶ Play position
           </button>
+          <ShapeStepper
+            index={activeShape}
+            count={shapes.length}
+            onStep={stepShape}
+            label="position"
+          />
         </div>
 
         {/* Row 2 — how to read it: direction of the run, one box vs all boxes. */}
