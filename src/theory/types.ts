@@ -281,3 +281,21 @@ export interface Progression {
   // A song can be as small as one bar with one chord — a tool to practice over a
   // single chord — or a full chart imported from iReal Pro.
 }
+
+// ============================================================================
+// 6. Patterns — interval + direction sequences (paltas)
+// ============================================================================
+// A PATTERN is a repeating chain of DIRECTED STEPS walked through some material
+// (a scale or an arpeggio). Steps count positions in the material, signed:
+// over a scale, +2 = up a diatonic 3rd, -1 = down a 2nd; over an arpeggio the
+// same numbers walk chord tones. The classics are all short chains:
+//   thirds        = [+2, -1]        C E, D F, E G ...
+//   1-2-3-5       = [+1, +1, +2, -3]
+//   up 4th dn 2nd = [+3, -1]
+// The actual PITCHES come from the material — patterns are pure shape.
+export interface PatternDefinition {
+  id: string;
+  label: string; // short UI label, e.g. "3rds" or "↑4 ↓2"
+  name: string; // spoken name, e.g. "in 3rds" or "up a 4th, down a 2nd"
+  steps: number[]; // the repeating chain of directed material-steps
+}

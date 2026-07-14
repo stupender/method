@@ -1006,3 +1006,25 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - Hook + control shipped as one file: `useStepper` (owns the keys, returns
   `step(delta)`) + `ShapeStepper` (the buttons + live count). They're only ever
   used together.
+
+## Session 11b — interval patterns (paltas): the fourth practice dial
+
+- **One formalism covers every classic drill**: a pattern is a REPEATING CHAIN
+  of directed steps through the material — thirds = [+2,-1], fourths = [+3,-2],
+  1-2-3-5 = [+1,+1,+2,-3], "up a 4th down a 2nd" = [+3,-1], Stu's zig-zag
+  [-3,-1,+3,-1]. Anchored "from each degree" drills and continuous contour
+  walks are the same thing; only the chain differs.
+- **Material × pattern, orthogonal dials** (Stu's "they're kind of similar in
+  function"): the bar's UNIT stays the material (arpeggio or scale) and the
+  PATTERN walks it — so "in 3rds" over a scale is diatonic 3rds, and over an
+  arpeggio it's skip-a-chord-tone. One pattern datum, both materials.
+- **Start on a root with room to move**: the walker computes the chain's lowest
+  cumulative position and starts on the lowest ROOT that keeps the run in
+  range — ascending chains start on the root itself, net-descending chains on a
+  root an octave up (exactly where a player starts them). Verified: the zig-zag
+  over C major runs C5 G4 F4 B4 A4 E4 D4 G4.
+- Patterns are DATA (data/patterns.ts matching PatternDefinition in types.ts);
+  the walker is ~20 lines of pure code (theory/pattern.ts). Pattern bars fill
+  at an eighth-note pulse (durationBeats × 2 notes).
+- JS gotcha: object keys that look numeric ('1235') get hoisted to the front of
+  Object.values — the LIST is now the source of truth and the lookup is derived.

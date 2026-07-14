@@ -45,6 +45,8 @@ import {
 } from '../theory/suggest';
 import { bassNoteName } from '../theory/chord';
 import { chordScaleFor, scaleRunMidis } from '../theory/chordScale';
+import { realizePattern } from '../theory/pattern';
+import { PATTERNS, PATTERN_LIST } from '../data/patterns';
 import { noteName, pitchClassOf, spellNoteFromInterval, midiOf } from '../theory/notes';
 import { startPlayback, getAudioContext, type Playback } from '../audio/player';
 import { Segmented } from './Segmented';
@@ -123,8 +125,12 @@ export interface ChartChord {
   // 'chord' (default) strikes it as a block; 'arpeggio' spreads the tones evenly
   // across the bar; 'scale' runs the chord scale (see theory/chordScale.ts —
   // the working key's mode when the chord is diatonic there, else the quality's
-  // default). Interval patterns (paltas) join this list later.
+  // default).
   unit?: 'chord' | 'arpeggio' | 'scale';
+  // An interval PATTERN (data/patterns.ts) walked through the unit's material —
+  // "in 3rds", "up a 4th down a 2nd"... Applies to arpeggio and scale bars;
+  // absent = play the material straight.
+  patternId?: string;
 }
 
 // The MIDI notes of a chord (close root position) — for playback. A bass-only
@@ -451,6 +457,24 @@ export function SongView({
       );
       return cs ? scaleRunMidis(midiOf(ROOT_CHOICES[c.rootIndex]), cs) : chordMidis(c);
     };
+    // The bar's MATERIAL for an interval pattern: one ascending octave, root
+    // first — scale tones for a scale bar, plain chord tones for an arpeggio
+    // (no slash bass; patterns are exercises on the chord itself).
+    const materialFor = (c: ChartChord): number[] => {
+      const rootMidi = midiOf(ROOT_CHOICES[c.rootIndex]);
+      if (c.unit === 'scale') {
+        const cs = chordScaleFor(
+          ROOT_CHOICES[c.rootIndex],
+          CHORDS[c.chordId],
+          ctxKey?.tonic,
+          ctxKey?.scale,
+        );
+        if (cs) return cs.scale.intervals.map((iv) => rootMidi + iv.semitones);
+      }
+      return CHORDS[c.chordId].intervals.map((iv) =>
+        midiOf(spellNoteFromInterval(ROOT_CHOICES[c.rootIndex], iv)),
+      );
+    };
 
     // Chords, pass by pass. In pass 0, chords whose tail is behind the cursor
     // are dropped and the one under it is clipped to start there.
@@ -465,13 +489,26 @@ export function SongView({
               ? voicedShapes[i].map((pn) => midiOf(pn.note))
               : chordMidis(c);
           // ARPEGGIO and SCALE bars spread a sequence evenly across the bar —
-          // one event per tone, each clipped at the cursor like a chord.
-          const seq =
-            c.unit === 'scale' && !c.bassOnly
-              ? runMidisFor(c)
-              : c.unit === 'arpeggio'
-                ? [...midis].sort((a, b) => a - b) // chord tones, low to high
-                : null;
+          // one event per tone, each clipped at the cursor like a chord. With a
+          // PATTERN chosen, the sequence is the pattern walked through the
+          // bar's material at an eighth-note pulse (durationBeats × 2 notes).
+          const pattern =
+            c.patternId && (c.unit === 'scale' || c.unit === 'arpeggio')
+              ? PATTERNS[c.patternId]
+              : undefined;
+          const seq = c.bassOnly
+            ? null
+            : pattern
+              ? realizePattern(
+                  materialFor(c),
+                  pattern.steps,
+                  Math.max(1, Math.round(c.durationBeats * 2)),
+                )
+              : c.unit === 'scale'
+                ? runMidisFor(c)
+                : c.unit === 'arpeggio'
+                  ? [...midis].sort((a, b) => a - b) // chord tones, low to high
+                  : null;
           if (seq && seq.length > 0) {
             const step = c.durationBeats / seq.length;
             seq.forEach((m, k) => {
@@ -998,6 +1035,29 @@ export function SongView({
             })()}
         </div>
       )}
+      {/* The interval PATTERN walked through that material (paltas). Straight =
+          no pattern. Only meaningful for arpeggio/scale bars, so it appears
+          with them (disclosure by relevance). */}
+      {!selected.bassOnly &&
+        (selected.unit === 'arpeggio' || selected.unit === 'scale') && (
+          <div className="controls-row">
+            <span className="control-label">Pattern</span>
+            <Segmented
+              ariaLabel="Pattern"
+              options={[
+                { value: 'straight', label: 'Straight' },
+                ...PATTERN_LIST.map((p) => ({ value: p.id, label: p.label })),
+              ]}
+              value={selected.patternId ?? 'straight'}
+              onChange={(v) =>
+                editSelected({ patternId: v === 'straight' ? undefined : v })
+              }
+            />
+            {selected.patternId && PATTERNS[selected.patternId] && (
+              <span className="control-hint">{PATTERNS[selected.patternId].name}</span>
+            )}
+          </div>
+        )}
       {/* Type a chord by name as a shortcut for the root + quality pills. */}
       <form
         className="chord-input"
