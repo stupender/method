@@ -20,6 +20,7 @@ import { noteName, pitchClassOf } from './theory/notes';
 import { ChordExplorer } from './ui/ChordExplorer';
 import { ChordScaleLadder } from './ui/ChordScaleLadder';
 import { InversionLadder } from './ui/InversionLadder';
+import { PatternExplorer } from './ui/PatternExplorer';
 import { ScaleExplorer } from './ui/ScaleExplorer';
 import { Segmented } from './ui/Segmented';
 import { SongView, type ChartChord } from './ui/SongView';
@@ -31,7 +32,7 @@ const SCALE_LIST = Object.values(SCALES);
 const CHORD_LIST = Object.values(CHORDS);
 
 type Area = 'study' | 'song' | 'ear';
-type Mode = 'scale' | 'chord' | 'harmony';
+type Mode = 'scale' | 'pattern' | 'chord' | 'harmony';
 
 // The label each top-level area shows in the nav.
 const AREA_LABELS: Record<Area, string> = {
@@ -413,6 +414,7 @@ function StudyArea({
             ariaLabel="Mode"
             options={[
               { value: 'scale' as Mode, label: 'Scales' },
+              { value: 'pattern' as Mode, label: 'Patterns' },
               { value: 'harmony' as Mode, label: 'Harmony' },
             ]}
             value={mode}
@@ -440,6 +442,9 @@ function StudyArea({
           onPickNote={pickNote}
           labelMode={labelMode}
         />
+      )}
+      {mode === 'pattern' && (
+        <PatternView root={root} scale={scale} degree={deg} labelMode={labelMode} />
       )}
       {mode === 'chord' && <ChordView root={root} />}
       {mode === 'harmony' && (
@@ -506,6 +511,35 @@ function ScaleView({
         Each box is a position (a fingering). Click any note to make it the new
         tonic — the mode shifts to start there, in that position.
       </footer>
+    </>
+  );
+}
+
+// --- Pattern view: drill the chosen MODE in interval pairs -----------------
+// Same degree plumbing as ScaleView: the Roman-numeral selector picks the mode,
+// and the drill runs through that mode's notes.
+function PatternView({
+  root,
+  scale,
+  degree,
+  labelMode,
+}: {
+  root: Note;
+  scale: ScaleDefinition;
+  degree: number;
+  labelMode: 'note' | 'degree';
+}) {
+  const { modeRoot, modeScale } = modeAt(root, scale, degree);
+  const tones = realizeScale(modeRoot, modeScale);
+
+  return (
+    <>
+      <p className="tagline">
+        {noteName(modeRoot)} {modeScale.name} in intervals —{' '}
+        {tones.map((t) => noteName(t.note)).join('  ')}
+      </p>
+
+      <PatternExplorer root={modeRoot} scale={modeScale} labelMode={labelMode} />
     </>
   );
 }

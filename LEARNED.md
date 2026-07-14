@@ -1028,3 +1028,26 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   at an eighth-note pulse (durationBeats × 2 notes).
 - JS gotcha: object keys that look numeric ('1235') get hoisted to the front of
   Object.values — the LIST is now the source of truth and the lookup is derived.
+
+## Session 11c — the pair generator: Patterns as a Possibility study mode
+
+- **Stu's correction: the Play presets were far too simple.** The systematic
+  drill belongs in POSSIBILITY, over ANY scale/mode: pair interval (3rds–7ths)
+  × contour (up-up, up-down, down-up, down-down) × direction. A third Mode
+  segment — Scales / Patterns / Harmony — rides the same Key/Scale/Degree
+  plumbing, so degree V of C major drills G Mixolydian.
+- **Three ingredients, named separately** (`theory/pairs.ts`): the PAIR
+  INTERVAL (how far apart the two notes), the CONTOUR (which way odd/even
+  pairs are played — the whole 2×2), and the ANCHOR STEP — the interval nobody
+  states when they say "thirds": the pairs themselves march up a 2nd. Stu
+  spotted that naming it is what unlocks custom pairings, so it's an explicit
+  parameter from day one (anchorStep 2 already gives stacked thirds:
+  C E · E G · G B).
+- **Indices, not pitches**: pairIndices returns positions into the scale
+  (0 = root, 7 = root+octave); the caller maps to midis (indexToMidi wraps
+  octaves) and to spelled NAMES from realizeScale — so C melodic minor drills
+  say E♭, never D♯.
+- Verified against Stu's spec verbatim: ↑↑ C E·D F, ↑↓ C E·F D, ↓↑ E C·D F,
+  ↓↓ E C·F D; 6ths ascending + descending; Mixolydian on degree V; melodic
+  minor spelling. Next: custom pairings (expose anchorStep + free chains),
+  pattern TAB placed into position boxes, and send-a-pattern-to-Play.

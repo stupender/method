@@ -245,6 +245,15 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* The interval-pair run, spelled pair by pair: "C E  ·  F D  ·  E G ...". */
+.pair-readout {
+  font-family: var(--serif);
+  font-size: 19px;
+  color: var(--ink);
+  margin: 4px 0 18px;
+  letter-spacing: 0.3px;
+}
+
 /* The shape stepper: ‹ 3 / 7 › — walk the TAB shapes in playing order.
    (The ← → arrow keys do the same; see ui/ShapeStepper.tsx.) */
 .stepper {
