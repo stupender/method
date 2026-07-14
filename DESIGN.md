@@ -160,7 +160,9 @@ its label:
 - **Accent pill** — an action (▶ Play …).
 
 Dynamic data chips (songbook tabs, key hypotheses, the reveal, suggestions) stay
-chips — they're content, not settings.
+chips — they're content, not settings. One more small role: the **stepper**
+(`ui/ShapeStepper.tsx`, ‹ 3 / 7 ›) walks a sequence of shapes in playing order —
+tiny prev/next actions around a live readout, mirrored by the ← → arrow keys.
 
 ## Design principles (for the live-teaching tool)
 
