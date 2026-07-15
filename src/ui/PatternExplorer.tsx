@@ -17,18 +17,18 @@ import { useState } from 'react';
 import type { Note, ScaleDefinition, PlacedNote } from '../theory/types';
 import { GUITAR } from '../data/instruments';
 import { GUITAR_STANDARD } from '../data/tunings';
-import { scalePositions } from '../theory/scalePositions';
 import {
   patternRun,
-  indexToMidi,
   parseCellMoves,
   describeMove,
   type PatternSpec,
 } from '../theory/pairs';
+import { placeRun, type RunNote } from '../theory/placeRun';
 import { realizeScale } from '../theory/scale';
-import { midiOf, noteName, spellNoteFromInterval } from '../theory/notes';
+import { midiOf } from '../theory/notes';
 import { playSequence } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
+import { TabSequence } from '../render/TabSequence';
 import { Segmented } from './Segmented';
 
 // The pair intervals on offer (2 scale steps = a 3rd), plus the open door.
@@ -60,11 +60,10 @@ export function PatternExplorer({
   const [anchorStep, setAnchorStep] = useState(1);
   const [alternate, setAlternate] = useState(false);
 
-  // One octave of the scale as MIDI notes (root first) — the material — and
-  // the spelled tones for naming (F major says B♭, never A♯).
-  const material = scale.intervals.map((iv) => midiOf(spellNoteFromInterval(root, iv)));
+  // The spelled scale tones — the drill's material AND its spelling (F major
+  // says B♭, never A♯).
   const tones = realizeScale(root, scale);
-  const n = material.length;
+  const n = tones.length;
 
   // The drill spec: a preset pair (contour = the two mirror booleans), or the
   // custom cell as typed.
@@ -85,31 +84,42 @@ export function PatternExplorer({
         };
 
   const indices = spec ? patternRun(n, spec) : [];
-  const midis = indices.map((i) => indexToMidi(material, i));
-  const name = (i: number) => noteName(tones[((i % n) + n) % n].note);
 
-  // The readout, cell by cell: "C E · F D · ...". Cells can be any size.
+  // The run as IDENTIFIED notes (spelling + degree + octave), then placed on
+  // the neck the way a hand would play it (theory/placeRun.ts): staying in
+  // position while possible, drifting diagonally when the octaves demand it.
+  const runNotes: RunNote[] = indices.map((idx) => {
+    const wrapped = ((idx % n) + n) % n;
+    const tone = tones[wrapped];
+    return {
+      note: { ...tone.note, octave: (tone.note.octave ?? 4) + Math.floor(idx / n) },
+      intervalName: tone.degree,
+      isRoot: tone.isRoot,
+    };
+  });
+  const placedRun = placeRun(GUITAR, GUITAR_STANDARD, runNotes);
+
+  // Play what the TAB shows — same placements, same octaves.
+  const play = () =>
+    placedRun && playSequence(placedRun.map((p) => midiOf(p.note)), 0.26);
+
+  // The TAB, wrapped into lines of whole cells (tablature line breaks).
   const cellSize = (spec?.cellMoves.length ?? 1) + 1;
-  const readout = Array.from({ length: Math.ceil(indices.length / cellSize) }, (_, k) =>
-    indices
-      .slice(k * cellSize, (k + 1) * cellSize)
-      .map(name)
-      .join(' '),
-  ).join('  ·  ');
+  const notesPerLine = Math.max(3, Math.floor(24 / cellSize)) * cellSize;
+  const tabLines: PlacedNote[][] = [];
+  for (let i = 0; placedRun && i < placedRun.length; i += notesPerLine) {
+    tabLines.push(placedRun.slice(i, i + notesPerLine));
+  }
 
-  const play = () => midis.length && playSequence(midis, 0.26);
-
-  // The whole scale lit across the neck (the union of its position boxes) —
-  // you SEE the material while the pattern plays through it.
-  const constellation: PlacedNote[] = [];
+  // The run's PATH on the neck (deduped): the positions it uses, and the
+  // diagonal drift between them, made visible.
+  const pathShape: PlacedNote[] = [];
   const seen = new Set<string>();
-  for (const pos of scalePositions(GUITAR, GUITAR_STANDARD, root, scale)) {
-    for (const p of pos.notes) {
-      const key = `${p.position.stringIndex}-${p.position.fret}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        constellation.push(p);
-      }
+  for (const p of placedRun ?? []) {
+    const key = `${p.position.stringIndex}-${p.position.fret}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      pathShape.push(p);
     }
   }
 
@@ -197,22 +207,44 @@ export function PatternExplorer({
         )}
       </div>
 
-      {/* The run itself, spelled cell by cell — two octaves out and back. */}
-      {readout && <p className="pair-readout">{readout}</p>}
+      {/* The run as TAB, wrapped like real tablature — two octaves out and
+          back, fingered in position, drifting up the neck when it must. */}
+      {tabLines.length > 0 ? (
+        <div className="pattern-tab">
+          {tabLines.map((line, i) => (
+            <TabSequence
+              key={i}
+              instrument={GUITAR}
+              tuning={GUITAR_STANDARD}
+              placed={line}
+              ordered
+            />
+          ))}
+        </div>
+      ) : (
+        spec && (
+          <p className="control-hint control-hint--warn">
+            This run doesn't fit the neck — try another key or a smaller cell.
+          </p>
+        )
+      )}
 
+      {/* The run's footprint on the neck: the positions it lives in, and the
+          diagonal shifts between them. */}
       <Fretboard
         instrument={GUITAR}
         tuning={GUITAR_STANDARD}
-        shapes={[constellation]}
+        shapes={[pathShape]}
         labelMode={labelMode}
       />
 
       <footer className="footnote">
-        Every run goes root to root, two octaves out and back. A drill is three
-        choices: the <em>cell</em> played at each stop, the <em>march</em> the
-        stops move by (the interval nobody states when they say "thirds"), and
-        whether cells <em>alternate</em> direction. Custom is the discovery
-        space — type a cell and see what it teaches you.
+        Every run goes root to root, two octaves out and back. The TAB fingers
+        it the way a hand would — staying in a scale position while it can,
+        then drifting diagonally up the neck. A drill is three choices: the{' '}
+        <em>cell</em> at each stop, the <em>march</em> the stops move by (the
+        interval nobody states when they say "thirds"), and whether cells{' '}
+        <em>alternate</em>. Custom is the discovery space.
       </footer>
     </>
   );

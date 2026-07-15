@@ -18,6 +18,10 @@ interface TabSequenceProps {
   tuning: Tuning;
   placed: PlacedNote[];
   descending?: boolean; // read high -> low instead of low -> high
+  // Keep the GIVEN order instead of sorting by pitch — for pattern runs,
+  // where the zig-zag order IS the music (sorting would flatten it back
+  // into a plain scale).
+  ordered?: boolean;
   caption?: string; // optional label, e.g. the position name
 }
 
@@ -26,12 +30,15 @@ export function TabSequence({
   tuning,
   placed,
   descending = false,
+  ordered = false,
   caption,
 }: TabSequenceProps) {
-  // The notes left-to-right by pitch — ascending so the run reads as a scale, or
-  // descending (high -> low) when asked.
-  const notes = [...placed].sort((a, b) => midiOf(a.note) - midiOf(b.note));
-  if (descending) notes.reverse();
+  // The notes left-to-right: in pitch order so a position reads as a scale run
+  // (reversed when descending) — or exactly as given, for pattern runs.
+  const notes = ordered
+    ? placed
+    : [...placed].sort((a, b) => midiOf(a.note) - midiOf(b.note));
+  if (!ordered && descending) notes.reverse();
 
   // String rows, highest string on top (TAB convention).
   const rows: number[] = [];

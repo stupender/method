@@ -245,13 +245,13 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* The interval-pair run, spelled pair by pair: "C E  ·  F D  ·  E G ...". */
-.pair-readout {
-  font-family: var(--serif);
-  font-size: 19px;
-  color: var(--ink);
-  margin: 4px 0 18px;
-  letter-spacing: 0.3px;
+/* The pattern run as TAB: one tablature line per row of cells, stacked. */
+.pattern-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 4px 0 16px;
+  overflow-x: auto; /* a long line scrolls rather than breaking the page */
 }
 
 /* The shape stepper: ‹ 3 / 7 › — walk the TAB shapes in playing order.

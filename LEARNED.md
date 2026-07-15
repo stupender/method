@@ -1068,3 +1068,27 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **patternRun replaced pairIndices**: one engine for presets and customs —
   cells of any length, cumulative moves from each anchor, mirror by parity.
 - Also: don't name a React state setter `setInterval` — it shadows the global.
+
+## Session 12 — patterns as TAB, fingered the way a hand plays them
+
+- **Stu's critique: patterns should read as guitar TAB, not note names** (and
+  the serif readout font was a mistake). The run is now real tablature, wrapped
+  into lines of whole cells, in PLAYING ORDER (TabSequence gained an `ordered`
+  prop — its pitch-sort would have flattened every zig-zag back into a scale).
+- **Placement = least total movement** (`theory/placeRun.ts`): every note
+  lists its candidate string/fret spots; dynamic programming picks the path
+  minimising fret travel (+ a smaller cost for string crossings). Staying put
+  is free, so POSITIONS HOLD THEMSELVES; when two octaves outgrow the box, the
+  cheapest path is the gradual diagonal shift — exactly Stu's rule, emergent
+  from one cost function. 7ths place as the classic two-string climb
+  (A3 G4 A5 G5 A7 G7...); max fret jump ≤ 3 across all probes.
+- **Octave-slide before placing**: a two-octave run from a mid-neck root can
+  overrun 17 frets, so the whole run slides down/up an octave first.
+- **Clamp the march at the ceiling**: no cell note may exceed two octaves
+  above the root (the turn folds early) — this is both the practice-book shape
+  and what keeps every run on a real neck (7ths were unplaceable before).
+- **Placement adds POSITION to identity, not the reverse**: placeRun takes
+  notes already carrying spelling/degree/root-ness (RunNote) and returns
+  PlacedNotes — the layering kept honest by the PlacedNote type itself.
+- The neck now shows the run's PATH (deduped placements) — the diagonal drift
+  made visible. Play sounds the exact placed octaves the TAB shows.

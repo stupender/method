@@ -37,10 +37,18 @@ export function patternRun(n: number, spec: PatternSpec): number[] {
 
   // The anchor path: multiples of the step, up (or down) as far as two
   // octaves, then the same stops in reverse — root to root, no doubled top.
+  // The march is CLAMPED so no note of any cell exceeds the two-octave
+  // ceiling (a 7ths pair can't poke past it — the turn folds early instead;
+  // that's also what keeps every run playable on a real neck).
+  const cums = [0];
+  for (const move of cellMoves) cums.push(cums[cums.length - 1] + move);
+  const maxOff = Math.max(...cums);
+  const minOff = Math.min(...cums);
   const dir = Math.sign(anchorStep);
   const size = Math.abs(anchorStep);
+  const reach = Math.max(0, 2 * n - (dir > 0 ? maxOff : -minOff));
   const outward: number[] = [];
-  for (let a = 0; Math.abs(a) <= 2 * n; a += dir * size) outward.push(a);
+  for (let a = 0; Math.abs(a) <= reach; a += dir * size) outward.push(a);
   const anchors = [...outward, ...outward.slice(0, -1).reverse()];
 
   // Each cell: the anchor plus the cumulative moves; mirrored per the spec.
