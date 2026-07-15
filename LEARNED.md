@@ -1051,3 +1051,20 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   ↓↓ E C·F D; 6ths ascending + descending; Mixolydian on degree V; melodic
   minor spelling. Next: custom pairings (expose anchorStep + free chains),
   pattern TAB placed into position boxes, and send-a-pattern-to-Play.
+
+## Session 11d — custom pairings + the two-octave standard
+
+- **Every drill now runs ROOT TO ROOT, TWO OCTAVES OUT AND BACK** (Stu's
+  standard "for any scale"): the anchor path climbs to 2n and retraces its
+  stops without doubling the top — one continuous exercise. A negative march
+  goes down two octaves and back up. The separate Ascending/Descending track
+  is gone; the round trip replaced it.
+- **Custom cells are the discovery space.** The three ingredients each got a
+  control: CELL = a typed chain of directed moves ("3 -2", "↓4 ↓2 ↑4"; arrows,
+  +/-, or u/d all parse), echoed back in words ("up a 3rd, down a 2nd") so the
+  notation teaches itself; MARCH = the anchor step as a segmented (↑2nd…↓4th);
+  ALTERNATE = mirror every other cell. The preset contours are exactly
+  {alternate, mirrorCell} — the 2×2 fell out of two booleans.
+- **patternRun replaced pairIndices**: one engine for presets and customs —
+  cells of any length, cumulative moves from each anchor, mirror by parity.
+- Also: don't name a React state setter `setInterval` — it shadows the global.

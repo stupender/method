@@ -1,12 +1,16 @@
 // ============================================================================
-// ui/PatternExplorer.tsx — drill any scale in interval pairs (Possibility)
+// ui/PatternExplorer.tsx — drill any scale in interval patterns (Possibility)
 // ----------------------------------------------------------------------------
-// The systematic palta generator, as a study mode beside Scales and Harmony:
-// take the CURRENT scale/mode and walk it in pairs — every interval (3rds to
-// 7ths) × every contour (up-up, up-down, down-up, down-down), ascending or
-// descending. The neck shows the scale constellation; the readout spells the
-// run pair by pair; ▶ plays it. Pure reuse: theory/pairs.ts generates, the
-// Fretboard shows, playSequence sounds.
+// The palta generator, a study mode beside Scales and Harmony. Every drill is
+// built from Stu's three ingredients (see theory/pairs.ts): the CELL played at
+// each stop, the ANCHOR STEP the stops march by, and how cells are mirrored.
+// The presets (3rds–7ths × the ↑↑/↑↓/↓↑/↓↓ contours) cover the classics; the
+// CUSTOM cell is the discovery space — type any chain of directed moves
+// ("3 -2" = up a 3rd, down a 2nd) and choose how it marches.
+//
+// THE RUN is always root to root, two octaves out and back (the standard).
+// The neck shows the scale constellation; the readout spells the run cell by
+// cell; ▶ plays it.
 // ============================================================================
 
 import { useState } from 'react';
@@ -14,21 +18,30 @@ import type { Note, ScaleDefinition, PlacedNote } from '../theory/types';
 import { GUITAR } from '../data/instruments';
 import { GUITAR_STANDARD } from '../data/tunings';
 import { scalePositions } from '../theory/scalePositions';
-import { pairIndices, indexToMidi, type PairContour } from '../theory/pairs';
+import {
+  patternRun,
+  indexToMidi,
+  parseCellMoves,
+  describeMove,
+  type PatternSpec,
+} from '../theory/pairs';
 import { realizeScale } from '../theory/scale';
 import { midiOf, noteName, spellNoteFromInterval } from '../theory/notes';
 import { playSequence } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
 import { Segmented } from './Segmented';
 
-// The pair intervals on offer: 2 scale steps = a 3rd, up to 6 = a 7th.
+// The pair intervals on offer (2 scale steps = a 3rd), plus the open door.
 const INTERVAL_CHOICES = [
-  { steps: 2, label: '3rds' },
-  { steps: 3, label: '4ths' },
-  { steps: 4, label: '5ths' },
-  { steps: 5, label: '6ths' },
-  { steps: 6, label: '7ths' },
-];
+  { value: 2, label: '3rds' },
+  { value: 3, label: '4ths' },
+  { value: 4, label: '5ths' },
+  { value: 5, label: '6ths' },
+  { value: 6, label: '7ths' },
+  { value: 'custom', label: 'Custom' },
+] as const;
+
+type PairContour = 'up-up' | 'up-down' | 'down-up' | 'down-down';
 
 export function PatternExplorer({
   root,
@@ -40,28 +53,51 @@ export function PatternExplorer({
   // What the dots say — a global display setting, owned by the view above.
   labelMode?: 'note' | 'degree';
 }) {
-  const [intervalSteps, setIntervalSteps] = useState(2); // 3rds
+  const [interval, setIntervalChoice] = useState<number | 'custom'>(2); // 3rds
   const [contour, setContour] = useState<PairContour>('up-up');
-  const [direction, setDirection] = useState<'up' | 'down'>('up');
+  // The custom drill: a typed cell, its anchor march, and the zig-zag toggle.
+  const [cellText, setCellText] = useState('3 -2');
+  const [anchorStep, setAnchorStep] = useState(1);
+  const [alternate, setAlternate] = useState(false);
 
-  // One octave of the scale as MIDI notes (root first) — the drill's material —
-  // and the spelled tones for naming (F major says B♭, never A♯).
+  // One octave of the scale as MIDI notes (root first) — the material — and
+  // the spelled tones for naming (F major says B♭, never A♯).
   const material = scale.intervals.map((iv) => midiOf(spellNoteFromInterval(root, iv)));
   const tones = realizeScale(root, scale);
   const n = material.length;
 
-  // One octave of anchors (n pairs, landing back on the root) in the chosen
-  // interval, contour and direction.
-  const indices = pairIndices(n, intervalSteps, contour, n + 1, 1, direction === 'down');
+  // The drill spec: a preset pair (contour = the two mirror booleans), or the
+  // custom cell as typed.
+  const customMoves = parseCellMoves(cellText);
+  const spec: PatternSpec | null =
+    interval === 'custom'
+      ? customMoves && {
+          cellMoves: customMoves,
+          anchorStep,
+          alternate,
+          mirrorCell: false,
+        }
+      : {
+          cellMoves: [interval],
+          anchorStep: 1,
+          alternate: contour === 'up-down' || contour === 'down-up',
+          mirrorCell: contour === 'down-down' || contour === 'down-up',
+        };
+
+  const indices = spec ? patternRun(n, spec) : [];
   const midis = indices.map((i) => indexToMidi(material, i));
   const name = (i: number) => noteName(tones[((i % n) + n) % n].note);
 
-  // The readout, pair by pair: "C E · F D · E G ...".
-  const readout = Array.from({ length: indices.length / 2 }, (_, k) =>
-    `${name(indices[2 * k])} ${name(indices[2 * k + 1])}`,
+  // The readout, cell by cell: "C E · F D · ...". Cells can be any size.
+  const cellSize = (spec?.cellMoves.length ?? 1) + 1;
+  const readout = Array.from({ length: Math.ceil(indices.length / cellSize) }, (_, k) =>
+    indices
+      .slice(k * cellSize, (k + 1) * cellSize)
+      .map(name)
+      .join(' '),
   ).join('  ·  ');
 
-  const play = () => playSequence(midis, 0.26);
+  const play = () => midis.length && playSequence(midis, 0.26);
 
   // The whole scale lit across the neck (the union of its position boxes) —
   // you SEE the material while the pattern plays through it.
@@ -80,48 +116,89 @@ export function PatternExplorer({
   return (
     <>
       <div className="view-controls">
-        {/* Row 1 — the drill: which interval, and the play action. */}
+        {/* Row 1 — the drill: which interval (or a custom cell) + play. */}
         <div className="controls-row">
           <Segmented
             ariaLabel="Pair interval"
-            options={INTERVAL_CHOICES.map((c) => ({ value: c.steps, label: c.label }))}
-            value={intervalSteps}
-            onChange={setIntervalSteps}
+            options={INTERVAL_CHOICES.map((c) => ({ value: c.value, label: c.label }))}
+            value={interval}
+            onChange={setIntervalChoice}
           />
           <button className="pill pill--play" onClick={play}>
             ▶ Play pattern
           </button>
         </div>
 
-        {/* Row 2 — the contour (how each pair is played) and the direction the
-            pairs travel. */}
-        <div className="controls-row">
-          <span className="control-label">Contour</span>
-          <Segmented
-            ariaLabel="Contour"
-            options={[
-              { value: 'up-up' as const, label: '↑ ↑' },
-              { value: 'up-down' as const, label: '↑ ↓' },
-              { value: 'down-up' as const, label: '↓ ↑' },
-              { value: 'down-down' as const, label: '↓ ↓' },
-            ]}
-            value={contour}
-            onChange={setContour}
-          />
-          <Segmented
-            ariaLabel="Direction"
-            options={[
-              { value: 'up' as const, label: 'Ascending' },
-              { value: 'down' as const, label: 'Descending' },
-            ]}
-            value={direction}
-            onChange={setDirection}
-          />
-        </div>
+        {/* Row 2, presets — the contour: which way odd/even pairs are played. */}
+        {interval !== 'custom' && (
+          <div className="controls-row">
+            <span className="control-label">Contour</span>
+            <Segmented
+              ariaLabel="Contour"
+              options={[
+                { value: 'up-up' as const, label: '↑ ↑' },
+                { value: 'up-down' as const, label: '↑ ↓' },
+                { value: 'down-up' as const, label: '↓ ↑' },
+                { value: 'down-down' as const, label: '↓ ↓' },
+              ]}
+              value={contour}
+              onChange={setContour}
+            />
+          </div>
+        )}
+
+        {/* Rows 2–3, custom — the discovery space: type a cell, pick its march. */}
+        {interval === 'custom' && (
+          <>
+            <div className="controls-row">
+              <span className="control-label">Cell</span>
+              <div className="chord-input">
+                <input
+                  type="text"
+                  value={cellText}
+                  placeholder="e.g. 3 -2  (up a 3rd, down a 2nd)"
+                  aria-label="Custom cell"
+                  onChange={(e) => setCellText(e.target.value)}
+                />
+              </div>
+              {customMoves ? (
+                <span className="control-hint">
+                  {customMoves.map(describeMove).join(', ')}
+                </span>
+              ) : (
+                <span className="control-hint control-hint--warn">
+                  numbers with a direction — e.g. 3 -2, or ↓4 ↓2 ↑4
+                </span>
+              )}
+            </div>
+            <div className="controls-row">
+              <span className="control-label">March</span>
+              <Segmented
+                ariaLabel="Anchor step"
+                options={[
+                  { value: 1, label: '↑2nd' },
+                  { value: 2, label: '↑3rd' },
+                  { value: 3, label: '↑4th' },
+                  { value: -1, label: '↓2nd' },
+                  { value: -2, label: '↓3rd' },
+                  { value: -3, label: '↓4th' },
+                ]}
+                value={anchorStep}
+                onChange={setAnchorStep}
+              />
+              <button
+                className={alternate ? 'pill pill--on' : 'pill'}
+                onClick={() => setAlternate((a) => !a)}
+              >
+                Alternate
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* The run itself, spelled pair by pair. */}
-      <p className="pair-readout">{readout}</p>
+      {/* The run itself, spelled cell by cell — two octaves out and back. */}
+      {readout && <p className="pair-readout">{readout}</p>}
 
       <Fretboard
         instrument={GUITAR}
@@ -131,9 +208,11 @@ export function PatternExplorer({
       />
 
       <footer className="footnote">
-        Each pair is the interval; the arrows say which way the odd and even
-        pairs are played. The quiet third ingredient: the pairs themselves march
-        up a 2nd — naming that step is what unlocks custom pairings next.
+        Every run goes root to root, two octaves out and back. A drill is three
+        choices: the <em>cell</em> played at each stop, the <em>march</em> the
+        stops move by (the interval nobody states when they say "thirds"), and
+        whether cells <em>alternate</em> direction. Custom is the discovery
+        space — type a cell and see what it teaches you.
       </footer>
     </>
   );

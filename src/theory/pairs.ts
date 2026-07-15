@@ -1,56 +1,56 @@
 // ============================================================================
-// theory/pairs.ts — interval-pair drills through a scale (the palta generator)
+// theory/pairs.ts — interval-pattern drills through a scale (the palta engine)
 // ----------------------------------------------------------------------------
-// THEORY LOGIC layer (pure function). The systematic version of the classic
-// practice drills: walk a scale in PAIRS a fixed interval apart —
+// THEORY LOGIC layer (pure functions). A drill is built from three named
+// ingredients (Stu's model):
 //
-//   in 3rds, up-up   :  C E · D F · E G ...   (every pair played low -> high)
-//   in 3rds, up-down :  C E · F D · E G ...   (odd pairs up, even pairs down)
-//   in 3rds, down-up :  E C · D F · G E ...   (odd pairs down, even pairs up)
-//   in 3rds, down-down: E C · F D · G E ...   (every pair played high -> low)
+// 1. The CELL — what's played at each stop: a chain of directed moves from the
+//    anchor, in scale steps. [2] = a pair a 3rd up ("C E"); [-3, -1] = down a
+//    4th then down a 2nd. The classic pairs are just one-move cells.
+// 2. The ANCHOR STEP — the interval nobody states when they say "thirds": how
+//    the cell's anchor marches through the scale. +1 = the classic stepwise
+//    march; +2 makes the pairs themselves move in 3rds (stacked thirds).
+// 3. ALTERNATE / MIRROR — which way each cell is READ. `mirrorCell` reverses
+//    every cell (pairs played high→low); `alternate` flips every other one
+//    (the zig-zag). The classic 2×2 contour is exactly these two booleans.
 //
-// Three ideas, kept separate on purpose:
-// 1. The PAIR INTERVAL (3rd, 4th ... 7th): how far apart the two notes sit.
-// 2. The CONTOUR: which way each pair is played, by whether it's an odd or
-//    even pair (that's the whole 2×2 above).
-// 3. The ANCHOR STEP: how the pairs THEMSELVES move through the scale. It's
-//    the interval nobody states when they say "thirds" — the pairs march up a
-//    2nd (anchor C, then D, then E...). Stu's note: naming it now is what makes
-//    custom pairings possible later (pairs marching in 3rds, in 4ths...).
+// THE RUN: anchors travel from the root up TWO OCTAVES and back down to the
+// root (Stu's standard for any scale) — or, when the anchor step is negative,
+// down two octaves and back up. One continuous exercise, root to root.
 //
 // Everything is in SCALE STEPS (generic intervals), so the same drill works in
-// any scale or mode — the actual pitches come from the material.
+// any scale or mode; pitches and spellings come from the material.
 // ============================================================================
 
-export type PairContour = 'up-up' | 'up-down' | 'down-up' | 'down-down';
+export interface PatternSpec {
+  cellMoves: number[]; // directed steps from the anchor, e.g. [2] or [-3, -1]
+  anchorStep: number; // signed: how the anchor marches (+1 = up a 2nd)
+  alternate: boolean; // mirror every other cell (the zig-zag)
+  mirrorCell: boolean; // mirror every cell (pairs read high -> low)
+}
 
-// The drill as INDICES into the scale (0 = root, 7 = root an octave up, -1 =
-// the 7th below the root...). The caller maps indices to pitches and names, so
-// this stays pure arithmetic.
-//
-// `n` = scale length; `intervalSteps` = pair width in steps (2 = a 3rd);
-// `pairCount` = how many pairs; `anchorStep` = how far each pair's anchor moves
-// (+1 = the classic stepwise march); `descending` starts the anchors an octave
-// up and walks them down instead.
-export function pairIndices(
-  n: number,
-  intervalSteps: number,
-  contour: PairContour,
-  pairCount: number,
-  anchorStep = 1,
-  descending = false,
-): number[] {
+// The drill as INDICES into the scale (0 = root, n = root an octave up...).
+// The caller maps indices to pitches and names, so this stays pure arithmetic.
+export function patternRun(n: number, spec: PatternSpec): number[] {
+  const { cellMoves, anchorStep, alternate, mirrorCell } = spec;
+  if (n <= 0 || cellMoves.length === 0 || anchorStep === 0) return [];
+
+  // The anchor path: multiples of the step, up (or down) as far as two
+  // octaves, then the same stops in reverse — root to root, no doubled top.
+  const dir = Math.sign(anchorStep);
+  const size = Math.abs(anchorStep);
+  const outward: number[] = [];
+  for (let a = 0; Math.abs(a) <= 2 * n; a += dir * size) outward.push(a);
+  const anchors = [...outward, ...outward.slice(0, -1).reverse()];
+
+  // Each cell: the anchor plus the cumulative moves; mirrored per the spec.
   const out: number[] = [];
-  for (let k = 0; k < pairCount; k++) {
-    const anchor = descending ? n - k * anchorStep : k * anchorStep;
-    const lo = anchor;
-    const hi = anchor + intervalSteps;
-    // Odd/even pairs each have a fixed direction — that's the contour.
-    const firstPairUp = contour === 'up-up' || contour === 'up-down';
-    const alternates = contour === 'up-down' || contour === 'down-up';
-    const up = alternates && k % 2 === 1 ? !firstPairUp : firstPairUp;
-    out.push(...(up ? [lo, hi] : [hi, lo]));
-  }
+  anchors.forEach((anchor, k) => {
+    const cell = [anchor];
+    for (const move of cellMoves) cell.push(cell[cell.length - 1] + move);
+    const flip = mirrorCell !== (alternate && k % 2 === 1);
+    out.push(...(flip ? cell.reverse() : cell));
+  });
   return out;
 }
 
@@ -60,4 +60,31 @@ export function indexToMidi(material: number[], index: number): number {
   const n = material.length;
   const wrapped = ((index % n) + n) % n;
   return material[wrapped] + 12 * Math.floor(index / n);
+}
+
+// --- The custom-cell parser -------------------------------------------------
+// Reads a typed cell like "3 -2" or "↑3 ↓2" or "u3 d2": each token is an
+// interval NUMBER (2 = a 2nd ... 8 = an octave) with an optional direction
+// (↓ / - / d = down; ↑ / + / u / nothing = up). Returns the moves in scale
+// steps (a 3rd = 2 steps), or null if any token doesn't parse.
+export function parseCellMoves(text: string): number[] | null {
+  const tokens = text.trim().split(/[\s,]+/).filter(Boolean);
+  if (tokens.length === 0) return null;
+  const moves: number[] = [];
+  for (const t of tokens) {
+    const m = /^([↑↓+\-ud]?)([1-8])$/i.exec(t);
+    if (!m) return null;
+    const down = m[1] === '↓' || m[1] === '-' || m[1].toLowerCase() === 'd';
+    const steps = Number(m[2]) - 1; // a "3rd" spans 2 scale steps
+    moves.push(down ? -steps : steps);
+  }
+  return moves;
+}
+
+// A move spelled out for the hint line: +2 -> "up a 3rd", -1 -> "down a 2nd".
+const ORDINALS = ['unison', '2nd', '3rd', '4th', '5th', '6th', '7th', 'octave'];
+export function describeMove(move: number): string {
+  if (move === 0) return 'repeat';
+  const name = ORDINALS[Math.abs(move)] ?? `${Math.abs(move) + 1}th`;
+  return `${move > 0 ? 'up' : 'down'} a${name === 'octave' ? 'n' : ''} ${name}`;
 }
