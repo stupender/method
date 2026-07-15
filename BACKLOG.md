@@ -44,10 +44,15 @@ function layer — build once, reuse everywhere.
    Custom segment opens the discovery space — typed CELL ("3 -2", "↓4 ↓2 ↑4",
    echoed back in words), the MARCH as a control (↑2nd…↓4th), an Alternate
    pill; and every run now travels ROOT TO ROOT, TWO OCTAVES OUT AND BACK
-   (Stu's standard; the Direction track retired). Next: pattern TAB placed
-   into position boxes; send-a-pattern-to-Play (unify with the bar Pattern
-   dial); Loop / Play-along as named presets; per-student card grouping (the
-   Palette); pattern glyph on the bar.
+   (Stu's standard; the Direction track retired). **Pattern TAB shipped**
+   (session 12): runs render as real tablature in playing order, placed by
+   least-total-movement DP (`theory/placeRun.ts` — positions hold themselves,
+   diagonal drift when the octaves demand it; the march clamps at the
+   two-octave ceiling so everything fits a real neck). Next:
+   send-a-pattern-to-Play (unify with the bar Pattern dial); Loop / Play-along
+   as named presets; per-student card grouping (the Palette); pattern glyph on
+   the bar; maybe a fingering preference (start position / string-set bias)
+   for placed runs.
 4. **Sound & song fidelity** — a tasteful instrument voice; sections/repeats;
    rests/tuplets; voice-leading same-string-set bias; per-chord manual voicing.
 5. **Reach** — import (iReal/MIDI/Ableton), accounts & saved prefs, the FULL
