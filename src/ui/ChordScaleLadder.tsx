@@ -104,15 +104,36 @@ export function ChordScaleLadder({
     shape.length ? Math.min(...shape.map((p) => p.position.fret)) : 0;
   const hiFret = (shape: PlacedNote[]) =>
     shape.length ? Math.max(...shape.map((p) => p.position.fret)) : 0;
+
+  // START FROM THE LOWEST CHORD ON THE NECK, then cycle through the rest.
+  // The chords repeat every octave, so which degree comes first is a free
+  // choice — and always starting on I strands everything below it (in C major
+  // on the top set that meant beginning at fret 5 and running off the neck,
+  // while V, vi and vii° sat unseen down at frets 0–3). Beginning at the
+  // lowest degree makes the whole cycle climb from the bottom of the
+  // fretboard, so every chord of the key is represented where you'd play it.
+  const baseShapes = placedPerChord.map(
+    (shapes) => shapes.find((x) => stringSetKey(x) === chosenSet) ?? [],
+  );
+  const startAt = baseShapes.reduce(
+    (best, s, i) =>
+      s.length && (!baseShapes[best].length || loFret(s) < loFret(baseShapes[best]))
+        ? i
+        : best,
+    0,
+  );
+  const order = Array.from({ length: degrees.length }, (_, k) => (startAt + k) % degrees.length);
+
   let prevLo = -1;
-  const ladder = placedPerChord.map((shapes) => {
-    let s = shapes.find((x) => stringSetKey(x) === chosenSet) ?? [];
+  const rungs = order.map((i) => {
+    let s = baseShapes[i];
     while (s.length && loFret(s) < prevLo && hiFret(s) + 12 <= GUITAR.fretCount) {
       s = octaveUp(s);
     }
     if (s.length) prevLo = loFret(s);
-    return s;
+    return { degree: degrees[i], shape: s };
   });
+  const ladder = rungs.map((r) => r.shape);
 
   // Play the chords in turn, ascending — the "chord scale".
   const playScale = () => {
@@ -198,7 +219,7 @@ export function ChordScaleLadder({
 
           {/* One TAB per diatonic chord, ascending, labelled by its Roman numeral. */}
           <div className="tab-shelf">
-            {degrees.map((d, i) => (
+            {rungs.map((r, i) => (
               <div
                 key={i}
                 className={i === active ? 'tab-card tab-card--on' : 'tab-card'}
@@ -209,8 +230,8 @@ export function ChordScaleLadder({
                 <TabView
                   instrument={GUITAR}
                   tuning={GUITAR_STANDARD}
-                  placed={ladder[i]}
-                  caption={d.roman}
+                  placed={r.shape}
+                  caption={r.degree.roman}
                 />
               </div>
             ))}

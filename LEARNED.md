@@ -1092,3 +1092,29 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   PlacedNotes — the layering kept honest by the PlacedNote type itself.
 - The neck now shows the run's PATH (deduped placements) — the diagonal drift
   made visible. Play sounds the exact placed octaves the TAB shows.
+
+## Session 13 — start from the lowest thing on the neck (Stu's field note)
+
+- **The rule**: every ladder/run starts at the LOWEST playable spot, so the
+  whole fretboard is represented. Audit found one real offender and one nearly-
+  free improvement:
+  1. **The chord-scale ladder always began on I** — and since the seven chords
+     repeat every octave, which degree comes first is a FREE choice. Starting on
+     I stranded everything below it (C major on the top string set began at fret
+     5 and ran off the neck while V, vi, vii° sat unseen at frets 0–3). Worse,
+     when a chord couldn't octave-shift up, the ladder FOLDED BACK DOWN
+     (…V@12 vi@14 vii°@3) — a broken "ascending" ladder. Fix: begin at the
+     lowest-fret degree and cycle from there. Probed 32 key × scale × voicing ×
+     triad/7th combinations: all now ascend, every one starting at fret 0–1,
+     spanning frets 0–11.
+  2. **Pattern runs started mid-neck** (C major 3rds at the low E's 8th fret,
+     though C3 also lives at the A string's 3rd). placeRun's start bias went
+     0.05 → 0.3: the run now starts at fret 3 for +0.3 of total hand movement,
+     with the biggest shift unchanged. Enough to break ties, too small to
+     distort the fingering.
+- **Already correct, verified not broken**: scale position boxes (built up from
+  the lowest ladder tone), the inversion ladder (lowest base per inversion, then
+  octave copies up), and ChordExplorer (one shape per string set at its lowest
+  octave, via placeOnStringSets' `octaveShift = minShift`).
+- Lesson: when the material is cyclic, the STARTING POINT is a free parameter —
+  spend it on covering the neck.

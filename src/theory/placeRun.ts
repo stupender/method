@@ -83,7 +83,13 @@ export function placeRun(
   // The cheapest path through the placement choices. dp[i][c] = least total
   // movement to reach candidate c of note i; parents rebuild the path.
   const options = midis.map((m) => candidatesFor(m, tuning, instrument.fretCount));
-  let costs = options[0].map((o) => o.fret * 0.05); // start slightly neck-ward
+  // START AS LOW ON THE NECK AS THE RUN ALLOWS, so a drill begins where you'd
+  // actually start it and the run climbs through the whole fretboard. The same
+  // pitch usually exists in two places (C3 is both the low E's 8th fret and the
+  // A string's 3rd) — this tips the choice toward the lower frets. Kept small
+  // so it only breaks ties: at 0.3 it costs ~0.3 of total hand movement and
+  // never changed a fingering's biggest shift in testing.
+  let costs = options[0].map((o) => o.fret * 0.3);
   let parents: number[][] = [options[0].map(() => -1)];
   for (let i = 1; i < options.length; i++) {
     const next: number[] = [];
