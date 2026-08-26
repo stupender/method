@@ -1403,3 +1403,30 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   flicker) and never repeats along a row. The mask bites only the RIM — an
   inner circle at 0.72r stays solid — so however ragged the edge gets, the
   label still sits on ink. A soft radial core over the top reads as pressure.
+
+## Session 18c — the stamp that wasn't printing, and Mode in the panel
+
+- **The ink stamp silently did nothing for a whole session.** An SVG mask reads
+  LUMINANCE, and my feColorMatrix was emitting BLACK with a varying alpha —
+  luminance zero, so the noise was invisible to the mask. The only thing
+  showing was the solid protective disc, which meant every dot had been
+  rendering as a plain circle at 62% radius. Lesson: for a mask, force RGB to
+  white (`0 0 0 0 1` rows) and vary alpha; if a mask "does nothing", suspect
+  luminance before tuning frequencies.
+- **Three tuning lessons, in order:** noise scale has to match the object (a
+  30-unit dot needs blobs ~half its width — fine noise just greys the edge);
+  the alpha ramp is a balance (-22 cuts cookie-cutter edges, -8 turns the dot
+  to pale mush, -16 keeps it inked with room to fade); and a whisper of blur
+  (~0.55) is what actually sells ink-into-paper, but past ~0.6 the texture
+  washes out entirely.
+- **The ghost layer replaced the protective disc.** Backing each dot with the
+  same ink at 0.8 opacity means the bite reads as uneven DENSITY rather than
+  holes punched to the paper — and since the label then always sits on ~80%
+  ink, the solid inner circle (which Stu spotted as a visible second circle
+  under the letter) became unnecessary and was removed.
+- **A switch that hides itself can't switch back.** Ear Training moved from the
+  top nav into a MODE row inside the CONTROLS panel, which meant the panel had
+  to live where both modes can see it — so `studyMode` sits beside Key/Scale/
+  Gravity rather than above them. The fretboard-only View row hides in Ear
+  mode. With Ear gone from the nav and Play flagged off, the top nav had one
+  item left, so it hides itself.

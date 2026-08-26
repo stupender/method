@@ -46,15 +46,14 @@ export const ALL_DEGREES = -1;
 
 const READY = {
   play: false,
-  earTraining: false,
+  earTraining: true, // reached from the CONTROLS panel's Mode row, not the nav
   patterns: false,
 } as const;
 
-const AREAS: Area[] = [
-  'study',
-  ...(READY.play ? (['song'] as Area[]) : []),
-  ...(READY.earTraining ? (['ear'] as Area[]) : []),
-];
+// Ear Training is a MODE inside the study area now (see the Mode row), so the
+// top nav only carries genuinely separate areas. With one entry it's noise, so
+// it hides itself.
+const AREAS: Area[] = ['study', ...(READY.play ? (['song'] as Area[]) : [])];
 
 // The label each top-level area shows in the nav.
 const AREA_LABELS: Record<Area, string> = {
@@ -309,6 +308,7 @@ function App() {
           See the shape, hear the sound, find out what it's doing.
         </p>
         {/* Top-level areas: a higher separation than the modes within Study. */}
+        {AREAS.length > 1 && (
         <nav className="topnav" role="group" aria-label="Area">
           {AREAS.map((a) => (
             <button
@@ -320,6 +320,7 @@ function App() {
             </button>
           ))}
         </nav>
+        )}
       </header>
 
       {/* Both areas stay mounted (just hidden) so each keeps its own state when
@@ -354,11 +355,7 @@ function App() {
         />
       </div>
       )}
-      {READY.earTraining && (
-        <div hidden={area !== 'ear'}>
-          <EarTrainingView />
-        </div>
-      )}
+
     </main>
   );
 }
@@ -424,6 +421,11 @@ function StudyArea({
   onAddChord: (rootIndex: number, chordId: string) => void;
   songLength: number;
 }) {
+  // WHICH INSTRUMENT OF THE APP you're using: the fretboard, or your ears.
+  // It lives here, beside Key/Scale/Gravity, because the CONTROLS panel has to
+  // stay on screen in both — a switch that hides itself can't switch back. The
+  // same key and scale will drive the ear quiz's pools next.
+  const [studyMode, setStudyMode] = useState<'fretboard' | 'ear'>('fretboard');
   const [mode, setMode] = useState<Mode>('scale');
   const [rootIndex, setRootIndex] = useState(0); // the Key
   const [scaleId, setScaleId] = useState(SCALE_LIST[0].id); // the Scale type
@@ -464,6 +466,20 @@ function StudyArea({
           yet. The view + ChordExplorer are kept below for a future, less
           key-centric section; re-add 'chord' to the list to show it.) */}
       <ControlPanel title="Controls">
+        {READY.earTraining && (
+          <ControlRow label="Mode">
+            <Segmented
+              fill
+              ariaLabel="Mode"
+              options={[
+                { value: 'fretboard' as const, label: 'Fretboard' },
+                { value: 'ear' as const, label: 'Ear' },
+              ]}
+              value={studyMode}
+              onChange={setStudyMode}
+            />
+          </ControlRow>
+        )}
         <ControlRow label="Key">
           <Segmented
             fill
@@ -496,10 +512,11 @@ function StudyArea({
             onChange={setDegree}
           />
         </ControlRow>
+        {studyMode === 'fretboard' && (
         <ControlRow label="View">
           <Segmented
             fill
-            ariaLabel="Mode"
+            ariaLabel="View"
             options={[
               { value: 'scale' as Mode, label: 'Scales' },
               ...(READY.patterns ? [{ value: 'pattern' as Mode, label: 'Patterns' }] : []),
@@ -509,9 +526,12 @@ function StudyArea({
             onChange={setMode}
           />
         </ControlRow>
+        )}
       </ControlPanel>
 
-      {mode === 'scale' && (
+      {studyMode === 'ear' && <EarTrainingView />}
+
+      {studyMode === 'fretboard' && mode === 'scale' && (
         <ScaleView
           root={root}
           scale={scale}
@@ -520,11 +540,11 @@ function StudyArea({
           onPickNote={pickNote}
         />
       )}
-      {READY.patterns && mode === 'pattern' && (
+      {studyMode === 'fretboard' && READY.patterns && mode === 'pattern' && (
         <PatternView root={root} scale={scale} degree={deg} />
       )}
-      {mode === 'chord' && <ChordView root={root} />}
-      {mode === 'harmony' && (
+      {studyMode === 'fretboard' && mode === 'chord' && <ChordView root={root} />}
+      {studyMode === 'fretboard' && mode === 'harmony' && (
         <HarmonyView
           root={root}
           scale={scale}

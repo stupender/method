@@ -81,6 +81,14 @@
 .fretboard .note-dot--deg7 { fill: var(--deg-7); color: var(--deg-7); }
 .fretboard .note--deg7 .note-label { fill: var(--deg-7-ink); }
 
+/* The under-layer of a stamp: the same ink, thinned. Whatever the mask bites
+   away lands on this rather than on the paper. */
+.fretboard .note-dot--ghost {
+  /* Nearly the full ink: the bite should read as the faintest change in
+     density, the way a stamp presses unevenly — not as a hole. */
+  opacity: 0.8;
+}
+
 /* NO GLOW, in either world. The dots are printed stamps on a surface, not
    light sources — a bloom around them read as neon even after it was cut back
    to the roots alone. The aura idea belongs to the page's big moments (the

@@ -119,28 +119,49 @@ export function Fretboard({
       aria-label={`${instrument.name} fretboard in ${tuning.name} tuning`}
     >
       {/* THE INK STAMPS.
-          Every lit note is printed with one of these, so no two dots on the
-          neck are quite identical — the way a hand-stamped page never repeats
-          exactly. Each is a turbulence mask that eats a slightly different
-          bite out of the dot's edge; a different `seed` is a different stamp.
-          The mask goes to the EDGE only (a radial gradient keeps the middle
-          solid), so the note stays legible however ragged its rim gets.
-          Defined once here and referenced by every dot — the browser renders
-          the filter a handful of times, not once per note. */}
+          Every lit note is printed with one of these, so no two dots are quite
+          identical — the way a hand-stamped page never repeats exactly.
+
+          The scale of the noise is what makes or breaks this. A dot is only 30
+          units across, so fine turbulence (high baseFrequency) just greys the
+          edge and reads as a digital blur. Big, chunky blobs — a LOW
+          baseFrequency, features about half the dot wide — are what read as
+          ink: a rim that's genuinely uneven, with bites taken out of it.
+
+          The bite runs right through the dot — there's no protective disc in
+          the middle, because the ghost layer underneath (see the note group)
+          already keeps the label on ink. A solid inner circle was showing as a
+          second, harder-edged circle under the letter. */}
       <defs>
         {STAMP_SEEDS.map((seed, i) => (
-          <mask key={`stamp-${i}`} id={`stamp-${i}`} maskUnits="objectBoundingBox">
+          <mask key={`stamp-${i}`} id={`stamp-${i}`}>
             <filter id={`stamp-noise-${i}`}>
               <feTurbulence
                 type="fractalNoise"
-                baseFrequency="0.14"
+                baseFrequency="0.11"
                 numOctaves={2}
                 seed={seed}
               />
+              {/* An SVG mask reads LUMINANCE, so the kept parts must come out
+                  WHITE — the first three rows force RGB to 1. (Outputting black
+                  with a varying alpha, as this did at first, is invisible to a
+                  luminance mask: the noise contributed nothing and every dot
+                  quietly rendered as a plain circle.)
+
+                  The last row is the ramp from ink to no-ink, and it's a
+                  balance: too steep (-22) and the blots have cookie-cutter
+                  edges; too gentle (-8) and the whole dot turns to mid-grey
+                  mush, printing pale. -16 keeps most of the dot decisively
+                  inked while leaving the boundary room to fade. */}
               <feColorMatrix
                 type="matrix"
-                values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -9 6.2"
+                values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 -16 9.9"
               />
+              {/* ...and a whisper of blur, which is what sells it as ink
+                  spreading into paper rather than a shape with an outline.
+                  Small on purpose: more than about 0.6 and the texture washes
+                  out entirely. */}
+              <feGaussianBlur stdDeviation="0.55" />
             </filter>
             {/* the ragged bite */}
             <circle
@@ -150,17 +171,8 @@ export function Fretboard({
               fill="#fff"
               filter={`url(#stamp-noise-${i})`}
             />
-            {/* ...held back from the centre, so the label always sits on ink */}
-            <circle cx={DOT_RADIUS} cy={DOT_RADIUS} r={DOT_RADIUS * 0.72} fill="#fff" />
           </mask>
         ))}
-        {/* The lighter core: ink pools at the rim of a stamp and thins in the
-            middle, so a soft radial lift reads as pressure rather than gloss. */}
-        <radialGradient id="stamp-core" cx="38%" cy="34%" r="72%">
-          <stop offset="0%" stopColor="#fff" stopOpacity="0.30" />
-          <stop offset="55%" stopColor="#fff" stopOpacity="0.06" />
-          <stop offset="100%" stopColor="#fff" stopOpacity="0" />
-        </radialGradient>
       </defs>
       {/* Inlay position dots, drawn first so they sit behind everything. */}
       {[...SINGLE_INLAYS, ...DOUBLE_INLAYS]
@@ -283,6 +295,20 @@ export function Fretboard({
                   soft core lift over it so it reads as pressed rather than
                   filled. Both are translated into the mask's own box. */}
               <g transform={`translate(${x - DOT_RADIUS} ${y - DOT_RADIUS})`}>
+                {/* A ghost of the same ink underneath, so the bitten-out parts
+                    show a LIGHTER version of the dot's own colour instead of
+                    punching through to the paper. The stamp then reads as
+                    uneven ink density — which is what a real stamp does — and
+                    the dot keeps a clean circular silhouette rather than
+                    looking chewed. */}
+                {!dim && (
+                  <circle
+                    className={`${dotClass} note-dot--ghost`}
+                    cx={DOT_RADIUS}
+                    cy={DOT_RADIUS}
+                    r={DOT_RADIUS}
+                  />
+                )}
                 <circle
                   className={dotClass}
                   cx={DOT_RADIUS}
@@ -290,16 +316,6 @@ export function Fretboard({
                   r={DOT_RADIUS}
                   mask={dim ? undefined : `url(#stamp-${stamp})`}
                 />
-                {!dim && (
-                  <circle
-                    className="note-core"
-                    cx={DOT_RADIUS}
-                    cy={DOT_RADIUS}
-                    r={DOT_RADIUS}
-                    fill="url(#stamp-core)"
-                    mask={`url(#stamp-${stamp})`}
-                  />
-                )}
               </g>
               <text
                 className={dim ? 'note-label note-label--dim' : 'note-label'}
