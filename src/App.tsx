@@ -283,7 +283,7 @@ function App() {
       <header className="masthead masthead--compact">
         {/* The mark: a riso ink blot on paper, the moon at night (App.css). */}
         <div className="mark" aria-hidden="true" />
-        <h1 className="title title--sm">Method</h1>
+        <h1 className="title title--sm">Fretboard Constellations</h1>
         <p className="masthead-lede">
           See the shape, hear the sound, find out what it's doing.
         </p>
@@ -456,10 +456,10 @@ function StudyArea({
         </ControlRow>
         {/* Degree persists across views: in Scales it picks the MODE, in
             Harmony the chord degree. */}
-        <ControlRow label="Degree">
+        <ControlRow label="Gravity">
           <Segmented
             fill
-            ariaLabel="Degree"
+            ariaLabel="Gravity"
             options={romanLabels.map((roman, i) => ({ value: i, label: roman }))}
             value={deg}
             onChange={setDegree}

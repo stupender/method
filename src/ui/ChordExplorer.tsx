@@ -21,6 +21,7 @@ import { GUITAR_STANDARD } from '../data/tunings';
 import { STRUCTURES } from '../data/voicings';
 import {
   placeVoicingAll,
+  withOctaveCopies,
   structuresForChord,
   structureName,
   inversionCount,
@@ -72,14 +73,12 @@ export function ChordExplorer({
     })
     .filter((o): o is { degree: string; inv: number } => o != null);
 
-  // Every playable shape of this voicing across the neck.
-  const shapes = placeVoicingAll(
+  // Every playable shape of this voicing across the neck — including its
+  // repeats an octave up, because the fretboard repeats every 12 frets and
+  // showing only the lowest grip leaves the top half of the neck empty.
+  const shapes = withOctaveCopies(
     GUITAR,
-    GUITAR_STANDARD,
-    root,
-    chord,
-    structure,
-    inversion,
+    placeVoicingAll(GUITAR, GUITAR_STANDARD, root, chord, structure, inversion),
   );
 
   // If even the easiest shape is a wide stretch, this voicing is hard to grab —

@@ -321,3 +321,60 @@ export function placeVoicingAll(
   });
   return shapes;
 }
+
+// A voicing repeated UP THE NECK. `placeVoicingAll` returns each shape at its
+// lowest playable position, but the fretboard repeats every 12 frets, so the
+// same grip exists an octave higher wherever the neck still has room. Showing
+// only the lowest one leaves the top half of the neck empty and hides the very
+// repetition a player relies on.
+//
+// Given shapes (from placeVoicingAll) this returns them plus every octave copy
+// that still fits, ordered low to high.
+export function withOctaveCopies(
+  instrument: Instrument,
+  shapes: PlacedNote[][],
+): PlacedNote[][] {
+  const out: PlacedNote[][] = [];
+  for (const shape of shapes) {
+    if (shape.length === 0) continue;
+    let s = shape;
+    for (;;) {
+      out.push(s);
+      const highest = Math.max(...s.map((p) => p.position.fret));
+      if (highest + 12 > instrument.fretCount) break;
+      s = s.map((p) => ({
+        ...p,
+        position: { ...p.position, fret: p.position.fret + 12 },
+        note: { ...p.note, octave: (p.note.octave ?? 4) + 1 },
+      }));
+    }
+  }
+  // Low to high, so the TAB below the neck reads up the fretboard.
+  out.sort(
+    (a, b) =>
+      Math.min(...a.map((p) => p.position.fret)) -
+      Math.min(...b.map((p) => p.position.fret)),
+  );
+  return out;
+}
+
+// Every playable form of a chord in one structure: each inversion, on each
+// string set, at every octave. This is the complete grid a player actually has
+// available — 3 inversions x 4 string sets for triads, 4 x 3 for drop-2
+// sevenths — plus their repeats up the neck.
+export function allVoicings(
+  instrument: Instrument,
+  tuning: Tuning,
+  root: Note,
+  chord: ChordDefinition,
+  structure: VoicingStructure,
+): { shape: PlacedNote[]; inversion: number }[] {
+  const out: { shape: PlacedNote[]; inversion: number }[] = [];
+  for (let inv = 0; inv < inversionCount(chord); inv++) {
+    const base = placeVoicingAll(instrument, tuning, root, chord, structure, inv);
+    for (const shape of withOctaveCopies(instrument, base)) {
+      out.push({ shape, inversion: inv });
+    }
+  }
+  return out;
+}

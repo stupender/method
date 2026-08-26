@@ -1360,3 +1360,24 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   nothing else.
 - **No ring on the root** — a stroke around it read as an outline bug rather
   than emphasis. Its colour is the signal.
+
+## Session 18 — Stage 1: the neck repeats, and the app gets its name
+
+- **The seventh-chord "gap" was physics, not a bug.** Probing all three
+  structures: drop 2 already gives Stu's exact 4 inversions × 3 string sets =
+  12, with spans of 1–4 frets. CLOSE sevenths only reach 6 because most of
+  their inversions genuinely don't fit a guitar hand (spans 5–6) — which the
+  app already warns about. Nothing to fix; the right voicing was already there.
+- **The real gap was octave repeats.** `placeVoicingAll` returns each shape at
+  its LOWEST playable position only, so the top half of the neck sat empty and
+  the app hid the 12-fret repetition a player leans on. `withOctaveCopies`
+  adds every copy that still fits; `allVoicings` gives the complete grid
+  (inversion × string set × octave) for the Harmony restructure to consume.
+  A C major triad goes from 4 placements to 6 (frets 0/3/5/8 → +12/+15).
+- **Renamed to FRETBOARD CONSTELLATIONS** — truer to what the app now shows,
+  since the neck really is a constellation of coloured degrees. The repo and
+  the deploy path stay `/method/` so the live URL doesn't break.
+- **DEGREE → GRAVITY** (Stu's word, and a better one): it names the pull toward
+  home, which is exactly what the function engine computes.
+- The favicon is the ink blot — the same object the masthead draws, so the
+  browser tab and the page carry one mark.
