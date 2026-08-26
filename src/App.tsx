@@ -112,6 +112,24 @@ const initialSongbook = loadSongbook() ?? (() => {
   return { songs: [first], currentId: first.id };
 })();
 
+// --- Theme: the two worlds of the design direction (DESIGN.md) --------------
+// 'paper' = riso ink on warm stock; 'night' = an indigo field with one warm
+// light. The choice is written to <html data-theme>, which is all the CSS
+// needs — every colour in the app is a token defined once per world.
+type Theme = 'paper' | 'night';
+const THEME_KEY = 'method.theme.v1';
+
+// The saved choice, or the room's own preference the first time.
+function loadTheme(): Theme {
+  try {
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved === 'paper' || saved === 'night') return saved;
+  } catch {
+    /* storage blocked — fall through to the OS preference */
+  }
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'night' : 'paper';
+}
+
 // --- Practice cards: the take-home step, saved next to the songbook ---------
 const CARDS_KEY = 'method.cards.v1';
 let cardCounter = 0;
@@ -199,6 +217,17 @@ function App() {
     setCurrentId(remaining[0].id);
   };
 
+  // --- Theme --------------------------------------------------------------
+  const [theme, setTheme] = useState<Theme>(loadTheme);
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch {
+      /* storage blocked — the theme still applies for this visit */
+    }
+  }, [theme]);
+
   // --- Practice cards -----------------------------------------------------
   const [cards, setCards] = useState<PracticeCard[]>(initialCards);
 
@@ -236,8 +265,27 @@ function App() {
 
   return (
     <main className="page page--wide">
+      {/* Paper or Night — the two worlds of the design direction (DESIGN.md).
+          Tucked in the corner: it's a room setting, not a music choice. */}
+      <div className="theme-switch">
+        <Segmented
+          ariaLabel="Theme"
+          options={[
+            { value: 'paper' as Theme, label: 'Paper' },
+            { value: 'night' as Theme, label: 'Night' },
+          ]}
+          value={theme}
+          onChange={setTheme}
+        />
+      </div>
+
       <header className="masthead masthead--compact">
+        {/* The mark: a riso ink blot on paper, the moon at night (App.css). */}
+        <div className="mark" aria-hidden="true" />
         <h1 className="title title--sm">Method</h1>
+        <p className="masthead-lede">
+          See the shape, hear the sound, find out what it's doing.
+        </p>
         {/* Top-level areas: a higher separation than the modes within Study. */}
         <nav className="topnav" role="group" aria-label="Area">
           {(['study', 'song', 'ear'] as Area[]).map((a) => (

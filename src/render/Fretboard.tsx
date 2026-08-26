@@ -28,6 +28,15 @@ const DOT_RADIUS = 15; // radius of a lit-up note marker
 const SINGLE_INLAYS = [3, 5, 7, 9, 15, 17, 19, 21];
 const DOUBLE_INLAYS = [12, 24];
 
+// The plain diatonic number (1–7) inside an interval label, so a dot can be
+// coloured by scale degree. Handles every shape the app produces: "1", "♭3",
+// "♯4" (scale degrees) and "P1", "M3", "m7" (chord intervals). Returns null for
+// anything unexpected, and that note just takes the default ink.
+function degreeOf(intervalName: string): number | null {
+  const m = /([1-7])/.exec(intervalName);
+  return m ? Number(m[1]) : null;
+}
+
 interface FretboardProps {
   instrument: Instrument;
   tuning: Tuning;
@@ -173,9 +182,18 @@ export function Fretboard({
           // Use the spelling carried on the PlacedNote (e.g. "Bb"), not a
           // re-derived sharp one, so scale/chord spelling stays correct.
           const label = labelMode === 'degree' ? h.intervalName : noteName(h.note);
+          // COLOUR BY SCALE DEGREE (see index.css --deg-1..7): the palette runs
+          // warm at the root and cools toward the 7th, so a constellation shows
+          // its shape in colour as well as position. `aura-N` varies the glow
+          // size a little from note to note — keyed off the position so it's
+          // stable between renders, not flickering.
+          const deg = degreeOf(h.intervalName);
+          const aura = (h.position.fret + h.position.stringIndex) % 3;
           const dotClass =
-            (h.isRoot ? 'note-dot note-dot--root' : 'note-dot') +
-            (dim ? ' note-dot--dim' : '');
+            'note-dot' +
+            (deg ? ` note-dot--deg${deg}` : '') +
+            (h.isRoot ? ' note-dot--root' : '') +
+            (dim ? ' note-dot--dim' : ` note-dot--aura${aura}`);
           return (
             <g
               key={key}
@@ -240,11 +258,25 @@ export function Fretboard({
                     : undefined
                 }
               >
+                {/* Two passes: a blurred glow, then the fine drawn line on top
+                    — a star-chart line rather than a UI connector. */}
                 {drawLine && (
-                  <polyline
-                    className={showAllShapes ? 'constellation constellation--all' : 'constellation'}
-                    points={points}
-                  />
+                  <>
+                    <polyline
+                      className={
+                        showAllShapes
+                          ? 'constellation-glow constellation-glow--all'
+                          : 'constellation-glow'
+                      }
+                      points={points}
+                    />
+                    <polyline
+                      className={
+                        showAllShapes ? 'constellation constellation--all' : 'constellation'
+                      }
+                      points={points}
+                    />
+                  </>
                 )}
                 {shape.map((h, ni) =>
                   renderNote(h, `shape-${si}-note-${ni}`, dim),

@@ -6,6 +6,24 @@
   max-width: 760px;
   margin: 0 auto;
   padding: 12vh 24px 64px;
+  position: relative;
+}
+
+/* Paper / Night, parked in the top-right corner — a room setting, not a
+   musical one, so it stays out of the control flow entirely. */
+.theme-switch {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  z-index: 5;
+}
+@media (max-width: 700px) {
+  .theme-switch {
+    position: static;
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 8px;
+  }
 }
 
 /* Wider layout once the fretboard is on screen. */
@@ -33,21 +51,51 @@
 
 /* Smaller title once the app's controls share the screen. */
 .title--sm {
-  font-size: 40px;
-}
-.title--sm::after {
-  margin-top: 14px;
+  font-size: 44px;
 }
 
-/* The accent appears once, as a quiet mark under the title. */
-.title::after {
-  content: '';
-  display: block;
-  width: 40px;
-  height: 3px;
-  margin: 20px auto 0;
-  background: var(--accent);
-  border-radius: 2px;
+/* THE MARK — the app's one piece of identity, and the whole design thesis in a
+   single object. On PAPER it's a riso ink blot: one saturated ink, its edge
+   eaten away by a turbulence mask so it prints mottled and imperfect. At NIGHT
+   the same circle becomes the moon: no mask, just warm light blooming into the
+   dark field. One element, two worlds — exactly what the boards are about. */
+.mark {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: var(--mark-ink);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.035' numOctaves='2'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -12 9'/%3E%3C/filter%3E%3Ccircle cx='60' cy='60' r='56' filter='url(%23m)'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.035' numOctaves='2'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -12 9'/%3E%3C/filter%3E%3Ccircle cx='60' cy='60' r='56' filter='url(%23m)'/%3E%3C/svg%3E");
+  -webkit-mask-size: cover;
+  mask-size: cover;
+}
+:root[data-theme='night'] .mark {
+  -webkit-mask-image: none;
+  mask-image: none;
+  box-shadow:
+    0 0 30px 8px var(--mark-glow),
+    0 0 80px 26px var(--mark-glow-far);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='paper']) .mark {
+    -webkit-mask-image: none;
+    mask-image: none;
+    box-shadow:
+      0 0 30px 8px var(--mark-glow),
+      0 0 80px 26px var(--mark-glow-far);
+  }
+}
+
+/* One line saying what this is, for anyone opening it cold. */
+.masthead-lede {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 19px;
+  font-style: italic;
+  color: var(--muted);
+  margin: 12px auto 0;
+  max-width: 42ch;
 }
 
 .tagline {
@@ -162,17 +210,18 @@
 }
 
 /* --- Segmented control: the either/or choice ------------------------------ */
-/* One connected unit for "pick exactly one": a gently recessed track; the
-   chosen segment sits raised on it like a paper chip. Distinct from pills
-   (independent toggles / multi-select) and the accent play pill (actions). */
+/* One connected unit for "pick exactly one": a recessed track, with the chosen
+   segment PRINTED onto it. See RISO OVERPRINT below for why it's printed
+   rather than raised. Distinct from pills (independent toggles / multi-select)
+   and the accent play pill (actions). */
 .seg {
   display: inline-flex;
   flex-wrap: wrap; /* long tracks (all 12 keys) fold instead of overflowing */
   align-items: center;
   gap: 2px;
   padding: 3px;
-  background: #e6ddc9; /* recessed into the paper */
-  border-radius: 999px;
+  background: var(--surface-sunk); /* recessed into the paper */
+  border-radius: var(--radius);
   width: fit-content; /* don't stretch to fill column layouts */
 }
 .seg__btn {
@@ -181,24 +230,63 @@
   color: var(--muted);
   background: transparent;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--radius);
   padding: 5px 12px;
   cursor: pointer;
   white-space: nowrap;
+  position: relative;
+  isolation: isolate; /* keep the overprint's blending inside this button */
   transition:
     color 0.15s ease,
-    background 0.15s ease,
-    box-shadow 0.15s ease;
+    background 0.15s ease;
 }
 .seg__btn:hover {
   color: var(--ink);
 }
-/* The chosen one: lifted off the track. */
+
+/* RISO OVERPRINT — the selected segment.
+   On the vision boards, two translucent inks laid over each other make a third
+   colour where they cross, and the passes never register perfectly. That's the
+   whole look, and it's exactly a `mix-blend-mode: multiply` between two layers
+   with a small offset.
+
+   So a chosen segment isn't a chip lifted off the track — it's a block of ink
+   PRINTED on it: the ink itself (::before), plus a second accent pass nudged a
+   pixel and a half down-right (::after) that shows only where it escapes the
+   first. Multiply means the overlap goes darker on its own, the way real ink
+   does; we never pick that third colour by hand. */
 .seg__btn--on {
-  background: var(--bg);
-  color: var(--ink);
+  color: var(--on-ink);
   font-weight: 600;
-  box-shadow: 0 1px 2px rgba(28, 26, 23, 0.14);
+}
+.seg__btn--on::before,
+.seg__btn--on::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: -1;
+}
+.seg__btn--on::before {
+  background: var(--ink); /* the first pass */
+}
+.seg__btn--on::after {
+  background: var(--accent); /* the second pass, misregistered */
+  transform: translate(1.5px, 1.5px);
+  mix-blend-mode: multiply;
+  opacity: 0.4;
+}
+/* At night the inks glow instead of soaking in, so the second pass SCREENS —
+   a warm halo escaping the block rather than a darker overlap. */
+:root[data-theme='night'] .seg__btn--on::after {
+  mix-blend-mode: screen;
+  opacity: 0.5;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='paper']) .seg__btn--on::after {
+    mix-blend-mode: screen;
+    opacity: 0.5;
+  }
 }
 
 /* The shared button look: a calm outlined pill. */
@@ -208,7 +296,7 @@
   color: var(--ink);
   background: transparent;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--radius);
   padding: 7px 13px;
   cursor: pointer;
   transition:
@@ -219,23 +307,54 @@
   border-color: var(--muted);
 }
 
-/* The selected pill fills with ink. */
+/* The selected pill fills with ink — and takes the same misregistered second
+   pass as a segmented chip, so every "this one is on" in the app is printed
+   the same way. */
 .pill--on {
   background: var(--ink);
   border-color: var(--ink);
-  color: #fff;
+  color: var(--on-ink);
+  position: relative;
+  isolation: isolate;
+}
+.pill--on::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: var(--accent);
+  transform: translate(1.5px, 1.5px);
+  mix-blend-mode: multiply;
+  opacity: 0.4;
+  z-index: -1;
+}
+:root[data-theme='night'] .pill--on::after {
+  mix-blend-mode: screen;
+  opacity: 0.45;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='paper']) .pill--on::after {
+    mix-blend-mode: screen;
+    opacity: 0.45;
+  }
 }
 
-/* Ear-training answer feedback: the right answer goes green, a wrong guess red. */
+/* Ear-training answer feedback: the right answer goes green, a wrong guess red.
+   These stay flat — right/wrong is the one place colour must not be ambiguous,
+   so no overprint. */
 .pill--correct {
-  background: #2f7d4f;
-  border-color: #2f7d4f;
-  color: #fff;
+  background: var(--correct);
+  border-color: var(--correct);
+  color: var(--on-ink);
 }
 .pill--wrong {
-  background: #b23a3a;
-  border-color: #b23a3a;
-  color: #fff;
+  background: var(--wrong);
+  border-color: var(--wrong);
+  color: var(--on-ink);
+}
+.pill--correct::after,
+.pill--wrong::after {
+  display: none;
 }
 /* Running quiz score, sitting in the transport row. */
 .quiz-score {
@@ -277,7 +396,7 @@
 }
 .pill--play:hover {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-heat-0);
 }
 
 /* A wrapping row of TAB diagrams — one per playable shape, low -> high. */
@@ -291,7 +410,7 @@
 /* Each TAB is hoverable; hovering it lights that shape on the neck. */
 .tab-card {
   border: 2px solid transparent;
-  border-radius: 10px;
+  border-radius: var(--radius);
   transition: border-color 0.12s ease;
   cursor: pointer;
 }
@@ -319,7 +438,7 @@
   height: 34px;
   padding: 0 12px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--radius);
   background: transparent;
   font-family: var(--sans);
   font-size: 14px;
@@ -350,7 +469,7 @@
   margin: 12px 0 10px;
   padding: 10px 12px;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--radius);
   background: transparent;
   font-family: var(--mono, monospace);
   font-size: 14px;
@@ -403,8 +522,8 @@
   gap: 12px;
   padding: 12px 14px;
   border: 1px solid var(--line);
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.015);
+  border-radius: var(--radius);
+  background: var(--tint-soft);
 }
 .practice-card__note {
   margin: 0 0 4px;
@@ -556,15 +675,15 @@
   box-sizing: border-box;
   padding: 6px 8px 0 10px;
   border-left: 3px solid var(--ink);
-  background: rgba(0, 0, 0, 0.015);
+  background: var(--tint-soft);
   cursor: pointer;
 }
 .tl-chord:hover {
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--tint-mid);
 }
 .tl-chord--on {
   border-left-color: var(--accent);
-  background: var(--accent-bg, rgba(224, 112, 91, 0.08));
+  background: var(--accent-bg);
 }
 /* A continuation segment (a chord carried over a row break): no start edge. */
 .tl-chord--cont {
@@ -677,7 +796,7 @@
   width: 42px;
   height: 30px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: transparent;
   font-family: var(--sans);
   font-size: 14px;
@@ -708,7 +827,7 @@
 /* The "add chord" button (sits in the transport row). */
 .chart-add {
   border: 1px dashed var(--line);
-  border-radius: 999px;
+  border-radius: var(--radius);
   background: transparent;
   color: var(--muted);
   font-size: 14px;
@@ -754,7 +873,7 @@
   gap: 8px 16px;
   padding: 9px 14px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius);
   margin-top: 16px;
 }
 .context-strip .pill {
@@ -796,7 +915,7 @@
   min-width: 86px;
   padding: 8px 12px;
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: var(--radius);
   cursor: pointer;
   text-align: left;
   transition: border-color 0.12s ease;
@@ -818,7 +937,7 @@
 }
 .heat-0 .sugg-chip__name,
 .heat-0 .sugg-chip__fn {
-  color: #fff;
+  color: var(--on-heat-0);
 }
 .heat-1 {
   background: var(--heat-1);
@@ -861,7 +980,7 @@
   min-width: 86px;
   padding: 8px 12px;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--radius);
   background: transparent;
   cursor: pointer;
   text-align: left;
@@ -886,10 +1005,11 @@
   border-color: var(--ink);
 }
 .key-chip--on .key-chip__roman {
-  color: #fff;
+  color: var(--on-ink);
 }
 .key-chip--on .key-chip__key {
-  color: #cfcabf;
+  color: var(--on-ink);
+  opacity: 0.72;
 }
 
 /* A key that does NOT fit the whole progression — dimmed, still clickable. */

@@ -1,62 +1,233 @@
 /* ==========================================================================
    index.css — global styles and the Method palette
    --------------------------------------------------------------------------
-   Calm, instrument-like, near-monochrome with a single warm accent. The whole
-   palette lives here as CSS variables so every component reads the same few
-   colours and we can retune the mood in one place.
+   "PAPER & NIGHT" — the art-book direction, sampled from Stu's Cosmos boards
+   (see DESIGN.md). The boards describe two worlds that share one warm light:
+
+     PAPER — riso ink on warm oatmeal stock. Terracotta, tan, sand, with a
+             slate-blue cool pole. Printed, grainy, physical.
+     NIGHT — an indigo-black field with a single amber source: firelight, the
+             moon, a lamp under a shelf of records. Deep teal and violet.
+
+   EVERY colour in the app comes from the tokens below, and every token is
+   defined twice — once for each world. That is the whole trick: no component
+   knows which world it is in, so the theme switch is one attribute on <html>.
+
+   How the three theme states work:
+     :root                          — the PAPER palette, always defined.
+     @media (prefers-color-scheme)  — night, when the OS asks and the user
+                                      hasn't explicitly chosen paper.
+     :root[data-theme="night"]      — night, when the user picks it.
+   Never declare a colour only inside a media query — it would be undefined in
+   the default state and the app would paint one theme's ink on the other's
+   ground.
    ========================================================================== */
 
 :root {
-  /* Warm near-monochrome base. The paper is sampled from Stu's Cosmos boards
-     ("Color, Texture, Symbol" — riso ink on oatmeal stock): a step toward the
-     board's #dad7c8 rather than the whole way, so it still reads as a page. */
-  --bg: #f4efe3; /* warm oatmeal stock */
-  --ink: #1c1a17; /* near-black text */
-  --muted: #7f7869; /* secondary text — a step darker to hold up on warm stock */
-  --line: #ddd5c3; /* hairline borders, frets */
+  /* ---- PAPER: the ground ------------------------------------------------ */
+  --bg: #e9e0cc; /* warm riso stock, well toward the boards' #dad7c8 */
+  --surface: #f3ecdc; /* a raised chip — paper lifting off the stock */
+  --surface-sunk: #ded2b8; /* a recessed groove (segmented tracks) */
+  --neck: #e3d9c1; /* the fretboard's own surface */
+  --line: #cec2a8; /* hairlines, fret wires */
+  --tab-line: #c3b69a; /* TAB string lines */
+  --string: #a89b83; /* the strings on the neck */
+  --inlay: #d5c8ab; /* position-marker dots */
 
-  /* One accent (a restrained coral, from the original prototypes) */
-  --accent: #e0705b;
+  /* ---- PAPER: ink ------------------------------------------------------- */
+  --ink: #1f1c17; /* near-black text */
+  --muted: #756e5f; /* secondary text */
+  --on-ink: #f3ecdc; /* text on an ink-filled pill */
+  --note-label: #f3ecdc; /* the degree number inside a fretboard dot */
 
-  /* The HEAT RAMP — the accent fading into the paper. Used wherever we rank
-     harmonic choices from most obvious to farthest out (the suggestion heat
-     map, later the reveal heat map). The first deliberate token of the
-     art-book palette: tints of the one accent, not new colours. */
-  --heat-0: #e0705b; /* obvious — full accent (white text) */
-  --heat-1: #ecab9e; /* close — an inversion / slash away (ink text) */
-  --heat-2: #f4d2c9; /* reaching — secondary dominants */
-  --heat-3: #f9e9e4; /* far — borrowed from the parallel minor, related keys */
+  /* ---- PAPER: colour ---------------------------------------------------- */
+  --accent: #c8553f; /* the warm pole — deeper than the old coral, so it
+                        holds up as ink on stock rather than glowing */
+  --accent-bg: rgba(200, 85, 63, 0.1);
+  --tint-soft: rgba(31, 28, 23, 0.04); /* barely-there panel wash */
+  --tint-mid: rgba(31, 28, 23, 0.08);
+  --shadow: rgba(31, 28, 23, 0.16);
 
-  /* FUNCTION HUES — harmonic distance as TEMPERATURE, not just intensity
-     (from Hilma af Klint's concentric rings on the vision board: hot at the
-     centre, cooling outward). Every "reaching" chord used to wear the same
-     coral, so V7/x, ♭VII7 and subV7 read as one undifferentiated colour.
-     Warm = near home, cool = far from it. They run DEEPER than the accent on
-     purpose: these label at 11px, where the accent coral itself only reaches
-     2.8:1 on paper and goes muddy. */
+  /* The HEAT RAMP — harmonic distance as TEMPERATURE, not just intensity
+     (Hilma af Klint's concentric rings on the vision board: hot at the
+     centre, cooling outward). Nearest choices are warm, farthest are cool. */
+  --heat-0: #c8553f; /* obvious — root in the bass */
+  --heat-1: #d99a63; /* close — an inversion / slash away */
+  --heat-2: #7fa8ae; /* reaching — secondary dominants */
+  --heat-3: #8f93bd; /* far — borrowed, related keys */
+  --on-heat-0: #f3ecdc;
+  --on-heat-1: #1f1c17;
+  --on-heat-2: #1f1c17;
+  --on-heat-3: #1f1c17;
+
+  /* FUNCTION HUES — the same ramp, applied to a chord's role in the key.
+     Deeper than the accent on purpose: these label at 11px. */
   --fn-blues: #9a6b33; /* the blues IV7 — home's own earthy ochre */
   --fn-secondary: #c8553f; /* V7/x — reaching, but still pulling home */
-  --fn-borrowed: #2c8296; /* the parallel minor's cooler shadow (toward teal) */
-  --fn-tritone: #574a9e; /* subV7/x — the furthest substitution (toward violet) */
+  --fn-borrowed: #2c8296; /* the parallel minor's cooler shadow */
+  --fn-tritone: #574a9e; /* subV7/x — the furthest substitution */
 
-  /* TAB, everywhere it appears (Possibility's cards, Play's score staff, the
-     horizontal scale TAB): one string-line colour and one fret-number size, so
-     every TAB in the app reads as the same notation. */
-  --tab-line: #d0c7b1; /* string lines — a shade deeper than --line */
-  --tab-fret-size: 12px; /* fret numbers */
+  /* SCALE DEGREES — the palette's full range, finally doing some work. The
+     seven degrees run warm at the root and cool toward the 7th, so a
+     constellation on the neck reads as colour as well as position (and the
+     leading tone genuinely looks like the furthest thing from home). */
+  --deg-1: #b4553f; /* root — terracotta */
+  --deg-2: #9c7444; /* ochre */
+  --deg-3: #87804f; /* olive */
+  --deg-4: #5c8168; /* green */
+  --deg-5: #45808f; /* teal — the other structural tone */
+  --deg-6: #5a7392; /* slate */
+  --deg-7: #66608f; /* indigo — furthest out */
 
-  /* Type: a calm serif for display, a clean sans for everything else.
-     System fonts only — no web-font dependency to load or maintain. */
-  --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
-  --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Quiz feedback — the one place colour means right/wrong, not distance. */
+  --correct: #4a7343;
+  --wrong: #a8443a;
+
+  /* ---- PAPER: texture --------------------------------------------------- */
+  --grain-opacity: 0.4;
+  --grain-blend: multiply;
+
+  /* ---- Type ------------------------------------------------------------- */
+  /* Newsreader + Karla (loaded in index.html), each with the system stack that
+     used to carry the app as a fallback — so a failed font load degrades
+     gracefully instead of breaking the page. */
+  --serif: 'Newsreader', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --sans: 'Karla', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --tab-fret-size: 12px;
+
+  /* Shape language: the boards are circles and printed grids, not lozenges.
+     One small radius everywhere reads as ink on a page; 999px reads as an app
+     chrome. Circles stay circles (the mark, the fretboard dots). */
+  --radius: 2px;
+
+  /* The identity mark — a riso ink blot on paper, the moon at night. */
+  --mark-ink: #33468a;
+  --mark-glow: rgba(232, 176, 114, 0);
+  --mark-glow-far: rgba(232, 176, 114, 0);
 
   color: var(--ink);
   background: var(--bg);
   font-family: var(--sans);
   font-size: 17px;
-  line-height: 1.5;
+  line-height: 1.55;
+  font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==========================================================================
+   NIGHT — the same tokens, the other world.
+   Written once as a custom-property block and applied by both selectors below.
+   ========================================================================== */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='paper']) {
+    --bg: #14151d;
+    --surface: #1e202b;
+    --surface-sunk: #0e0f16;
+    --neck: #1a1c26;
+    --line: #2c3040;
+    --tab-line: #363b4d;
+    --string: #4a5063;
+    --inlay: #2a2f3e;
+
+    --ink: #ece7dc;
+    --muted: #8f8879;
+    --on-ink: #14151d;
+    --note-label: #14151d;
+
+    --accent: #e8b072; /* the one warm light in the dark field */
+    --accent-bg: rgba(232, 176, 114, 0.14);
+    --tint-soft: rgba(236, 231, 220, 0.04);
+    --tint-mid: rgba(236, 231, 220, 0.08);
+    --shadow: rgba(0, 0, 0, 0.5);
+
+    --heat-0: #e8b072;
+    --heat-1: #b8794e;
+    --heat-2: #35708a;
+    --heat-3: #3b3f66;
+    --on-heat-0: #14151d;
+    --on-heat-1: #14151d;
+    --on-heat-2: #ece7dc;
+    --on-heat-3: #ece7dc;
+
+    --fn-blues: #d9a05a;
+    --fn-secondary: #e8785c;
+    --fn-borrowed: #4fb3c9;
+    --fn-tritone: #9a92e0;
+
+    --deg-1: #e8b072;
+    --deg-2: #d99a5e;
+    --deg-3: #c9b45e;
+    --deg-4: #7fb98a;
+    --deg-5: #4fb3c9;
+    --deg-6: #86a4d4;
+    --deg-7: #9a92e0;
+
+    --correct: #6fa564;
+    --wrong: #d9695c;
+
+    --mark-ink: #f0c583;
+    --mark-glow: rgba(240, 197, 131, 0.34);
+    --mark-glow-far: rgba(240, 197, 131, 0.13);
+
+    --grain-opacity: 0.15;
+    --grain-blend: screen;
+  }
+}
+
+:root[data-theme='night'] {
+  --bg: #14151d;
+  --surface: #1e202b;
+  --surface-sunk: #0e0f16;
+  --neck: #1a1c26;
+  --line: #2c3040;
+  --tab-line: #363b4d;
+  --string: #4a5063;
+  --inlay: #2a2f3e;
+
+  --ink: #ece7dc;
+  --muted: #8f8879;
+  --on-ink: #14151d;
+  --note-label: #14151d;
+
+  --accent: #e8b072;
+  --accent-bg: rgba(232, 176, 114, 0.14);
+  --tint-soft: rgba(236, 231, 220, 0.04);
+  --tint-mid: rgba(236, 231, 220, 0.08);
+  --shadow: rgba(0, 0, 0, 0.5);
+
+  --heat-0: #e8b072;
+  --heat-1: #b8794e;
+  --heat-2: #35708a;
+  --heat-3: #3b3f66;
+  --on-heat-0: #14151d;
+  --on-heat-1: #14151d;
+  --on-heat-2: #ece7dc;
+  --on-heat-3: #ece7dc;
+
+  --fn-blues: #d9a05a;
+  --fn-secondary: #e8785c;
+  --fn-borrowed: #4fb3c9;
+  --fn-tritone: #9a92e0;
+
+  --deg-1: #e8b072;
+  --deg-2: #d99a5e;
+  --deg-3: #c9b45e;
+  --deg-4: #7fb98a;
+  --deg-5: #4fb3c9;
+  --deg-6: #86a4d4;
+  --deg-7: #9a92e0;
+
+  --correct: #6fa564;
+  --wrong: #d9695c;
+
+  --mark-ink: #f0c583;
+  --mark-glow: rgba(240, 197, 131, 0.34);
+  --mark-glow-far: rgba(240, 197, 131, 0.13);
+
+  --grain-opacity: 0.15;
+  --grain-blend: screen;
 }
 
 * {
@@ -65,28 +236,37 @@
 
 body {
   margin: 0;
+  background: var(--bg);
+  color: var(--ink);
 }
 
 /* PAPER GRAIN — a fine noise tile laid over everything so the ground reads as
-   printed stock rather than flat off-white. The texture is generated by SVG
-   (feTurbulence) inside a data URI, so there's no image file to load or
-   maintain. Two details make it behave:
+   printed stock rather than flat colour. Generated by SVG (feTurbulence) in a
+   data URI: no image file to load or maintain. Two details make it behave:
      - `fixed`, so it sits still like the paper the app is printed on instead
        of sliding around with the content;
      - `pointer-events: none`, so it never swallows a click.
-   Keep the opacity low: it should be felt, not seen. */
+   On paper it MULTIPLIES (ink soaking into stock); at night it SCREENS
+   (starfield haze), because multiplying into a dark ground does nothing. */
 body::after {
   content: '';
   position: fixed;
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  opacity: 0.22;
-  mix-blend-mode: multiply;
+  opacity: var(--grain-opacity);
+  mix-blend-mode: var(--grain-blend);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 h1,
 h2 {
-  font-weight: 500;
+  font-weight: 400;
 }

@@ -1151,3 +1151,41 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   stopped applying, and the tokens quietly kept their old values while `--muted`
   (declared above the break) updated — which is what exposed it. When half a
   token change lands, suspect the comment syntax.
+
+## Session 15 — the redesign: Paper & Night in the app itself
+
+- **Stu: "the style guide is perfect… it isn't translating."** Right diagnosis.
+  The first pass shipped the PALETTE and skipped the GRAPHIC LANGUAGE — colour
+  in 11px labels can't carry a design. What carries it: an identity mark, a
+  shape language, type, and colour used at scale.
+- **One mark, two worlds.** The masthead rule is gone; in its place a circle
+  that IS the thesis — on paper a riso ink blot (a turbulence mask eats its
+  edge, giving the indigo-on-oatmeal moon prints from the board), at night the
+  same circle unmasked with a warm bloom: the moon. One element, one token
+  swap.
+- **Shape language: 999px → 2px.** The boards are circles and printed grids,
+  never lozenges. A single `--radius` token moved every pill, track and card
+  from "app chrome" to "ink on a page". This did more for the feel than any
+  colour change.
+- **Every colour is now a token defined twice** (paper + night), so no
+  component knows which world it's in and the theme is one attribute on
+  <html>. The audit that made it possible: grep for colour literals, and
+  convert ALL of them — one stray `#f3eee4` on the fretboard was a single digit
+  from the new ground and would have made the neck vanish.
+- **Degrees finally use the palette**: `--deg-1..7` run warm at the root to
+  cool at the 7th, parsed from the interval label (`degreeOf` handles "1",
+  "♭3", "M3" alike). The root keeps a RING rather than a louder fill, so
+  "which degree" and "is it the root" stay two separate signals.
+- **The aura is night-only, and that's a principle, not a setting.** Paper ink
+  soaks INTO stock; it doesn't emit. A glowing dot on paper was the one
+  dishonest thing on the page — and it also read as candy. Removing it fixed
+  both at once. At night it's the whole point (bioluminescence).
+- **Riso overprint in a UI = `mix-blend-mode: multiply` + a 1.5px offset.** A
+  selected segment isn't a chip lifted off the track, it's a block of ink
+  PRINTED on it, with a second misregistered pass. The overlap colour is never
+  chosen by hand — the blend makes it, the way real ink does. At night the same
+  layer SCREENS instead (light escaping, not ink soaking).
+- Type: Newsreader + Karla from Google Fonts, each with the old system stack as
+  fallback — a failed font load degrades rather than breaks. This is a
+  deliberate departure from the "system fonts only" note in the original
+  palette comment; the tradeoff is a network dependency for the intended look.
