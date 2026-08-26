@@ -14,21 +14,29 @@
 
 import { useState } from 'react';
 import { CHORDS } from '../data/chords';
-import { ROOT_CHOICES } from '../data/roots';
 import { spellNoteFromInterval, midiOf, noteName } from '../theory/notes';
 import { playChord } from '../audio/player';
 import { FunctionQuizView } from './FunctionQuizView';
+import {
+  earMaterial,
+  pickOne,
+  type EarSelection,
+  type EarMaterial,
+  type EarChord,
+} from '../theory/earMaterial';
 import { InversionQuizView } from './InversionQuizView';
 import { Segmented } from './Segmented';
-
-const CHORD_LIST = Object.values(CHORDS);
 
 // The Ear Training area: a shell that picks WHICH skill to drill. Quality =
 // "what did I hear?" (key-agnostic); Inversion = "which tone is on the bottom?"
 // (the lean of a voicing); Function = "what is it doing in the key?" (roman
 // numerals + secondary dominants + borrowed, riding the function engine).
-export function EarTrainingView() {
+export function EarTrainingView({ selection }: { selection: EarSelection }) {
   const [quiz, setQuiz] = useState<'quality' | 'inversion' | 'function'>('quality');
+  // What the CONTROLS panel above has put in play. The quizzes draw from this
+  // rather than inventing their own pools, so what you hear is always
+  // something you asked for.
+  const material = earMaterial(selection);
   return (
     <>
       <div className="controls">
@@ -43,10 +51,15 @@ export function EarTrainingView() {
           onChange={setQuiz}
         />
       </div>
-      {quiz === 'quality' ? (
-        <QualityQuiz />
+      {material.chords.length === 0 ? (
+        <p className="control-hint control-hint--warn">
+          Nothing to quiz yet — turn on Harmony in the View row, and at least
+          one key, scale and degree.
+        </p>
+      ) : quiz === 'quality' ? (
+        <QualityQuiz material={material} />
       ) : quiz === 'inversion' ? (
-        <InversionQuizView />
+        <InversionQuizView material={material} />
       ) : (
         <FunctionQuizView />
       )}
@@ -54,65 +67,41 @@ export function EarTrainingView() {
   );
 }
 
-// A quiz question: which root the chord is built on, and which quality it is.
-interface Question {
-  rootIndex: number;
-  chordId: string;
-}
-
 // The MIDI notes of a chord in root position (root + its chord tones).
-function chordMidis(q: Question): number[] {
-  const root = ROOT_CHOICES[q.rootIndex];
-  return CHORDS[q.chordId].intervals.map((iv) => midiOf(spellNoteFromInterval(root, iv)));
+function chordMidis(c: EarChord): number[] {
+  return c.chord.intervals.map((iv) => midiOf(spellNoteFromInterval(c.root, iv)));
 }
 
-function QualityQuiz() {
-  // Which qualities are in play. Start gentle — three clearly different sounds.
-  const [enabled, setEnabled] = useState<Set<string>>(
-    new Set(['major-triad', 'minor-triad', 'dominant-seventh']),
+function QualityQuiz({ material }: { material: EarMaterial }) {
+  // The qualities that actually occur in the chosen material — no invented
+  // pool. Narrowing the CONTROLS above narrows these, so the answers on offer
+  // are always the answers that are possible.
+  const qualities = [...new Set(material.chords.map((c) => c.chord.id))].map(
+    (id) => CHORDS[id],
   );
-  const [question, setQuestion] = useState<Question | null>(null);
+  const [question, setQuestion] = useState<EarChord | null>(null);
   const [guess, setGuess] = useState<string | null>(null); // the chosen quality id
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState({ correct: 0, total: 0 });
 
-  const enabledList = CHORD_LIST.filter((c) => enabled.has(c.id));
-
-  // Toggle a quality in/out of the pool (never let it go empty).
-  const toggleQuality = (id: string) => {
-    setEnabled((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        if (next.size === 1) return prev; // keep at least one
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
-
-  // Pose a new question: a random enabled quality on a random root, then play it.
+  // Pose a new question: one of the chords actually in play, then sound it.
   const newQuestion = () => {
-    const ids = [...enabled];
-    const chordId = ids[Math.floor(Math.random() * ids.length)];
-    const rootIndex = Math.floor(Math.random() * ROOT_CHOICES.length);
-    const q = { rootIndex, chordId };
-    setQuestion(q);
+    const c = pickOne(material.chords);
+    if (!c) return;
+    setQuestion(c);
     setGuess(null);
     setRevealed(false);
-    playChord(chordMidis(q));
+    playChord(chordMidis(c));
   };
 
   const replay = () => question && playChord(chordMidis(question));
 
-  // Answer = pick a quality. We reveal immediately and score it.
   const answer = (id: string) => {
     if (!question || revealed) return;
     setGuess(id);
     setRevealed(true);
     setScore((s) => ({
-      correct: s.correct + (id === question.chordId ? 1 : 0),
+      correct: s.correct + (id === question.chord.id ? 1 : 0),
       total: s.total + 1,
     }));
   };
@@ -120,22 +109,6 @@ function QualityQuiz() {
   return (
     <>
       <p className="tagline">Ear training — name the chord quality you hear.</p>
-
-      {/* Which qualities are in the pool. Narrow for an easier drill, widen for a
-          harder one. */}
-      <div className="view-controls">
-        <div className="control-group control-group--wrap" role="group" aria-label="Qualities in play">
-          {CHORD_LIST.map((c) => (
-            <button
-              key={c.id}
-              className={enabled.has(c.id) ? 'pill pill--on' : 'pill'}
-              onClick={() => toggleQuality(c.id)}
-            >
-              {c.name}
-            </button>
-          ))}
-        </div>
-      </div>
 
       {question === null ? (
         <button className="pill pill--play" onClick={newQuestion}>
@@ -159,8 +132,8 @@ function QualityQuiz() {
 
           <p className="control-hint">What quality did you hear?</p>
           <div className="control-group control-group--wrap" role="group" aria-label="Your answer">
-            {enabledList.map((c) => {
-              const isAnswer = c.id === question.chordId;
+            {qualities.map((c) => {
+              const isAnswer = c.id === question.chord.id;
               const isGuess = c.id === guess;
               let cls = 'pill';
               if (revealed && isAnswer) cls += ' pill--correct';
@@ -180,19 +153,22 @@ function QualityQuiz() {
 
           {revealed && (
             <p className="tagline">
-              {guess === question.chordId ? 'Correct — ' : 'Not quite — '}that was a{' '}
+              {guess === question.chord.id ? 'Correct — ' : 'Not quite — '}that was{' '}
               <strong>
-                {noteName(ROOT_CHOICES[question.rootIndex])} {CHORDS[question.chordId].name}
-              </strong>
-              .
+                {noteName(question.root)} {question.chord.name}
+              </strong>{' '}
+              — the <strong>{question.roman}</strong> of {noteName(question.tonic)}{' '}
+              {question.scale.name}.
             </p>
           )}
         </>
       )}
 
       <footer className="footnote">
-        The root is randomised each time, so you're hearing the quality, not
-        memorising a pitch. Narrow the pool to drill two sounds; widen it to stretch.
+        The chords come from whatever you put in play in the CONTROLS above —
+        keys, scales and degrees. Narrow them to drill one sound; widen them to
+        stretch. The answers on offer are only ever the qualities that can
+        actually occur in what you selected.
       </footer>
     </>
   );

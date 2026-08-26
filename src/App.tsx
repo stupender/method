@@ -22,6 +22,7 @@ import { ChordScaleLadder } from './ui/ChordScaleLadder';
 import { InversionLadder } from './ui/InversionLadder';
 import { ControlPanel, ControlRow } from './ui/ControlPanel';
 import { DegreeLegend } from './ui/DegreeLegend';
+import { MultiSelect } from './ui/MultiSelect';
 import { PatternExplorer } from './ui/PatternExplorer';
 import { ScaleExplorer } from './ui/ScaleExplorer';
 import { Segmented } from './ui/Segmented';
@@ -426,6 +427,41 @@ function StudyArea({
   // stay on screen in both — a switch that hides itself can't switch back. The
   // same key and scale will drive the ear quiz's pools next.
   const [studyMode, setStudyMode] = useState<'fretboard' | 'ear'>('fretboard');
+
+  // EAR MODE'S SELECTIONS ARE SETS, not single values. On the neck a control
+  // answers "what am I looking at", so exactly one; in Ear Training the same
+  // control answers "what might I be played", so any number — each extra
+  // choice widens the pool rather than replacing it. They're kept separately
+  // from the fretboard's choices so switching modes doesn't destroy either.
+  const [earRoots, setEarRoots] = useState<ReadonlySet<number>>(new Set([0]));
+  const [earScaleIds, setEarScaleIds] = useState<ReadonlySet<string>>(
+    new Set([SCALE_LIST[0].id]),
+  );
+  const [earDegrees, setEarDegrees] = useState<ReadonlySet<number>>(
+    new Set([0, 1, 2, 3, 4, 5, 6]),
+  );
+  const [earViews, setEarViews] = useState<ReadonlySet<'scale' | 'harmony'>>(
+    new Set(['harmony']),
+  );
+  // Triads or seventh chords for the ear drills — the harmony equivalent of the
+  // fretboard's own triad/seventh switch.
+  const [seventhsInEar, setSeventhsInEar] = useState(false);
+
+  // Toggling never empties a set — with nothing chosen there'd be nothing to
+  // quiz, so the last one standing refuses to switch off.
+  const toggleIn = <T,>(
+    set: ReadonlySet<T>,
+    setter: (s: ReadonlySet<T>) => void,
+  ) => (value: T) => {
+    const next = new Set(set);
+    if (next.has(value)) {
+      if (next.size === 1) return;
+      next.delete(value);
+    } else {
+      next.add(value);
+    }
+    setter(next);
+  };
   const [mode, setMode] = useState<Mode>('scale');
   const [rootIndex, setRootIndex] = useState(0); // the Key
   const [scaleId, setScaleId] = useState(SCALE_LIST[0].id); // the Scale type
@@ -481,55 +517,122 @@ function StudyArea({
           </ControlRow>
         )}
         <ControlRow label="Key">
-          <Segmented
-            fill
-            ariaLabel="Key"
-            options={ROOT_CHOICES.map((note, i) => ({ value: i, label: noteName(note) }))}
-            value={rootIndex}
-            onChange={setRootIndex}
-          />
+          {studyMode === 'ear' ? (
+            <MultiSelect
+              fill
+              ariaLabel="Keys in play"
+              options={ROOT_CHOICES.map((note, i) => ({ value: i, label: noteName(note) }))}
+              values={earRoots}
+              onToggle={toggleIn(earRoots, setEarRoots)}
+            />
+          ) : (
+            <Segmented
+              fill
+              ariaLabel="Key"
+              options={ROOT_CHOICES.map((note, i) => ({ value: i, label: noteName(note) }))}
+              value={rootIndex}
+              onChange={setRootIndex}
+            />
+          )}
         </ControlRow>
         <ControlRow label="Scale">
-          <Segmented
-            fill
-            ariaLabel="Scale type"
-            options={SCALE_LIST.map((s) => ({ value: s.id, label: s.name }))}
-            value={scaleId}
-            onChange={setScaleId}
-          />
+          {studyMode === 'ear' ? (
+            <MultiSelect
+              fill
+              ariaLabel="Scales in play"
+              options={SCALE_LIST.map((s) => ({ value: s.id, label: s.name }))}
+              values={earScaleIds}
+              onToggle={toggleIn(earScaleIds, setEarScaleIds)}
+            />
+          ) : (
+            <Segmented
+              fill
+              ariaLabel="Scale type"
+              options={SCALE_LIST.map((s) => ({ value: s.id, label: s.name }))}
+              value={scaleId}
+              onChange={setScaleId}
+            />
+          )}
         </ControlRow>
         {/* Degree persists across views: in Scales it picks the MODE, in
             Harmony the chord degree. */}
         <ControlRow label="Gravity">
-          <Segmented
-            fill
-            ariaLabel="Gravity"
-            options={[
-              { value: ALL_DEGREES, label: 'All' },
-              ...romanLabels.map((roman, i) => ({ value: i, label: roman })),
-            ]}
-            value={deg}
-            onChange={setDegree}
-          />
+          {studyMode === 'ear' ? (
+            /* No "All" cell here — selecting every degree IS all of them, and
+               a separate All would be a second way to say the same thing. */
+            <MultiSelect
+              fill
+              ariaLabel="Degrees in play"
+              options={romanLabels.map((roman, i) => ({ value: i, label: roman }))}
+              values={earDegrees}
+              onToggle={toggleIn(earDegrees, setEarDegrees)}
+            />
+          ) : (
+            <Segmented
+              fill
+              ariaLabel="Gravity"
+              options={[
+                { value: ALL_DEGREES, label: 'All' },
+                ...romanLabels.map((roman, i) => ({ value: i, label: roman })),
+              ]}
+              value={deg}
+              onChange={setDegree}
+            />
+          )}
         </ControlRow>
-        {studyMode === 'fretboard' && (
-        <ControlRow label="View">
-          <Segmented
-            fill
-            ariaLabel="View"
-            options={[
-              { value: 'scale' as Mode, label: 'Scales' },
-              ...(READY.patterns ? [{ value: 'pattern' as Mode, label: 'Patterns' }] : []),
-              { value: 'harmony' as Mode, label: 'Harmony' },
-            ]}
-            value={mode}
-            onChange={setMode}
-          />
-        </ControlRow>
+        {studyMode === 'ear' && (
+          <ControlRow label="Chords">
+            <Segmented
+              fill
+              ariaLabel="Chord size"
+              options={[
+                { value: 'triads', label: 'Triads' },
+                { value: 'sevenths', label: 'Sevenths' },
+              ]}
+              value={seventhsInEar ? 'sevenths' : 'triads'}
+              onChange={(v) => setSeventhsInEar(v === 'sevenths')}
+            />
+          </ControlRow>
         )}
+        <ControlRow label="View">
+          {studyMode === 'ear' ? (
+            <MultiSelect
+              fill
+              ariaLabel="Material in play"
+              options={[
+                { value: 'scale' as const, label: 'Scales' },
+                { value: 'harmony' as const, label: 'Harmony' },
+              ]}
+              values={earViews}
+              onToggle={toggleIn(earViews, setEarViews)}
+            />
+          ) : (
+            <Segmented
+              fill
+              ariaLabel="View"
+              options={[
+                { value: 'scale' as Mode, label: 'Scales' },
+                ...(READY.patterns ? [{ value: 'pattern' as Mode, label: 'Patterns' }] : []),
+                { value: 'harmony' as Mode, label: 'Harmony' },
+              ]}
+              value={mode}
+              onChange={setMode}
+            />
+          )}
+        </ControlRow>
       </ControlPanel>
 
-      {studyMode === 'ear' && <EarTrainingView />}
+      {studyMode === 'ear' && (
+        <EarTrainingView
+          selection={{
+            roots: earRoots,
+            scaleIds: earScaleIds,
+            degrees: earDegrees,
+            views: earViews,
+            sevenths: seventhsInEar,
+          }}
+        />
+      )}
 
       {studyMode === 'fretboard' && mode === 'scale' && (
         <ScaleView

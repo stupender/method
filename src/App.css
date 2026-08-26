@@ -415,6 +415,36 @@
   color: var(--ink);
   font-weight: 600;
 }
+
+/* PICK-MANY: a filled dot before the word instead of a rule under it, so an
+   independent on/off never looks like a chosen-one-of-several. */
+.seg--multi .seg__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  max-width: none;
+  border-bottom: 0;
+}
+.seg__tick {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+  border: 1px solid var(--line);
+  background: transparent;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+.seg__btn--picked {
+  color: var(--ink);
+  font-weight: 600;
+}
+.seg__btn--picked .seg__tick {
+  background: var(--accent);
+  border-color: var(--accent);
+}
 .seg__btn--on .seg__label {
   border-bottom-color: var(--accent);
 }

@@ -1430,3 +1430,22 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   Gravity rather than above them. The fretboard-only View row hides in Ear
   mode. With Ear gone from the nav and Play flagged off, the top nav had one
   item left, so it hides itself.
+
+- **The same row can mean two different things.** Key/Scale/Gravity/View are
+  pick-ONE on the fretboard (a neck shows one key at a time) and pick-MANY in
+  Ear mode (each extra choice just widens the pool of what might be played).
+  Rather than two panels, the rows swap control: `Segmented` (a rule under the
+  word) or `MultiSelect` (a dot before it), same grid, same measure. The mark
+  carries the meaning, so the layout never lurches when you switch modes.
+
+- **Give the quizzes one source of truth about what's possible.**
+  `theory/earMaterial.ts` turns the selections into the actual list of chords
+  and scales in play; the quizzes draw from it instead of rolling their own
+  random roots. That's why the answer buttons can only ever offer qualities
+  that really occur in your selection — pick harmonic minor and "diminished"
+  appears; drop it and it goes.
+
+- **A texture has to survive its own scale.** The dots were hand-stamped ink
+  for a while (sixteen turbulence masks, no two alike). At 30 units across it
+  never read as ink, only as noise. Flat saturated discs — transit-map dots —
+  say more with less. Kept at the `ink-stamp-dots` tag.

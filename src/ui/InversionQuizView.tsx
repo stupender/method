@@ -12,23 +12,20 @@
 // ============================================================================
 
 import { useState } from 'react';
-import { CHORDS } from '../data/chords';
-import { ROOT_CHOICES } from '../data/roots';
 import { spellNoteFromInterval, midiOf, noteName } from '../theory/notes';
+import { pickOne, type EarMaterial, type EarChord } from '../theory/earMaterial';
 import { inversionName } from '../theory/chord';
 import { playChord } from '../audio/player';
-
-const CHORD_LIST = Object.values(CHORDS);
 
 // "Root", "3rd", "5th", "7th" — from an interval's letter-steps (0-based).
 // Generic on purpose, so a sus chord's 4th or a 6th chord would label itself.
 const ORDINALS = ['Root', '2nd', '3rd', '4th', '5th', '6th', '7th'];
 const toneLabel = (diatonicSteps: number) => ORDINALS[diatonicSteps] ?? `${diatonicSteps + 1}th`;
 
-// One question: which chord, on which root, in which inversion.
+// One question: a chord drawn from what's in play, and which of its tones is
+// in the bass.
 interface Question {
-  rootIndex: number;
-  chordId: string;
+  source: EarChord;
   inversion: number; // 0 = root position, 1 = 3rd in bass, ...
 }
 
@@ -36,56 +33,33 @@ interface Question {
 // everything below the chosen bass jumps up an octave. C major, inversion 2 ->
 // G C(+12) E(+12) — the classic close second inversion.
 function voicedMidis(q: Question): number[] {
-  const root = ROOT_CHOICES[q.rootIndex];
-  const tones = CHORDS[q.chordId].intervals.map((iv) =>
-    midiOf(spellNoteFromInterval(root, iv)),
+  const tones = q.source.chord.intervals.map((iv) =>
+    midiOf(spellNoteFromInterval(q.source.root, iv)),
   );
   return [...tones.slice(q.inversion), ...tones.slice(0, q.inversion).map((m) => m + 12)];
 }
 
-export function InversionQuizView() {
-  // The difficulty dial: which qualities can appear. Start with the two
-  // plainest sounds; widen to sevenths for four answer choices.
-  const [enabled, setEnabled] = useState<Set<string>>(
-    new Set(['major-triad', 'minor-triad']),
-  );
+export function InversionQuizView({ material }: { material: EarMaterial }) {
   const [question, setQuestion] = useState<Question | null>(null);
   const [guess, setGuess] = useState<number | null>(null); // the chosen inversion
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState({ correct: 0, total: 0 });
-
-  const toggle = (id: string) => {
-    setEnabled((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        if (next.size === 1) return prev; // keep at least one quality
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
 
   const replay = () => question && playChord(voicedMidis(question));
 
   // A new round: random enabled quality, random root, random inversion (not
   // the same inversion twice running — that teaches nothing).
   const newQuestion = () => {
-    const ids = [...enabled];
-    const chordId = ids[Math.floor(Math.random() * ids.length)];
-    const count = CHORDS[chordId].intervals.length;
+    const source = pickOne(material.chords);
+    if (!source) return;
+    const count = source.chord.intervals.length;
     let inversion = Math.floor(Math.random() * count);
     if (question && count > 1) {
       while (inversion === question.inversion) {
         inversion = Math.floor(Math.random() * count);
       }
     }
-    const q = {
-      rootIndex: Math.floor(Math.random() * ROOT_CHOICES.length),
-      chordId,
-      inversion,
-    };
+    const q = { source, inversion };
     setQuestion(q);
     setGuess(null);
     setRevealed(false);
@@ -102,31 +76,13 @@ export function InversionQuizView() {
     }));
   };
 
-  const qChord = question ? CHORDS[question.chordId] : null;
+  const qChord = question ? question.source.chord : null;
 
   return (
     <>
       <p className="tagline">
         Ear training — which chord tone is in the <strong>bass</strong>?
       </p>
-
-      {/* Which qualities are in the pool. Sevenths add the 7th-in-bass answer. */}
-      <div className="view-controls">
-        <div className="controls-row">
-          <span className="control-label">Qualities</span>
-          <div className="control-group control-group--wrap" role="group" aria-label="Qualities in play">
-            {CHORD_LIST.map((c) => (
-              <button
-                key={c.id}
-                className={enabled.has(c.id) ? 'pill pill--on' : 'pill'}
-                onClick={() => toggle(c.id)}
-              >
-                {c.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {question === null || !qChord ? (
         <button className="pill pill--play" onClick={newQuestion}>
@@ -168,7 +124,7 @@ export function InversionQuizView() {
             <p className="tagline">
               {guess === question.inversion ? 'Correct — ' : 'Not quite — '}that was{' '}
               <strong>
-                {noteName(ROOT_CHOICES[question.rootIndex])} {qChord.name}
+                {noteName(question.source.root)} {qChord.name}
               </strong>{' '}
               with the{' '}
               <strong>{toneLabel(qChord.intervals[question.inversion].diatonicSteps)}</strong>{' '}
@@ -181,8 +137,9 @@ export function InversionQuizView() {
       <footer className="footnote">
         Root position <em>sits</em>; a 3rd in the bass <em>leans</em>; a 5th{' '}
         <em>floats</em>; a 7th <em>pulls down</em>. You're learning to name that
-        feeling. The root is randomised, so it's the shape you're hearing, not a
-        pitch.
+        feeling. The chords come from what you put in play in the CONTROLS
+        above; widen the keys and the root moves around, so it's the shape
+        you're hearing rather than a pitch.
       </footer>
     </>
   );
