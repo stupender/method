@@ -2,7 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/method/favicon.svg" />
+    <!-- The mark (see src/ui/Mark.tsx). Named mark.svg rather than favicon.svg
+         on purpose: browsers cache favicons far more stubbornly than pages, and
+         a fresh filename is the only reliable way to make an old one let go. If
+         the icon is ever redrawn again, rename it again. -->
+    <link rel="icon" type="image/svg+xml" href="/method/mark.svg" />
+    <link rel="apple-touch-icon" href="/method/mark.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Fretboard Constellations</title>
     <meta name="description" content="An interactive music-theory and guitar-learning tool. Learn by seeing the fretboard, hearing the sound, and playing with it." />
@@ -17,8 +22,8 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Karla:wght@300;400;500;600;700&display=swap"
     />
-    <script type="module" crossorigin src="/method/assets/index-gXFjk2O6.js"></script>
-    <link rel="stylesheet" crossorigin href="/method/assets/index-CJv84GQK.css">
+    <script type="module" crossorigin src="/method/assets/index-Cb4W6GIz.js"></script>
+    <link rel="stylesheet" crossorigin href="/method/assets/index-43O0hLs9.css">
   </head>
   <body>
     <div id="root"></div>
