@@ -20,6 +20,7 @@ import { noteName, pitchClassOf } from './theory/notes';
 import { ChordExplorer } from './ui/ChordExplorer';
 import { ChordScaleLadder } from './ui/ChordScaleLadder';
 import { InversionLadder } from './ui/InversionLadder';
+import { ControlPanel, ControlRow } from './ui/ControlPanel';
 import { PatternExplorer } from './ui/PatternExplorer';
 import { ScaleExplorer } from './ui/ScaleExplorer';
 import { Segmented } from './ui/Segmented';
@@ -427,38 +428,46 @@ function StudyArea({
 
   return (
     <>
-      {/* Controls in priority order: Key → Scale type → Degree → Mode. Each is
-          an either/or choice, so each is a SEGMENTED track (see Segmented.tsx). */}
-      <div className="controls">
-        <Segmented
-          ariaLabel="Key"
-          options={ROOT_CHOICES.map((note, i) => ({ value: i, label: noteName(note) }))}
-          value={rootIndex}
-          onChange={setRootIndex}
-        />
-
-        <Segmented
-          ariaLabel="Scale type"
-          options={SCALE_LIST.map((s) => ({ value: s.id, label: s.name }))}
-          value={scaleId}
-          onChange={setScaleId}
-        />
-
-        {/* One row: Degree (the persistent selector — in Scales it sets the mode,
-            in Harmony the chord), the Scales/Harmony switch, and — far right —
-            the global Labels display toggle.
-            ('chord', the absolute key-less chord explorer, is intentionally NOT
-            offered in the Mode list — it isn't useful on this key-oriented page
-            yet. The view + ChordExplorer are kept below for a future, less
-            key-centric section; re-add 'chord' to the list to show it.) */}
-        <div className="controls-row">
+      {/* Every choice in ONE measure — a labelled block whose rows share a left
+          edge and divide the same width (see ui/ControlPanel.tsx). Order is
+          priority order: Key → Scale → Degree → View → Labels.
+          ('chord', the absolute key-less chord explorer, is intentionally NOT
+          offered in the View list — it isn't useful on this key-oriented page
+          yet. The view + ChordExplorer are kept below for a future, less
+          key-centric section; re-add 'chord' to the list to show it.) */}
+      <ControlPanel title="Controls">
+        <ControlRow label="Key">
           <Segmented
+            fill
+            ariaLabel="Key"
+            options={ROOT_CHOICES.map((note, i) => ({ value: i, label: noteName(note) }))}
+            value={rootIndex}
+            onChange={setRootIndex}
+          />
+        </ControlRow>
+        <ControlRow label="Scale">
+          <Segmented
+            fill
+            ariaLabel="Scale type"
+            options={SCALE_LIST.map((s) => ({ value: s.id, label: s.name }))}
+            value={scaleId}
+            onChange={setScaleId}
+          />
+        </ControlRow>
+        {/* Degree persists across views: in Scales it picks the MODE, in
+            Harmony the chord degree. */}
+        <ControlRow label="Degree">
+          <Segmented
+            fill
             ariaLabel="Degree"
             options={romanLabels.map((roman, i) => ({ value: i, label: roman }))}
             value={deg}
             onChange={setDegree}
           />
+        </ControlRow>
+        <ControlRow label="View">
           <Segmented
+            fill
             ariaLabel="Mode"
             options={[
               { value: 'scale' as Mode, label: 'Scales' },
@@ -468,9 +477,11 @@ function StudyArea({
             value={mode}
             onChange={setMode}
           />
+        </ControlRow>
+        <ControlRow label="Labels">
           <Segmented
+            fill
             ariaLabel="Labels"
-            className="control-group--right"
             options={[
               { value: 'degree' as const, label: 'Degrees' },
               { value: 'note' as const, label: 'Notes' },
@@ -478,8 +489,8 @@ function StudyArea({
             value={labelMode}
             onChange={setLabelMode}
           />
-        </div>
-      </div>
+        </ControlRow>
+      </ControlPanel>
 
       {mode === 'scale' && (
         <ScaleView

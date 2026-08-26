@@ -201,6 +201,66 @@
   margin-top: 14px;
 }
 
+/* --- The controls panel --------------------------------------------------
+   One outlined block holding every choice, so the page has a left edge, a
+   right edge and a beat. Rows are separated by hairlines (a plain border, not
+   the gap trick, because these rows share a background). */
+.panel {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  margin-bottom: 26px;
+  overflow: hidden;
+}
+.panel__title {
+  margin: 0;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.panel__rows {
+  display: flex;
+  flex-direction: column;
+}
+.panel__row {
+  display: grid;
+  grid-template-columns: 78px 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 5px 14px 5px 0;
+  border-bottom: 1px solid var(--line);
+}
+.panel__row:last-child {
+  border-bottom: 0;
+}
+.panel__label {
+  padding: 0 0 0 14px;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-align: right;
+}
+.panel__control {
+  min-width: 0;
+}
+@media (max-width: 640px) {
+  .panel__row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    padding: 8px 14px;
+  }
+  .panel__label {
+    padding: 0;
+    text-align: left;
+  }
+}
+
 /* Wraps a view's control rows and puts breathing room before the fretboard. */
 .view-controls {
   display: flex;
@@ -210,19 +270,24 @@
 }
 
 /* --- Segmented control: the either/or choice ------------------------------ */
-/* One connected unit for "pick exactly one": a recessed track, with the chosen
-   segment PRINTED onto it. See RISO OVERPRINT below for why it's printed
-   rather than raised. Distinct from pills (independent toggles / multi-select)
-   and the accent play pill (actions). */
+/* MARKED, NOT BOXED. A printed page has no buttons — it has words, rules and
+   marks. So "this one is chosen" is a rule under the word, which is the mark
+   the area nav (Possibility / Play / Ear Training) was already using; the two
+   now differ only in SIZE, not in kind. That retires the recessed track, the
+   ink block and the lozenge in one go. */
 .seg {
   display: inline-flex;
-  flex-wrap: wrap; /* long tracks (all 12 keys) fold instead of overflowing */
+  flex-wrap: wrap;
   align-items: center;
   gap: 2px;
-  padding: 3px;
-  background: var(--surface-sunk); /* recessed into the paper */
-  border-radius: var(--radius);
-  width: fit-content; /* don't stretch to fill column layouts */
+  width: fit-content;
+}
+/* FILL: divide the whole measure into equal cells (columns set inline from the
+   option count). This is what gives the controls panel its rhythm. */
+.seg--fill {
+  display: grid;
+  width: 100%;
+  gap: 0;
 }
 .seg__btn {
   font-family: var(--sans);
@@ -230,42 +295,35 @@
   color: var(--muted);
   background: transparent;
   border: none;
-  border-radius: var(--radius);
-  padding: 5px 12px;
+  border-radius: 0;
+  padding: 5px 10px;
   cursor: pointer;
   white-space: nowrap;
-  position: relative;
-  isolation: isolate; /* keep the overprint's blending inside this button */
-  transition:
-    color 0.15s ease,
-    background 0.15s ease;
+  text-align: center;
+  transition: color 0.12s ease;
+}
+.seg__label {
+  display: inline-block;
+  border-bottom: 2px solid transparent;
+  padding-bottom: 2px;
+  transition: border-color 0.12s ease;
+}
+.seg--fill .seg__btn {
+  padding-left: 4px;
+  padding-right: 4px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .seg__btn:hover {
   color: var(--ink);
 }
-
-/* RISO OVERPRINT — the selected segment.
-   On the vision boards, two translucent inks laid over each other make a third
-   colour where they cross, and the passes never register perfectly. That's the
-   whole look, and it's exactly a `mix-blend-mode: multiply` between two layers
-   with a small offset.
-
-   So a chosen segment isn't a chip lifted off the track — it's a block of ink
-   PRINTED on it: the ink itself (::before), plus a second accent pass nudged a
-   pixel and a half down-right (::after) that shows only where it escapes the
-   first. Multiply means the overlap goes darker on its own, the way real ink
-   does; we never pick that third colour by hand. */
 .seg__btn--on {
-  color: var(--on-ink);
+  color: var(--ink);
   font-weight: 600;
 }
-.seg__btn--on::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  z-index: -1;
-  background: var(--ink);
+.seg__btn--on .seg__label {
+  border-bottom-color: var(--accent);
 }
 
 /* The shared button look: a calm outlined pill. */

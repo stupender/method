@@ -1281,3 +1281,33 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   in the 0.26–0.53 band — the riso range.
 - Holding lightness constant across a categorical palette is the trick that
   keeps a rainbow from looking like a toy: variation lives in hue alone.
+
+## Session 16 — Marks & Measures: the structural pass
+
+- **Stu's real complaint wasn't the pills, it was the RHYTHM.** Every selector
+  was `width: fit-content`, so a 12-key track spanned the page and a 2-option
+  track was a stub — the page had no left edge and no beat. Better inks can't
+  rescue a page with no rhythm, which is why colour kept feeling like the wrong
+  lever.
+- **The boards answered it all along.** Looking for STRUCTURE instead of
+  colour, one motif is on nearly every image: equal cells, evenly divided (the
+  nine mark-tiles, the four moons, the triptych, shelves of record spines) —
+  plus Hilma's other half, a label written in the margin. So: one outlined
+  block, a fixed label column, rows dividing one measure. Verified: all five
+  rows now share a 622px measure.
+- **MARKED, NOT BOXED.** Stu spotted two languages for one job: the area nav
+  used an underline, the selectors used boxes. Resolved by keeping the mark and
+  dropping the boxes — recessed track, ink block and lozenge all retired. The
+  hierarchy is now SIZE, not a different device.
+- **The mark belongs to the WORD, not the cell.** First cut put the rule on the
+  grid cell, so a two-option row drew a half-page rule under one short word.
+  Wrapping the label in a span fixed it.
+- **A yellow that carries light text can't be a true yellow.** Search proved
+  it: to reach 4:1 against paper a hue-40° ink has to drop to ~0.20 lightness,
+  which is brown. The fix was the opposite of what made it ugly — the old 3 was
+  DESATURATED and mid-light (olive mud); the new one raises saturation to 0.65
+  and drops lightness to 0.38, giving a vivid marigold ochre at 3.45. All seven
+  now sit in a 3.45–4.99 band with the same light label.
+- Useful principle: when a categorical palette must carry one text colour, tune
+  SATURATION per hue and let lightness follow the pigment — forcing every hue to
+  one lightness is what turns yellows and greens to mud.

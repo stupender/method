@@ -74,14 +74,20 @@
      The point is that COLOUR ALWAYS MEANS SCALE DEGREE — it is computed from
      the interval, never from the label — so switching Labels from Degrees to
      Notes swaps what's WRITTEN in the dot while the colour keeps telling you
-     where you are in the scale. Two channels, two facts, at once. */
+     where you are in the scale. Two channels, two facts, at once.
+
+     Every one of the seven carries the SAME light label, which is the
+     constraint that fixed the ugly 3: a low-saturation yellow held at the
+     others' lightness goes olive, so the 3 is now a vivid marigold ochre
+     (saturation up, lightness down) instead. All seven land in a 3.45–4.99
+     contrast band against the paper — an even set, not one weak link. */
   --deg-1: #b4553f; /* R — terracotta */
-  --deg-2: #bd7a3a; /* O — burnt orange */
-  --deg-3: #a89440; /* Y — ochre yellow */
-  --deg-4: #5d8b52; /* G — green */
+  --deg-2: #ad5f24; /* O — burnt orange */
+  --deg-3: #9e7b22; /* Y — marigold ochre */
+  --deg-4: #55823f; /* G — green */
   --deg-5: #3a7a9c; /* B — blue */
-  --deg-6: #4c5b96; /* I — the riso indigo */
-  --deg-7: #7a5490; /* V — violet */
+  --deg-6: #55639e; /* I — the riso indigo */
+  --deg-7: #8a5f9e; /* V — violet */
 
   /* Quiz feedback — the one place colour means right/wrong, not distance. */
   --correct: #4a7343;
@@ -161,9 +167,9 @@
     --fn-tritone: #9a92e0;
 
     --deg-1: #d9846a;
-    --deg-2: #d9a05e;
-    --deg-3: #c4b269;
-    --deg-4: #7dac72;
+    --deg-2: #cf9152;
+    --deg-3: #c0a044;
+    --deg-4: #74ad63;
     --deg-5: #5b9fbd;
     --deg-6: #7b85c9;
     --deg-7: #a382bd;
@@ -216,9 +222,9 @@
   --fn-tritone: #9a92e0;
 
   --deg-1: #d9846a;
-  --deg-2: #d9a05e;
-  --deg-3: #c4b269;
-  --deg-4: #7dac72;
+  --deg-2: #cf9152;
+  --deg-3: #c0a044;
+  --deg-4: #74ad63;
   --deg-5: #5b9fbd;
   --deg-6: #7b85c9;
   --deg-7: #a382bd;

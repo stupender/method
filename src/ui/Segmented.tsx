@@ -19,15 +19,27 @@ export function Segmented<T extends string | number>({
   onChange,
   ariaLabel,
   className,
+  fill = false,
 }: {
   options: { value: T; label: ReactNode }[];
   value: T;
   onChange: (value: T) => void;
   ariaLabel: string; // what this choice IS, e.g. "Key" or "Fingering"
   className?: string;
+  // FILL divides the full measure into equal cells (one grid column per
+  // option) instead of sizing each cell to its text. Used inside the controls
+  // panel, where every row has to share one measure so the page keeps a left
+  // and right edge — see ControlPanel.
+  fill?: boolean;
 }) {
+  const cls = ['seg', fill ? 'seg--fill' : '', className].filter(Boolean).join(' ');
   return (
-    <div className={className ? `seg ${className}` : 'seg'} role="radiogroup" aria-label={ariaLabel}>
+    <div
+      className={cls}
+      role="radiogroup"
+      aria-label={ariaLabel}
+      style={fill ? { gridTemplateColumns: `repeat(${options.length}, 1fr)` } : undefined}
+    >
       {options.map((o) => (
         <button
           key={String(o.value)}
@@ -36,7 +48,9 @@ export function Segmented<T extends string | number>({
           className={o.value === value ? 'seg__btn seg__btn--on' : 'seg__btn'}
           onClick={() => onChange(o.value)}
         >
-          {o.label}
+          {/* The label is wrapped so the selection rule hugs the TEXT rather
+              than stretching across its (equal-width) grid cell. */}
+          <span className="seg__label">{o.label}</span>
         </button>
       ))}
     </div>
