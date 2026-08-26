@@ -29,6 +29,7 @@ import { Segmented } from './ui/Segmented';
 import { SongView, type ChartChord } from './ui/SongView';
 import { PracticeCards, type PracticeCard } from './ui/PracticeCards';
 import { EarTrainingView } from './ui/EarTrainingView';
+import { Mark } from './ui/Mark';
 import './App.css';
 
 const SCALE_LIST = Object.values(SCALES);
@@ -287,41 +288,44 @@ function App() {
 
   return (
     <main className="page page--wide">
-      {/* Paper or Night — the two worlds of the design direction (DESIGN.md).
-          Tucked in the corner: it's a room setting, not a music choice. */}
-      <div className="theme-switch">
-        <Segmented
-          ariaLabel="Theme"
-          options={[
-            { value: 'paper' as Theme, label: 'Paper' },
-            { value: 'night' as Theme, label: 'Night' },
-          ]}
-          value={theme}
-          onChange={setTheme}
-        />
-      </div>
-
-      <header className="masthead masthead--compact">
-        {/* The mark: a riso ink blot on paper, the moon at night (App.css). */}
-        <div className="mark" aria-hidden="true" />
-        <h1 className="title title--sm">Fretboard Constellations</h1>
-        <p className="masthead-lede">
+      {/* THE SITE BAR. This used to be a full-height centred masthead — a big
+          moon, a 44px title, a lede — which looked handsome on a landing page
+          and wasted a third of a phone screen on a tool you open to look at a
+          fretboard. Now it's a nameplate: mark, name, motto, and the room
+          setting on the right, over a hairline. Everything below it is work. */}
+      <header className="sitebar">
+        <Mark className="sitebar__mark" />
+        <h1 className="sitebar__name">Fretboard Constellations</h1>
+        <p className="sitebar__motto">
           See the shape, hear the sound, find out what it's doing.
         </p>
         {/* Top-level areas: a higher separation than the modes within Study. */}
         {AREAS.length > 1 && (
-        <nav className="topnav" role="group" aria-label="Area">
-          {AREAS.map((a) => (
-            <button
-              key={a}
-              className={area === a ? 'topnav-item topnav-item--on' : 'topnav-item'}
-              onClick={() => setArea(a)}
-            >
-              {AREA_LABELS[a]}
-            </button>
-          ))}
-        </nav>
+          <nav className="topnav" role="group" aria-label="Area">
+            {AREAS.map((a) => (
+              <button
+                key={a}
+                className={area === a ? 'topnav-item topnav-item--on' : 'topnav-item'}
+                onClick={() => setArea(a)}
+              >
+                {AREA_LABELS[a]}
+              </button>
+            ))}
+          </nav>
         )}
+        {/* Paper or Night — the two worlds of the design direction (DESIGN.md).
+            Parked at the far end: it's a room setting, not a music choice. */}
+        <div className="sitebar__theme">
+          <Segmented
+            ariaLabel="Theme"
+            options={[
+              { value: 'paper' as Theme, label: 'Paper' },
+              { value: 'night' as Theme, label: 'Night' },
+            ]}
+            value={theme}
+            onChange={setTheme}
+          />
+        </div>
       </header>
 
       {/* Both areas stay mounted (just hidden) so each keeps its own state when

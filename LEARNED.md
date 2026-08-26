@@ -1449,3 +1449,17 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   for a while (sixteen turbulence masks, no two alike). At 30 units across it
   never read as ink, only as noise. Flat saturated discs — transit-map dots —
   say more with less. Kept at the `ink-stamp-dots` tag.
+
+- **A logo can carry an argument.** The mark is three dots — a triad, in the
+  fretboard's own degree colours. Because degrees 1, 3 and 5 land on red,
+  yellow and blue, the overlaps are the degrees in between: 1+3 = the 2's
+  orange, 3+5 = the 4's green, 1+5 = the 7's violet, all three = the 6's
+  indigo. Seven regions, seven degrees: the triad makes the scale. The regions
+  are painted with the real palette colours rather than produced with
+  `mix-blend-mode: multiply`, which came out brown and near-black — a blend
+  mode approximates the idea, clipped fills state it.
+
+- **A masthead is not a nameplate.** The centred title-and-moon header cost
+  about a third of a phone screen on a tool you open to look at a neck. As a
+  newspaper-style bar — mark, name, motto, theme switch, one hairline — the
+  whole fretboard and its first TAB now sit above the fold.
