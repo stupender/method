@@ -184,23 +184,37 @@ export function ScaleExplorer({
         labelMode={labelMode}
       />
 
-      {/* One TAB per position (the modal fingerings), low -> high. Hovering a
-          TAB previews that position; clicking it pins the selection. */}
+      {/* One TAB per position (the modal fingerings), low -> high — a table of
+          tracks. Each row names itself ABOVE its staff and carries its own play
+          button, like a track listing. Nothing happens on hover: a row stays
+          selected until you pick another, so the neck never shifts under you
+          while you're reading it. */}
       <div className="tab-shelf tab-shelf--lines">
         {positions.map((pos, i) => (
           <div
             key={i}
             className={i === activeShape ? 'tab-card tab-card--on' : 'tab-card'}
-            onMouseEnter={() => setHoveredShape(i)}
-            onMouseLeave={() => setHoveredShape(null)}
-            onClick={() => selectShape(i)}
+            onClick={() => setPinnedShape(i)}
           >
+            <div className="tab-row-head">
+              <button
+                className="tab-play"
+                aria-label={`Play ${pos.name}`}
+                onClick={(e) => {
+                  e.stopPropagation(); // playing shouldn't double as selecting
+                  setPinnedShape(i);
+                  playPosition(shapes[i] ?? []);
+                }}
+              >
+                ▶
+              </button>
+              <span className="tab-row-title">{pos.name}</span>
+            </div>
             <TabSequence
               instrument={GUITAR}
               tuning={GUITAR_STANDARD}
               placed={pos.notes}
               descending={direction === 'down'}
-              caption={pos.name}
             />
           </div>
         ))}

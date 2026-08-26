@@ -1224,3 +1224,18 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - Type now carries structure too: uppercase letterspaced EYEBROWS for every
   "what is this row" label and TAB position caption, matching the style guide's
   section labels.
+
+## Session 15c — TAB positions as a track listing (Stu's note)
+
+- **Hover-to-preview made the page feel unstable** — moving the mouse across
+  the TAB rows kept re-lighting the neck, so nothing held still long enough to
+  read. Removed from the TAB rows entirely: a row stays selected until you pick
+  another one.
+- **Splitting "select" from "play" is what made that possible.** They used to
+  be the same click. Now clicking a row selects it, and each row carries its
+  own ▶ button — a track listing, which is exactly the mental model for a list
+  of positions you play one after another.
+- **The name belongs ABOVE the staff**, not captioned underneath: it labels
+  what follows, and it gives the play button somewhere to live.
+- The play button is a CIRCLE while everything else is a printed rectangle —
+  the boards' shape language, used to separate an action from a surface.
