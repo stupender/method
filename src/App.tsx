@@ -553,9 +553,13 @@ function ScaleView({
 
   return (
     <>
-      <p className="tagline">
-        {noteName(modeRoot)} {modeScale.name} —{' '}
-        {tones.map((t) => noteName(t.note)).join('  ')}
+      <p className="view-title">
+        <span className="view-title__name">
+          {noteName(modeRoot)} {modeScale.name}
+        </span>
+        <span className="view-title__tones">
+          {tones.map((t) => noteName(t.note)).join(' · ')}
+        </span>
       </p>
 
       <ScaleExplorer
@@ -593,9 +597,13 @@ function PatternView({
 
   return (
     <>
-      <p className="tagline">
-        {noteName(modeRoot)} {modeScale.name} in intervals —{' '}
-        {tones.map((t) => noteName(t.note)).join('  ')}
+      <p className="view-title">
+        <span className="view-title__name">
+          {noteName(modeRoot)} {modeScale.name}
+        </span>
+        <span className="view-title__tones">
+          {tones.map((t) => noteName(t.note)).join(' · ')}
+        </span>
       </p>
 
       <PatternExplorer root={modeRoot} scale={modeScale} labelMode={labelMode} />
@@ -610,9 +618,12 @@ function ChordView({ root }: { root: Note }) {
 
   return (
     <>
-      <p className="tagline">
-        {noteName(root)}
-        {chord.symbol} — {chord.name}
+      <p className="view-title">
+        <span className="view-title__name">
+          {noteName(root)}
+          {chord.symbol}
+        </span>
+        <span className="view-title__tones">{chord.name}</span>
       </p>
 
       <div className="control-group control-group--wrap" role="group" aria-label="Chord">

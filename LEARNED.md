@@ -1311,3 +1311,14 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - Useful principle: when a categorical palette must carry one text colour, tune
   SATURATION per hue and let lightness follow the pigment — forcing every hue to
   one lightness is what turns yellows and greens to mud.
+
+## Session 16b — the rule that fits, and view titles as headings
+
+- **Selection rules need a floor AND a ceiling.** Hugging the word gave a 6px
+  rule under "I" (looked like a mistake); filling the cell gave a half-page
+  rule under "Degrees". The fix is a rule that fills its cell but caps at
+  130px — 44–130px across every row size, and every one reads as deliberate.
+- **The scale name was body text pretending to be a heading.** It's the single
+  most important thing on the page, so it now takes the display serif at 27px
+  in INK, with the scale's notes below it as a quiet letterspaced specimen
+  line (the way a plate is captioned) instead of one muted run-on sentence.

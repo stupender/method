@@ -98,9 +98,40 @@
   max-width: 42ch;
 }
 
-.tagline {
+/* A VIEW TITLE — what you're looking at, set as a proper heading rather than a
+   muted sentence. The name takes the display serif at heading size; its
+   contents (the scale's notes, a chord's quality) sit under it as a quiet
+   letterspaced specimen line, the way a plate is captioned. */
+.view-title {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 30px 0 20px;
+}
+.view-title__name {
+  font-family: var(--serif);
+  font-size: 27px;
+  font-weight: 400;
+  line-height: 1.15;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.view-title__tones {
+  font-family: var(--sans);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
   color: var(--muted);
-  font-size: 18px;
+}
+
+/* The remaining running text (Play's readouts, quiz prompts) — still quiet,
+   but in the display face so it belongs to the same page. */
+.tagline {
+  font-family: var(--serif);
+  color: var(--ink);
+  font-size: 19px;
+  font-weight: 300;
   margin: 26px 0 18px; /* consistent breathing room above AND below the heading */
 }
 
@@ -307,6 +338,17 @@
   border-bottom: 2px solid transparent;
   padding-bottom: 2px;
   transition: border-color 0.12s ease;
+}
+/* In a filled row the rule spans its CELL rather than hugging the word — a
+   6px underline beneath "I" looks like a mistake — but it's capped so a
+   two-option row doesn't draw a half-page rule under one short word. Between
+   those two failures, ~130px is the width that reads as deliberate at every
+   row size. */
+.seg--fill .seg__label {
+  display: block;
+  width: 100%;
+  max-width: 130px;
+  margin: 0 auto;
 }
 .seg--fill .seg__btn {
   padding-left: 4px;
