@@ -1477,3 +1477,12 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   about a third of a phone screen on a tool you open to look at a neck. As a
   newspaper-style bar — mark, name, motto, theme switch, one hairline — the
   whole fretboard and its first TAB now sit above the fold.
+
+- **Overprint runs opposite ways in the two worlds.** The mark's overlaps are
+  its secondaries pushed a third of the way toward what a press would really
+  have produced. On paper that's toward MULTIPLY — ink over ink darkens. At
+  night the inks are light, so it's toward SCREEN — light over light
+  brightens. Darkening the overlaps on a dark ground read as holes punched in
+  the mark. Same rule, mirrored: `--mark-2/4/6/7` in index.css, one set per
+  theme, and setting them back to their `--deg-` twins returns flat painted
+  overlaps.
