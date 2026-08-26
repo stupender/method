@@ -81,13 +81,25 @@
      others' lightness goes olive, so the 3 is now a vivid marigold ochre
      (saturation up, lightness down) instead. All seven land in a 3.45–4.99
      contrast band against the paper — an even set, not one weak link. */
-  --deg-1: #b4553f; /* R — terracotta */
-  --deg-2: #ad5f24; /* O — burnt orange */
-  --deg-3: #9e7b22; /* Y — marigold ochre */
+  --deg-1: #ab4436; /* R — a truer red, pulled away from the orange */
+  --deg-2: #c47a1e; /* O — orange */
+  --deg-3: #d9ac3c; /* Y — marigold, bright, carrying DARK text */
   --deg-4: #55823f; /* G — green */
   --deg-5: #3a7a9c; /* B — blue */
   --deg-6: #55639e; /* I — the riso indigo */
   --deg-7: #8a5f9e; /* V — violet */
+
+  /* The label inside each dot. Most degrees are dark enough for the paper ink;
+     the orange and the marigold are not, and forcing them dark enough to carry
+     it is what turned the 3 to mud. So those two take DARK text instead — the
+     label follows the ink, rather than the ink bending to the label. */
+  --deg-1-ink: var(--note-label);
+  --deg-2-ink: #241a08;
+  --deg-3-ink: #241a08;
+  --deg-4-ink: var(--note-label);
+  --deg-5-ink: var(--note-label);
+  --deg-6-ink: var(--note-label);
+  --deg-7-ink: var(--note-label);
 
   /* Quiz feedback — the one place colour means right/wrong, not distance. */
   --correct: #4a7343;
@@ -174,6 +186,14 @@
     --deg-6: #7b85c9;
     --deg-7: #a382bd;
 
+    --deg-1-ink: var(--note-label);
+    --deg-2-ink: var(--note-label);
+    --deg-3-ink: var(--note-label);
+    --deg-4-ink: var(--note-label);
+    --deg-5-ink: var(--note-label);
+    --deg-6-ink: var(--note-label);
+    --deg-7-ink: var(--note-label);
+
     --correct: #6fa564;
     --wrong: #d9695c;
 
@@ -228,6 +248,14 @@
   --deg-5: #5b9fbd;
   --deg-6: #7b85c9;
   --deg-7: #a382bd;
+
+  --deg-1-ink: var(--note-label);
+  --deg-2-ink: var(--note-label);
+  --deg-3-ink: var(--note-label);
+  --deg-4-ink: var(--note-label);
+  --deg-5-ink: var(--note-label);
+  --deg-6-ink: var(--note-label);
+  --deg-7-ink: var(--note-label);
 
   --correct: #6fa564;
   --wrong: #d9695c;

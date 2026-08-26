@@ -67,38 +67,27 @@
   color: var(--ink);
 }
 .fretboard .note-dot--deg1 { fill: var(--deg-1); color: var(--deg-1); }
+.fretboard .note--deg1 .note-label { fill: var(--deg-1-ink); }
 .fretboard .note-dot--deg2 { fill: var(--deg-2); color: var(--deg-2); }
+.fretboard .note--deg2 .note-label { fill: var(--deg-2-ink); }
 .fretboard .note-dot--deg3 { fill: var(--deg-3); color: var(--deg-3); }
+.fretboard .note--deg3 .note-label { fill: var(--deg-3-ink); }
 .fretboard .note-dot--deg4 { fill: var(--deg-4); color: var(--deg-4); }
+.fretboard .note--deg4 .note-label { fill: var(--deg-4-ink); }
 .fretboard .note-dot--deg5 { fill: var(--deg-5); color: var(--deg-5); }
+.fretboard .note--deg5 .note-label { fill: var(--deg-5-ink); }
 .fretboard .note-dot--deg6 { fill: var(--deg-6); color: var(--deg-6); }
+.fretboard .note--deg6 .note-label { fill: var(--deg-6-ink); }
 .fretboard .note-dot--deg7 { fill: var(--deg-7); color: var(--deg-7); }
+.fretboard .note--deg7 .note-label { fill: var(--deg-7-ink); }
 
-/* THE AURA — night only, and only on ROOTS.
-   Two lessons learned the hard way. First: on paper, ink soaks INTO the stock,
-   it doesn't emit, so a glowing dot there is the one dishonest thing on the
-   page. Second: every night photograph on the boards is ONE warm source in a
-   cool field — when all 126 dots glowed it read as neon signage, which is the
-   opposite of the reference. So the roots are the light, and everything else
-   is simply lit by it. Sizes vary slightly (assigned by fret+string in
-   Fretboard.tsx) so the field breathes rather than pulsing uniformly. */
-:root[data-theme='night'] .fretboard .note-dot--root.note-dot--aura0 {
-  filter: drop-shadow(0 0 5px currentColor);
-}
-:root[data-theme='night'] .fretboard .note-dot--root.note-dot--aura1 {
-  filter: drop-shadow(0 0 7px currentColor);
-}
-:root[data-theme='night'] .fretboard .note-dot--root.note-dot--aura2 {
-  filter: drop-shadow(0 0 9px currentColor);
-}
+/* NO GLOW, in either world. The dots are printed stamps on a surface, not
+   light sources — a bloom around them read as neon even after it was cut back
+   to the roots alone. The aura idea belongs to the page's big moments (the
+   moon in the masthead), never to 126 small marks. */
 
-/* The root keeps its own weight: a ring around it rather than a louder fill,
-   so degree colour and root-ness are two separate signals. */
-.fretboard .note-dot--root {
-  stroke: var(--ink);
-  stroke-width: 2.5;
-  paint-order: stroke;
-}
+/* The root takes no ring — its colour is the signal. (A stroke around it read
+   as an outline bug rather than emphasis.) */
 
 /* Faded when another shape is the active constellation. */
 .fretboard .note-dot--dim {
@@ -109,18 +98,10 @@
   opacity: 0.2;
 }
 
-/* THE CONSTELLATION — the line joining a shape's notes. Two strokes stacked:
-   a wide blurred one that reads as glow, and a fine one that reads as the
-   drawn line. Together they look like a star-chart line, not a UI connector. */
+/* THE CONSTELLATION — the line joining a shape's notes. One clean drawn line;
+   the blurred companion stroke is gone with the rest of the glow. */
 .fretboard .constellation-glow {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 7;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  opacity: 0.22;
-  filter: blur(5px);
-  pointer-events: none;
+  display: none;
 }
 .fretboard .constellation {
   fill: none;

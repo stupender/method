@@ -212,7 +212,9 @@ export function Fretboard({
           return (
             <g
               key={key}
-              className={onNoteTap ? 'note tappable' : 'note'}
+              className={
+                (onNoteTap ? 'note tappable' : 'note') + (deg ? ` note--deg${deg}` : '')
+              }
               onClick={
                 onNoteTap
                   ? (e) => {

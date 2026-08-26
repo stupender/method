@@ -1343,3 +1343,20 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   thin-at-the-bottom, backwards from an instrument. And the nut was painted
   before the strings, so they crossed over it; it's a physical part they pass
   over, so it paints last.
+
+## Session 17b — let the label follow the ink
+
+- **The yellow problem was solved backwards.** I'd been darkening yellow so it
+  could carry the one light label — which is exactly what turns it to mud.
+  Now each degree names its OWN label colour (`--deg-N-ink`), so the bright
+  marigold (#d9ac3c) keeps its brightness and takes DARK text. The ink stops
+  bending to the label.
+- **Red and orange were 15° apart**; the red is now a truer #ab4436, opening
+  the gap to 22°. Orange and marigold sit only 10° apart but differ in
+  lightness (0.44 vs 0.54), which carries the distinction where hue can't.
+- **No glow anywhere, in either theme.** Even cut back to roots only, a bloom
+  around small marks read as neon. The dots are printed stamps on a surface;
+  the aura idea belongs to the page's big moments (the masthead moon) and to
+  nothing else.
+- **No ring on the root** — a stroke around it read as an outline bug rather
+  than emphasis. Its colour is the signal.
