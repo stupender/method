@@ -87,6 +87,10 @@
    no blending — see the note in ui/Mark.tsx for why. */
 .mark-svg {
   display: block;
+  /* The press grain multiplies against the ink and nothing else. `press` also
+     sets an opacity, which would isolate it anyway, but say it out loud so the
+     grain can't ever reach through to the page. */
+  isolation: isolate;
 }
 .mark-dot--deg1 { fill: var(--deg-1); }
 .mark-dot--deg2 { fill: var(--deg-2); }

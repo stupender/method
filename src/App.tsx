@@ -294,7 +294,7 @@ function App() {
           fretboard. Now it's a nameplate: mark, name, motto, and the room
           setting on the right, over a hairline. Everything below it is work. */}
       <header className="sitebar">
-        <Mark className="sitebar__mark" />
+        <Mark className="sitebar__mark" press />
         <h1 className="sitebar__name">Fretboard Constellations</h1>
         <p className="sitebar__motto">
           See the shape, hear the sound, find out what it's doing.
