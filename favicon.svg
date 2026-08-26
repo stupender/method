@@ -1,17 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <!-- The mark: a triad in a row, whose overlaps are the degrees between the
-       notes — 1 2 3 4 5 ascending left to right. Same geometry and palette as
+  <!-- The mark: a triad, whose overlaps are the four degrees between its notes
+       — seven regions, seven degrees. Same geometry and palette as
        src/ui/Mark.tsx; the colours are hard-coded because a favicon can't reach
        the app's CSS variables. If the palette in src/index.css moves, move
-       these with it. The two overlap colours are the PRESSED variants (--mark-2,
-       --mark-4), not the flat degree colours. -->
+       these with it. (No press grain here: at 16px it would only grey the
+       thing out.) -->
   <defs>
-    <clipPath id="b"><circle cx="50" cy="50" r="21"/></clipPath>
-    <clipPath id="c"><circle cx="72" cy="50" r="21"/></clipPath>
+    <clipPath id="b"><circle cx="35.3" cy="63" r="29"/></clipPath>
+    <clipPath id="c"><circle cx="64.7" cy="63" r="29"/></clipPath>
+    <clipPath id="bc"><circle cx="35.3" cy="63" r="29" clip-path="url(#c)"/></clipPath>
   </defs>
-  <circle cx="28" cy="50" r="21" fill="#ab4436"/>
-  <circle cx="50" cy="50" r="21" fill="#d9ac3c"/>
-  <circle cx="72" cy="50" r="21" fill="#3a7a9c"/>
-  <circle cx="28" cy="50" r="21" fill="#b46218" clip-path="url(#b)"/>
-  <circle cx="50" cy="50" r="21" fill="#4a7337" clip-path="url(#c)"/>
+  <circle cx="50" cy="37.5" r="29" fill="#ab4436"/>
+  <circle cx="35.3" cy="63" r="29" fill="#d9ac3c"/>
+  <circle cx="64.7" cy="63" r="29" fill="#3a7a9c"/>
+  <circle cx="50" cy="37.5" r="29" fill="#b46218" clip-path="url(#b)"/>
+  <circle cx="35.3" cy="63" r="29" fill="#4a7337" clip-path="url(#c)"/>
+  <circle cx="50" cy="37.5" r="29" fill="#6a4b76" clip-path="url(#c)"/>
+  <circle cx="50" cy="37.5" r="29" fill="#444a6e" clip-path="url(#bc)"/>
 </svg>
