@@ -98,8 +98,12 @@ export function Fretboard({
   // flip the index: higher pitch = higher on screen.
   const stringY = (stringIndex: number) =>
     PAD_TOP + (stringCount - 1 - stringIndex) * STRING_SPACING;
-  // Thicker line for lower (bass) strings, like real string gauges.
-  const stringWidth = (stringIndex: number) => 1.3 + stringIndex * 0.32;
+  // Thicker line for lower (bass) strings, like real string gauges. Index 0 is
+  // the lowest string AND the bottom row, so the gauge has to count DOWN from
+  // it — the neck read thin-at-the-bottom before, which is backwards from a
+  // real instrument.
+  const stringWidth = (stringIndex: number) =>
+    1.3 + (stringCount - 1 - stringIndex) * 0.32;
 
   return (
     <svg
@@ -124,11 +128,13 @@ export function Fretboard({
           ));
         })}
 
-      {/* Fret wires (vertical lines). Fret 0 is the nut — drawn thicker. */}
-      {Array.from({ length: fretCount + 1 }, (_, f) => (
+      {/* Fret wires (vertical lines). The NUT (fret 0) is drawn further down,
+          after the strings, so it sits over them the way it does on a real
+          neck instead of being crossed by them. */}
+      {Array.from({ length: fretCount }, (_, i) => i + 1).map((f) => (
         <line
           key={`fret-${f}`}
-          className={f === 0 ? 'nut' : 'fret'}
+          className="fret"
           x1={fretX(f)}
           y1={stringY(stringCount - 1)}
           x2={fretX(f)}
@@ -156,6 +162,15 @@ export function Fretboard({
           </g>
         );
       })}
+
+      {/* The nut, over the strings. */}
+      <line
+        className="nut"
+        x1={fretX(0)}
+        y1={stringY(stringCount - 1)}
+        x2={fretX(0)}
+        y2={stringY(0)}
+      />
 
       {/* Fret numbers under the neck, aligned with the wire (where dots sit). */}
       {Array.from({ length: fretCount }, (_, i) => {
@@ -226,7 +241,35 @@ export function Fretboard({
         // GROUPED MODE: draw each shape as its own constellation. Hovering a
         // shape (here or via its TAB) makes it active; the rest dim.
         if (shapes) {
-          return shapes.map((shape, si) => {
+          // THE COMPLETE NECK, UNDERNEATH. `highlights` (when given alongside
+          // shapes) is every note of the material that exists anywhere on the
+          // fretboard — open strings, the frets above the last box, all of it.
+          // The boxes are only FINGERINGS chosen from it, so drawing them alone
+          // silently deleted real notes: a C major neck was missing its open E
+          // and everything from the 15th fret up.
+          //
+          // A box's positions are a subset of these, so we draw each position
+          // exactly once here and let the shapes contribute only their
+          // constellation lines and which notes count as "in" the active box.
+          const inActive =
+            activeShapeIndex !== null && shapes[activeShapeIndex]
+              ? new Set(
+                  shapes[activeShapeIndex].map(
+                    (h) => `${h.position.stringIndex}:${h.position.fret}`,
+                  ),
+                )
+              : null;
+          const base = highlights.map((h, i) => {
+            const key = `${h.position.stringIndex}:${h.position.fret}`;
+            // Dim anything outside the box you're looking at (unless we're
+            // showing every box at once, where nothing is singled out).
+            const dim = !showAllShapes && inActive !== null && !inActive.has(key);
+            return renderNote(h, `neck-${i}`, dim);
+          });
+
+          return [
+            ...base,
+            ...shapes.map((shape, si) => {
             const isActive = activeShapeIndex === si;
             // "Show all" lights every box equally; otherwise the active one wins
             // and the rest dim.
@@ -278,12 +321,14 @@ export function Fretboard({
                     />
                   </>
                 )}
-                {shape.map((h, ni) =>
-                  renderNote(h, `shape-${si}-note-${ni}`, dim),
-                )}
+                {/* The notes themselves are drawn once by the base layer
+                    above; this group only carries the lines and the hit area. */}
+                {highlights.length === 0 &&
+                  shape.map((h, ni) => renderNote(h, `shape-${si}-note-${ni}`, dim))}
               </g>
             );
-          });
+          }),
+          ];
         }
 
         // FLAT MODE: a simple list of notes (e.g. a scale).

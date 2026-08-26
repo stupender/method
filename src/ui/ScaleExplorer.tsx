@@ -14,6 +14,7 @@ import type { Note, ScaleDefinition } from '../theory/types';
 import { GUITAR } from '../data/instruments';
 import { GUITAR_STANDARD } from '../data/tunings';
 import { scalePositions, positionalBoxes, hybridBoxes } from '../theory/scalePositions';
+import { placeScale } from '../theory/scale';
 import { midiOf } from '../theory/notes';
 import { playSequence, type Sequence } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
@@ -60,6 +61,13 @@ export function ScaleExplorer({
         ? positionalBoxes(GUITAR, GUITAR_STANDARD, root, scale)
         : hybridBoxes(GUITAR, GUITAR_STANDARD, root, scale);
   const shapes = positions.map((p) => p.notes);
+
+  // EVERY note of the scale that exists on the neck — open strings and the
+  // frets above the last box included. The position boxes are fingerings
+  // chosen from this, not the whole truth: drawing only the boxes was leaving
+  // 8–12 real notes off every key (C major lost its open E and everything from
+  // fret 15 up). The neck shows the scale; the boxes light a path through it.
+  const wholeNeck = placeScale(GUITAR, GUITAR_STANDARD, root, scale);
 
   // A stable key for "which scale, in which fingering" — when it changes the set
   // of positions changes, so any pinned index is stale and we clear it.
@@ -189,6 +197,7 @@ export function ScaleExplorer({
       <Fretboard
         instrument={GUITAR}
         tuning={GUITAR_STANDARD}
+        highlights={wholeNeck}
         shapes={shapes}
         activeShapeIndex={activeShape}
         onShapeHover={setHoveredShape}

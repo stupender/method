@@ -1322,3 +1322,24 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   most important thing on the page, so it now takes the display serif at 27px
   in INK, with the scale's notes below it as a quiet letterspaced specimen
   line (the way a plate is captioned) instead of one muted run-on sentence.
+
+## Session 17 — the neck was lying (Stu's data note)
+
+- **The fretboard drew the union of 7 position boxes, not the scale.** Boxes
+  are FINGERINGS chosen from the material; drawing only them silently deleted
+  real notes. Probed across keys: every one was missing 8–12 notes — always the
+  open strings and the top frets (C major lost its open E and everything from
+  fret 15 up; E♭ also lost fret 1). This is exactly Stu's "if there's a note at
+  the 13th it should be at the 1st" — the 12-fret loop was never broken in the
+  THEORY (placeScale matches by pitch class across every position), only in what
+  the renderer was handed.
+- **Fix: the neck shows the whole scale; the boxes light a path through it.**
+  Fretboard now draws `highlights` (every note on the neck) as its base layer
+  and uses `shapes` only for constellation lines and for deciding what dims. A
+  box's positions are a subset of the base, so each position is drawn exactly
+  once — no double-render.
+- **Two neck drawing errors, both real**: string gauge counted UP from index 0,
+  but index 0 is the LOW string and sits at the BOTTOM — so the neck read
+  thin-at-the-bottom, backwards from an instrument. And the nut was painted
+  before the strings, so they crossed over it; it's a physical part they pass
+  over, so it paints last.
