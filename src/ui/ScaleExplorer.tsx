@@ -46,8 +46,9 @@ export function ScaleExplorer({
   const [fingering, setFingering] = useState<'3nps' | 'box' | 'hybrid'>('3nps');
   // Show every position's box outlined at once (see the whole mode tile the neck).
   const [showAll, setShowAll] = useState(false);
-  // Read/play the run ascending (low -> high) or descending (high -> low).
-  const [direction, setDirection] = useState<'up' | 'down'>('up');
+  // A scale run goes UP AND BACK DOWN — that's how anyone actually practises
+  // one, and it's how you hear the top note resolve. There used to be an
+  // Ascending / Descending toggle here; it made you pick half the exercise.
   // Pinned (clicked, stays lit) vs hovered (temporary preview). Hover wins while
   // over a box; otherwise the pinned one shows. Click the empty neck to unpin.
   const [pinnedShape, setPinnedShape] = useState<number | null>(null);
@@ -61,6 +62,13 @@ export function ScaleExplorer({
         ? positionalBoxes(GUITAR, GUITAR_STANDARD, root, scale)
         : hybridBoxes(GUITAR, GUITAR_STANDARD, root, scale);
   const shapes = positions.map((p) => p.notes);
+
+  // The run as it's read and played: up, then back down, with the top note
+  // sounded once rather than twice at the turn.
+  const upAndDown = (notes: (typeof positions)[number]['notes']) => {
+    const up = [...notes].sort((a, b) => midiOf(a.note) - midiOf(b.note));
+    return [...up, ...up.slice(0, -1).reverse()];
+  };
 
   // EVERY note of the scale that exists on the neck — open strings and the
   // frets above the last box included. The position boxes are fingerings
@@ -123,10 +131,7 @@ export function ScaleExplorer({
       return;
     }
     stopPlayback();
-    const midis = [...(shapes[i] ?? [])]
-      .sort((a, b) => midiOf(a.note) - midiOf(b.note))
-      .map((p) => midiOf(p.note));
-    if (direction === 'down') midis.reverse();
+    const midis = upAndDown(shapes[i] ?? []).map((p) => midiOf(p.note));
     if (midis.length === 0) return;
     const seq = playSequence(midis, 0.18);
     // Hand the button back to ▶ when the last note has rung out.
@@ -143,7 +148,7 @@ export function ScaleExplorer({
   // unmount. This is a CLEANUP rather than an effect body on purpose: React
   // guarantees a cleanup runs before its effect re-runs, so no dependency
   // change can slip past and leave a row stuck showing ⏸.
-  useEffect(() => () => stopPlayback(), [modeKey, direction]);
+  useEffect(() => () => stopPlayback(), [modeKey]);
 
   // Selecting a position lights it on the neck. It does NOT play — playing is
   // its own action now, on each row's button.
@@ -171,17 +176,8 @@ export function ScaleExplorer({
           />
         </div>
 
-        {/* Row 2 — how to read it: direction of the run, one box vs all boxes. */}
+        {/* Row 2 — one box, or all of them at once. */}
         <div className="controls-row">
-          <Segmented
-            ariaLabel="Direction"
-            options={[
-              { value: 'up' as const, label: 'Ascending' },
-              { value: 'down' as const, label: 'Descending' },
-            ]}
-            value={direction}
-            onChange={setDirection}
-          />
           <button
             className={showAll ? 'pill pill--on' : 'pill'}
             onClick={() => {
@@ -248,8 +244,8 @@ export function ScaleExplorer({
             <TabSequence
               instrument={GUITAR}
               tuning={GUITAR_STANDARD}
-              placed={pos.notes}
-              descending={direction === 'down'}
+              placed={upAndDown(pos.notes)}
+              ordered /* the up-then-down order IS the run; don't re-sort it */
             />
           </div>
         ))}

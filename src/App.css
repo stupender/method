@@ -19,13 +19,70 @@
    masthead it replaced (56px moon, 44px title, a lede) cost about a third of a
    phone screen every time you opened a tool whose whole point is the neck.
    ========================================================================== */
+/* FLOATING. The bar carries the two things that are true everywhere — the
+   colour key and the light — so it has to still be there at the bottom of a
+   long page of scale positions. It paints its own background because the page
+   scrolls underneath it. */
 .sitebar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 4px 0 14px;
+  padding: 10px 0 12px;
+  background: var(--bg);
   border-bottom: 1px solid var(--line);
   margin-bottom: 26px;
+}
+
+/* The KEY button: three dots and the word, so the control looks like the thing
+   it opens. */
+.sitebar__key {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  padding: 5px 11px;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.sitebar__key:hover,
+.sitebar__key--on {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+.sitebar__key-dots {
+  display: inline-flex;
+}
+.sitebar__key-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: -3px; /* overlapped, like the mark */
+}
+.sitebar__key-dot--deg1 { background: var(--deg-1); }
+.sitebar__key-dot--deg3 { background: var(--deg-3); }
+.sitebar__key-dot--deg5 { background: var(--deg-5); }
+
+/* The key drawer, riding just under the bar. */
+.keydrawer {
+  position: sticky;
+  top: 55px;
+  z-index: 25;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 10px 14px;
+  margin-bottom: 18px;
 }
 
 .sitebar__mark {
@@ -60,10 +117,9 @@
   white-space: nowrap; /* one line or none — a wrapped motto breaks the bar */
 }
 
-/* Pushed to the far end, whatever else is on the bar. `flex: none` matters:
-   without it the motto squeezes the switch until Paper and Night stack. */
+/* `flex: none` matters: without it the motto squeezes the switch until Paper
+   and Night stack. (The Key button carries the margin-left: auto now.) */
 .sitebar__theme {
-  margin-left: auto;
   flex: none;
 }
 
@@ -608,6 +664,30 @@
   color: var(--ink);
 }
 
+/* A CHORD's name is a proper noun — Dm, Bdim, Cmaj7 — so it can't take the
+   uppercase treatment the other row titles get, which turned Dm into DM and
+   Bdim into BDIM. Case carries meaning here: lower-case m IS the minor. */
+.tab-row-title--chord {
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* The Roman numeral, right after the chord's own name. Set in the serif and
+   quieter, because it's the analytical name rather than the label on the tin —
+   two true names for the same chord, and you want both at once. */
+.tab-row-roman {
+  font-family: var(--serif);
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1;
+}
+.tab-card--on .tab-row-roman {
+  color: var(--ink);
+}
+
 /* No background wash on a selected row — a table of tracks should sit still,
    and a tinted row reads as "something is happening here" when nothing is.
    Selection gets a quiet bar in the margin; the ACCENT bar is reserved for the
@@ -687,15 +767,20 @@
   margin-top: 22px;
 }
 
-/* Each TAB is hoverable; hovering it lights that shape on the neck. */
+/* A TAB card. Selecting one marks it with a quiet bar in the margin, the same
+   way a selected scale position is marked — an accent BOX around the card read
+   as an alert, and there are a dozen of them on screen at once. The accent is
+   reserved for the thing that's actually sounding. */
 .tab-card {
-  border: 2px solid transparent;
   border-radius: var(--radius);
-  transition: border-color 0.12s ease;
+  transition: box-shadow 0.12s ease;
   cursor: pointer;
 }
 .tab-card--on {
-  border-color: var(--accent);
+  box-shadow: inset 3px 0 0 var(--line);
+}
+.tab-card--playing {
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
 /* The chord editor (root row + quality row): stack them with breathing room so

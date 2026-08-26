@@ -61,6 +61,15 @@ function layer — build once, reuse everywhere.
 
 ---
 
+## Held for later — decided but deliberately not built yet
+
+- **Inversion colouring.** When an inversion is selected, colour it in shades
+  rather than flat degree colours. Two readings, and Stu hasn't picked:
+  (a) shades of the chord's GRAVITY degree, so all of ii's inversions are
+  shades of orange and what you see is the chord's function; or (b) shades
+  down the voicing itself, so the bass note reads darkest. Raised 2026-08-26,
+  parked the same day — ask before building.
+
 ## Next-session briefs (handoff, written 2026-07-06)
 
 Self-contained specs for the next sessions — the design decisions are already

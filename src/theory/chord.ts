@@ -94,6 +94,26 @@ export function bassDegree(
 const BASS_NAMES: Record<string, string> = {
   '1': 'Root', '2': '2nd', '3': '3rd', '4': '4th', '5': '5th', '6': '6th', '7': '7th',
 };
+// What to CALL a voicing. Two vocabularies, and which one is honest depends on
+// the structure:
+//
+//   CLOSE — the stack is untouched, so the inversion number and the note in the
+//           bass say the same thing. "1st Inversion" is the name a musician
+//           reaches for, so use it.
+//   OPEN / DROP 2 / DROP 3 — dropping a voice an octave changes which note ends
+//           up on the bottom, so "1st inversion" no longer tells you what you'll
+//           hear. Name the bass note instead: "3rd in bass".
+//
+// Same voicing either way; this only picks the more useful of two true names.
+export function voicingName(
+  chord: ChordDefinition,
+  structure: VoicingStructure,
+  inversion: number,
+): string {
+  if (structure.id === 'close') return inversionName(inversion);
+  return bassNoteName(bassDegree(chord, structure, inversion));
+}
+
 export function bassNoteName(degree: string): string {
   return `${BASS_NAMES[degree] ?? degree} in bass`;
 }

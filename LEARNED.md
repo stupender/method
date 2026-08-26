@@ -1518,3 +1518,20 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   actually play. Short blocks are still shown, labelled "2 of 4": a set that
   takes only one inversion is a real place to play, and hiding it would quietly
   delete part of the neck.
+
+- **Colour follows gravity.** A dot's colour is its role relative to a centre,
+  and which centre depends on what's framed. GRAVITY: All frames the key, so a
+  note's colour is its SCALE degree — in C major, D is the 2nd, orange,
+  whichever chord it turns up in. GRAVITY: ii moves the centre to that chord,
+  and D becomes its root, red. Chord placements arrive labelled relative to
+  their own chord, which is right when a chord is the centre and wrong when the
+  key is — hence `relabelByScale` in theory/scale.ts. Without it every chord in
+  a chord scale came out red-yellow-blue and the harmony's movement through the
+  key was invisible. The colour key in the bar reads from the same centre, or
+  it would quietly lie.
+
+- **The same question shouldn't be asked twice.** Harmony had a Chord scale /
+  Inversions toggle sitting under a GRAVITY row that already decided it (All =
+  the whole key, one degree = one chord). Two controls for one fact means they
+  can disagree, and then the page is wrong in a way no one can see. Derived it
+  instead.

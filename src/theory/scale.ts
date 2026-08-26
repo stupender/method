@@ -39,6 +39,38 @@ export function realizeScale(root: Note, scale: ScaleDefinition): ScaleTone[] {
   }));
 }
 
+// WHERE GRAVITY IS HELD DECIDES THE COLOUR.
+//
+// A note's colour comes from its `intervalName` — its role relative to some
+// centre — and which centre that is depends on what you're looking at. Frame
+// the whole key (GRAVITY: All) and a note's role is its degree of the SCALE:
+// in C major, D is the 2nd, orange, wherever it turns up and whichever chord
+// it happens to be sitting in. Frame one chord (GRAVITY: ii) and the centre
+// moves to that chord: now D is its root, red.
+//
+// Chord placements naturally come out labelled relative to their own chord —
+// right when a chord IS the centre, wrong when the key is. This relabels them
+// against the scale, so a chord scale is coloured by the key it belongs to and
+// you can see the harmony moving through the degrees.
+//
+// Notes outside the scale keep whatever label they arrived with; there's no
+// scale degree to give them.
+export function relabelByScale(
+  root: Note,
+  scale: ScaleDefinition,
+  placed: PlacedNote[],
+): PlacedNote[] {
+  const byPitchClass = new Map<PitchClass, ScaleTone>();
+  for (const tone of realizeScale(root, scale)) {
+    byPitchClass.set(pitchClassOf(tone.note), tone);
+  }
+  return placed.map((p) => {
+    const tone = byPitchClass.get(pitchClassOf(p.note));
+    if (!tone) return p;
+    return { ...p, intervalName: tone.degree, isRoot: tone.isRoot };
+  });
+}
+
 // Place a realized scale across the whole neck. For every fret position whose
 // pitch class belongs to the scale, we emit a PlacedNote carrying the scale's
 // spelling (so a Bb fret reads "Bb") and its degree label.

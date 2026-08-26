@@ -242,6 +242,12 @@ function App() {
 
   // --- Theme --------------------------------------------------------------
   const [theme, setTheme] = useState<Theme>(loadTheme);
+  // The colour KEY — which ink means which degree. It belongs in the bar
+  // because it's true of every view, and it opens as a drawer under the bar so
+  // it can sit alongside whatever you're reading rather than replacing it. The
+  // button lives up here; the drawer is drawn by the view, which is the thing
+  // that knows what key and scale are in play.
+  const [keyOpen, setKeyOpen] = useState(false);
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     try {
@@ -315,6 +321,19 @@ function App() {
         )}
         {/* Paper or Night — the two worlds of the design direction (DESIGN.md).
             Parked at the far end: it's a room setting, not a music choice. */}
+        <button
+          className={keyOpen ? 'sitebar__key sitebar__key--on' : 'sitebar__key'}
+          onClick={() => setKeyOpen((v) => !v)}
+          aria-pressed={keyOpen}
+        >
+          <span className="sitebar__key-dots" aria-hidden="true">
+            <i className="sitebar__key-dot sitebar__key-dot--deg1" />
+            <i className="sitebar__key-dot sitebar__key-dot--deg3" />
+            <i className="sitebar__key-dot sitebar__key-dot--deg5" />
+          </span>
+          Key
+        </button>
+
         <div className="sitebar__theme">
           <Segmented
             ariaLabel="Theme"
@@ -331,7 +350,11 @@ function App() {
       {/* Both areas stay mounted (just hidden) so each keeps its own state when
           you switch — the songbook, and Possibility's key/scale/mode choices. */}
       <div hidden={area !== 'study'}>
-        <StudyArea onAddChord={addToSong} songLength={current.chords.length} />
+        <StudyArea
+          onAddChord={addToSong}
+          songLength={current.chords.length}
+          keyOpen={keyOpen}
+        />
       </div>
       {READY.play && (
       <div hidden={area !== 'song'}>
@@ -422,9 +445,13 @@ function SongBook({
 function StudyArea({
   onAddChord,
   songLength,
+  keyOpen,
 }: {
   onAddChord: (rootIndex: number, chordId: string) => void;
   songLength: number;
+  // Whether the bar's colour KEY drawer is open (the button is up in the bar;
+  // the contents belong here, where the key and scale are known).
+  keyOpen: boolean;
 }) {
   // WHICH INSTRUMENT OF THE APP you're using: the fretboard, or your ears.
   // It lives here, beside Key/Scale/Gravity, because the CONTROLS panel has to
@@ -496,8 +523,25 @@ function StudyArea({
   const romanLabels = diatonicChords(root, scale, false).map((c) => c.roman);
   const deg = degree === ALL_DEGREES ? ALL_DEGREES : Math.min(degree, romanLabels.length - 1);
 
+  // Where gravity is held, for the colour key in the bar's drawer.
+  const { modeRoot: legendRoot, modeScale: legendScale } =
+    deg === ALL_DEGREES ? { modeRoot: root, modeScale: scale } : modeAt(root, scale, deg);
+
   return (
     <>
+      {/* THE COLOUR KEY, opened from the bar. It sticks just under the bar so
+          it stays with you while you scroll a long page of positions — the
+          whole point of a key is that it's there when you need to read one. */}
+      {keyOpen && (
+        <div className="keydrawer">
+          {/* The key reads from the SAME centre the neck is coloured from, or
+              it would quietly lie: with GRAVITY on ii the dots are relative to
+              the ii, so the legend has to be too. In Harmony that still lines
+              up — a chord's root, 3rd and 5th are its mode's 1, 3 and 5. */}
+          <DegreeLegend root={legendRoot} scale={legendScale} />
+        </div>
+      )}
+
       {/* Every choice in ONE measure — a labelled block whose rows share a left
           edge and divide the same width (see ui/ControlPanel.tsx). Order is
           priority order: Key → Scale → Degree → View → Labels.
@@ -708,7 +752,6 @@ function ScaleView({
         </span>
       </p>
 
-      <DegreeLegend root={modeRoot} scale={modeScale} />
 
       <ScaleExplorer
         root={modeRoot}
@@ -813,24 +856,15 @@ function HarmonyView({
   songLength: number;
 }) {
   const [seventh, setSeventh] = useState(false);
-  // Two ways to explore the harmony: the whole CHORD
-  // SCALE (all seven diatonic chords) in one voicing; or one chord's INVERSIONS,
-  // both laid up the neck.
-  // "This chord" used to be a third option here, showing one chord in all its
-  // voicings. It's gone: picking a degree in GRAVITY above already means "this
-  // chord", so the option was asking the same question twice — and Inversions
-  // now shows every string set at once, which is what people actually wanted
-  // from it.
-  const [explore, setExplore] = useState<'scale' | 'inversions'>('inversions');
-
   // The diatonic chords of this key + scale — derived, not stored. Switching the
   // global scale type (major, harmonic minor, ...) changes the whole harmony set.
   const chords = diatonicChords(root, scale, seventh);
-  // ALL frames the whole key, so it shows the CHORD SCALE (every diatonic
-  // chord) rather than one degree's voicings; a specific degree keeps whatever
-  // way of exploring you last chose.
+  // WHAT WE SHOW IS DECIDED UPSTAIRS. GRAVITY already asked the question: "All"
+  // frames the whole key, so it shows the CHORD SCALE (every diatonic chord); a
+  // single degree means one chord, so it shows that chord's INVERSIONS across
+  // the neck. There used to be a Chord scale / Inversions toggle here as well —
+  // the same question asked twice, with the two answers free to disagree.
   const isAll = degree === ALL_DEGREES;
-  const shownExplore = isAll ? 'scale' : explore;
   const selected = chords[isAll ? 0 : degree] ?? chords[0];
 
   // To add this chord to the Play song we need its root as an index into the
@@ -846,13 +880,13 @@ function HarmonyView({
   return (
     <>
       <p className="tagline">
-        {shownExplore === 'scale' && (
+        {isAll && (
           <>
             Chord scale of {noteName(root)} {scale.name} — every chord in the key, in
             one voicing
           </>
         )}
-        {shownExplore === 'inversions' && (
+        {!isAll && (
           <>
             {selected.name} — every inversion up the neck ({selected.roman} of{' '}
             {noteName(root)} {scale.name})
@@ -862,17 +896,6 @@ function HarmonyView({
 
       <div className="view-controls">
         <div className="controls-row">
-          {/* What we're laddering: this one chord, or the whole chord scale. */}
-          <Segmented
-            ariaLabel="Explore"
-            options={[
-              { value: 'scale' as const, label: 'Chord scale' },
-              { value: 'inversions' as const, label: 'Inversions' },
-            ]}
-            value={explore}
-            onChange={setExplore}
-          />
-
           {/* Triads vs seventh chords (the degree is chosen by the shared selector
               above). */}
           <Segmented
@@ -901,10 +924,9 @@ function HarmonyView({
         )}
       </div>
 
-      {shownExplore === 'scale' && (
+      {isAll ? (
         <ChordScaleLadder root={root} scale={scale} seventh={seventh} labelMode="note" />
-      )}
-      {shownExplore === 'inversions' && (
+      ) : (
         <InversionLadder root={selected.chordRoot} chord={selected.chord} labelMode="note" />
       )}
     </>

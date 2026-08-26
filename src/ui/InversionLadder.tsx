@@ -32,9 +32,7 @@ import {
   structuresForChord,
   structureName,
   inversionCount,
-  inversionName,
-  bassDegree,
-  bassNoteName,
+  voicingName,
 } from '../theory/chord';
 import { midiOf, noteName } from '../theory/notes';
 import { playChord } from '../audio/player';
@@ -129,8 +127,15 @@ export function InversionLadder({
   const playShape = (shape: PlacedNote[]) =>
     shape.length && playChord(shape.map((p) => midiOf(p.note)));
 
-  // Clicking a row plays it AND selects it.
+  // Clicking a row SELECTS it — it doesn't play it. You want to look at these
+  // far more often than you want to hear them, and a page that makes a noise
+  // every time you point at something is a page you stop pointing at. Sound is
+  // always deliberate here: press a ▶.
   const selectRow = (i: number) => {
+    stopAll();
+    setPinned(i);
+  };
+  const playRow = (i: number) => {
     stopAll();
     setPinned(i);
     playShape(shapes[i] ?? []);
@@ -229,21 +234,23 @@ export function InversionLadder({
                       <div className="tab-row-head">
                         <button
                           className="tab-play"
-                          aria-label={`Play ${inversionName(r.inv)}`}
+                          aria-label={`Play ${voicingName(chord, structure, r.inv)}`}
                           onClick={(e) => {
-                            e.stopPropagation(); // playing shouldn't double as selecting
-                            selectRow(r.index);
+                            e.stopPropagation(); // selecting is the row's own job
+                            playRow(r.index);
                           }}
                         >
                           ▶
                         </button>
-                        <span className="tab-row-title">{inversionName(r.inv)}</span>
+                        <span className="tab-row-title">
+                          {voicingName(chord, structure, r.inv)}
+                        </span>
                       </div>
                       <TabView
                         instrument={GUITAR}
                         tuning={GUITAR_STANDARD}
                         placed={r.shape}
-                        caption={bassNoteName(bassDegree(chord, structure, r.inv))}
+                        caption={`fr. ${loFret(r.shape)}`}
                       />
                     </div>
                   ))}
