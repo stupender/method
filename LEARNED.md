@@ -1265,3 +1265,19 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   so several probes were silently querying the wrong container and I nearly
   "fixed" a bug that didn't exist. When a probe reports something impossible,
   suspect the probe first.
+
+## Session 15e — ROYGBIV degrees: colour and text as two channels
+
+- **Stu's idea, and it was already half-true**: colour is computed from the
+  INTERVAL, never from the label, so it keeps meaning "scale degree" no matter
+  what's written in the dot. Switching Labels from Degrees to Notes now swaps
+  3→E, 4→F, 5→G while the fills stay byte-identical. Two channels, two facts,
+  read at once — the note name AND where it sits in the scale.
+- **ROYGBIV in riso ink.** Seven degrees, seven spectrum hues in order (1 red,
+  5 blue, 7 violet), but muted so it reads as a printed chart rather than a toy
+  rainbow. Two numbers make that work: hue climbs monotonically (11° → 278°)
+  so the sequence reads AS a sequence, and LIGHTNESS is held nearly flat
+  (0.42–0.48) so no degree shouts louder than its neighbours. Saturation stays
+  in the 0.26–0.53 band — the riso range.
+- Holding lightness constant across a categorical palette is the trick that
+  keeps a rainbow from looking like a toy: variation lives in hue alone.

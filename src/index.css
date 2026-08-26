@@ -66,17 +66,22 @@
   --fn-borrowed: #2c8296; /* the parallel minor's cooler shadow */
   --fn-tritone: #574a9e; /* subV7/x — the furthest substitution */
 
-  /* SCALE DEGREES — the palette's full range, finally doing some work. The
-     seven degrees run warm at the root and cool toward the 7th, so a
-     constellation on the neck reads as colour as well as position (and the
-     leading tone genuinely looks like the furthest thing from home). */
-  --deg-1: #b4553f; /* root — terracotta */
-  --deg-2: #9c7444; /* ochre */
-  --deg-3: #87804f; /* olive */
-  --deg-4: #5c8168; /* green */
-  --deg-5: #45808f; /* teal — the other structural tone */
-  --deg-6: #5a7392; /* slate */
-  --deg-7: #66608f; /* indigo — furthest out */
+  /* SCALE DEGREES — ROYGBIV, in riso ink (Stu's call).
+     Seven degrees, seven spectrum hues in order: the 1 is red, the 5 is blue,
+     the 7 is violet. Muted to sit in the paper palette rather than glowing as
+     a toy rainbow, and spaced by hue so the sequence reads as a sequence.
+
+     The point is that COLOUR ALWAYS MEANS SCALE DEGREE — it is computed from
+     the interval, never from the label — so switching Labels from Degrees to
+     Notes swaps what's WRITTEN in the dot while the colour keeps telling you
+     where you are in the scale. Two channels, two facts, at once. */
+  --deg-1: #b4553f; /* R — terracotta */
+  --deg-2: #bd7a3a; /* O — burnt orange */
+  --deg-3: #a89440; /* Y — ochre yellow */
+  --deg-4: #5d8b52; /* G — green */
+  --deg-5: #3a7a9c; /* B — blue */
+  --deg-6: #4c5b96; /* I — the riso indigo */
+  --deg-7: #7a5490; /* V — violet */
 
   /* Quiz feedback — the one place colour means right/wrong, not distance. */
   --correct: #4a7343;
@@ -155,13 +160,13 @@
     --fn-borrowed: #4fb3c9;
     --fn-tritone: #9a92e0;
 
-    --deg-1: #d9a06a;
-    --deg-2: #b8895c;
-    --deg-3: #9d9068;
-    --deg-4: #6d9179;
-    --deg-5: #52899b;
-    --deg-6: #5f7c9e;
-    --deg-7: #6f6fa0;
+    --deg-1: #d9846a;
+    --deg-2: #d9a05e;
+    --deg-3: #c4b269;
+    --deg-4: #7dac72;
+    --deg-5: #5b9fbd;
+    --deg-6: #7b85c9;
+    --deg-7: #a382bd;
 
     --correct: #6fa564;
     --wrong: #d9695c;
@@ -210,13 +215,13 @@
   --fn-borrowed: #4fb3c9;
   --fn-tritone: #9a92e0;
 
-  --deg-1: #d9a06a;
-  --deg-2: #b8895c;
-  --deg-3: #9d9068;
-  --deg-4: #6d9179;
-  --deg-5: #52899b;
-  --deg-6: #5f7c9e;
-  --deg-7: #6f6fa0;
+  --deg-1: #d9846a;
+  --deg-2: #d9a05e;
+  --deg-3: #c4b269;
+  --deg-4: #7dac72;
+  --deg-5: #5b9fbd;
+  --deg-6: #7b85c9;
+  --deg-7: #a382bd;
 
   --correct: #6fa564;
   --wrong: #d9695c;
