@@ -1453,11 +1453,25 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **A logo can carry an argument.** The mark is three dots — a triad, in the
   fretboard's own degree colours. Because degrees 1, 3 and 5 land on red,
   yellow and blue, the overlaps are the degrees in between: 1+3 = the 2's
-  orange, 3+5 = the 4's green, 1+5 = the 7's violet, all three = the 6's
-  indigo. Seven regions, seven degrees: the triad makes the scale. The regions
-  are painted with the real palette colours rather than produced with
-  `mix-blend-mode: multiply`, which came out brown and near-black — a blend
-  mode approximates the idea, clipped fills state it.
+  orange, 3+5 = the 4's green. The triad generates the steps between its own
+  notes. The regions are painted with the real palette colours rather than
+  produced with `mix-blend-mode: multiply` — a blend mode approximates the
+  idea, clipped fills state it.
+
+- **The arrangement decides how much of the idea you can show.** Three equal
+  circles in a LINE can never show the 1x5 overlap: if the outer two reach
+  each other at all, that lens sits entirely inside the middle circle. Pull
+  them apart to free it and the middle dot's own colour shrinks to a sliver
+  instead. So the row shows five clean regions (1 2 3 4 5, ascending) and the
+  Venn triangle shows seven — but the triangle's radial symmetry reads as a
+  browser logo, so the row won.
+
+- **Saturated ink can't overprint.** Real riso multiply on this palette gives
+  #922e0d for 1x3 and a dead grey #272121 for 1x5 — multiply always heads for
+  black. Inks solved backwards from the palette (#ff978b coral, #afce37
+  chartreuse, #7ca1ff periwinkle) DO multiply into the right secondaries, and
+  look properly riso, but then the three dots no longer match the fretboard.
+  Either the singles are right or the overlaps are; not both.
 
 - **A masthead is not a nameplate.** The centred title-and-moon header cost
   about a third of a phone screen on a tool you open to look at a neck. As a

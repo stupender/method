@@ -7,65 +7,95 @@
 //
 // The good part is what happens where they overlap. Degrees 1, 3 and 5 land on
 // red, yellow and blue — the three primaries — and mixing them gives exactly
-// the degrees in between:
+// the degrees in between: red + yellow = the 2's orange, yellow + blue = the
+// 4's green. The triad generates the steps between its own notes. That falls
+// out of ROYGBIV for free.
 //
-//     1 red  +  3 yellow  =  2 orange
-//     3 yellow + 5 blue   =  4 green
-//     1 red  +  5 blue    =  7 violet
-//     all three           =  6 indigo   (the centre)
+// TWO ARRANGEMENTS, and the geometry decides how much of that you get:
 //
-// Seven regions, seven degrees. THE TRIAD MAKES THE SCALE — which is more or
-// less what this whole app is about. That falls out of ROYGBIV for free.
+//   'row'   — three in a line, adjacent dots overlapping, the outer two just
+//             clear of each other. Five regions: 1 2 3 4 5, ascending left to
+//             right, like a run up the scale. This is the one in the site bar.
 //
-// It's painted rather than blended. `mix-blend-mode: multiply` was the obvious
-// way to do it and it looked like mud: red over yellow came out brown, the
-// centre went almost black, and at 32px the thing read as a smudge. Naming
-// each region and filling it with the palette's actual colour is more code and
-// a much better mark — and it keeps the promise above literally true instead
-// of approximately true.
+//   'triad' — the Venn triangle. Seven regions (the outer pair also meet, so
+//             you get the 7's violet, and all three agree on the 6's indigo in
+//             the middle) — but the radial symmetry reads as a browser logo.
 //
-// Two arrangements:
-//   'triad' — the Venn triangle. Compact and square, good small, good favicon.
-//   'row'   — three in a line. Reads more like a transit map.
+// A straight row CANNOT hold seven, and it's worth knowing why: with three
+// equal circles on a line, if the outer two reach each other at all, that lens
+// sits entirely inside the middle circle. There's nowhere for the 7 to show.
+// Pull them apart to free it and the middle dot's own colour shrinks to a
+// sliver instead. Five clean regions beats seven with two of them invisible.
+//
+// The regions are PAINTED — each one clipped and filled with the palette's
+// real colour — rather than produced with `mix-blend-mode: multiply`. Honest
+// overprint on inks this saturated goes to mud: red over blue computes to
+// #272121, a dead grey. `press` adds back what multiply was really for — ink
+// that lets a little paper through, and a grain over the top.
 // ============================================================================
 
 export type MarkVariant = 'triad' | 'row';
 
-interface Layout {
-  a: { cx: number; cy: number };
-  b: { cx: number; cy: number };
-  c: { cx: number; cy: number };
+interface Dot {
+  cx: number;
+  cy: number;
+}
+interface Region {
+  deg: number; // which degree colour this patch takes
+  from: 'a' | 'b'; // the circle we draw...
+  clip?: 'a' | 'b' | 'c' | 'bc'; // ...and what we cut it against
+}
+interface Arrangement {
+  a: Dot;
+  b: Dot;
+  c: Dot;
   r: number;
+  regions: Region[];
 }
 
-// Centres sit on a small circle around the middle, close enough that all three
-// share a common centre region (that's the 6). r * 0.58 is the classic Venn
-// spacing — any wider and the middle closes up.
-const LAYOUTS: Record<MarkVariant, Layout> = {
+const ARRANGEMENTS: Record<MarkVariant, Arrangement> = {
+  // Adjacent dots overlap by a good margin; the outer two miss each other by a
+  // hair (centres 44 apart, diameters 42), which is what keeps all five
+  // regions honest — see the note above.
+  row: {
+    a: { cx: 28, cy: 50 },
+    b: { cx: 50, cy: 50 },
+    c: { cx: 72, cy: 50 },
+    r: 21,
+    regions: [
+      { deg: 2, from: 'a', clip: 'b' },
+      { deg: 4, from: 'b', clip: 'c' },
+    ],
+  },
+  // Centres on a small circle around the middle — the classic Venn spacing.
   triad: {
     a: { cx: 50, cy: 37.5 }, // root on top
     b: { cx: 35.3, cy: 63 },
     c: { cx: 64.7, cy: 63 },
     r: 29,
-  },
-  row: {
-    a: { cx: 31, cy: 50 },
-    b: { cx: 50, cy: 50 },
-    c: { cx: 69, cy: 50 },
-    r: 26,
+    regions: [
+      { deg: 2, from: 'a', clip: 'b' },
+      { deg: 4, from: 'b', clip: 'c' },
+      { deg: 7, from: 'a', clip: 'c' },
+      { deg: 6, from: 'a', clip: 'bc' },
+    ],
   },
 };
 
 export function Mark({
-  variant = 'triad',
+  variant = 'row',
+  press = false,
   className,
 }: {
   variant?: MarkVariant;
+  /** Ink that lets a little paper through, plus a press grain over the top. */
+  press?: boolean;
   className?: string;
 }) {
-  const { a, b, c, r } = LAYOUTS[variant];
-  // Clip ids have to be unique per instance, since both variants can be on
-  // screen at once when we're comparing them.
+  const { a, b, c, r, regions } = ARRANGEMENTS[variant];
+  const dots = { a, b, c };
+  // Ids have to be unique per instance, since both variants can be on screen
+  // at once when we're comparing them.
   const p = `mk-${variant}`;
 
   return (
@@ -74,6 +104,7 @@ export function Mark({
       viewBox="0 0 100 100"
       role="img"
       aria-label="Fretboard Constellations"
+      opacity={press ? 0.94 : undefined}
     >
       <defs>
         <clipPath id={`${p}-a`}>
@@ -85,50 +116,56 @@ export function Mark({
         <clipPath id={`${p}-c`}>
           <circle cx={c.cx} cy={c.cy} r={r} />
         </clipPath>
-        {/* b ∩ c, built by clipping one against the other. Clipping a shape
-            INSIDE a clipPath is how you intersect two clips in SVG. */}
+        {/* b ∩ c. Clipping a shape INSIDE a clipPath is how SVG intersects two
+            clips; only the triangle needs it. */}
         <clipPath id={`${p}-bc`}>
           <circle cx={b.cx} cy={b.cy} r={r} clipPath={`url(#${p}-c)`} />
         </clipPath>
+        {/* The union, for laying the grain over the ink and nowhere else. */}
+        <clipPath id={`${p}-all`}>
+          <circle cx={a.cx} cy={a.cy} r={r} />
+          <circle cx={b.cx} cy={b.cy} r={r} />
+          <circle cx={c.cx} cy={c.cy} r={r} />
+        </clipPath>
+        <filter id={`${p}-grain`} x="0" y="0" width="100%" height="100%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.8"
+            numOctaves={4}
+            stitchTiles="stitch"
+          />
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
       </defs>
 
-      {/* The three whole dots first. They overlap each other here; every
-          overlap gets repainted below, so the stacking order doesn't matter. */}
+      {/* The three whole dots. They overlap here; every overlap is repainted
+          below, so the stacking order doesn't matter. */}
       <circle className="mark-dot mark-dot--deg1" cx={a.cx} cy={a.cy} r={r} />
       <circle className="mark-dot mark-dot--deg3" cx={b.cx} cy={b.cy} r={r} />
       <circle className="mark-dot mark-dot--deg5" cx={c.cx} cy={c.cy} r={r} />
 
-      {/* The pairs: each drawn as one circle clipped to another. */}
-      <circle
-        className="mark-dot mark-dot--deg2"
-        cx={a.cx}
-        cy={a.cy}
-        r={r}
-        clipPath={`url(#${p}-b)`}
-      />
-      <circle
-        className="mark-dot mark-dot--deg4"
-        cx={b.cx}
-        cy={b.cy}
-        r={r}
-        clipPath={`url(#${p}-c)`}
-      />
-      <circle
-        className="mark-dot mark-dot--deg7"
-        cx={a.cx}
-        cy={a.cy}
-        r={r}
-        clipPath={`url(#${p}-c)`}
-      />
+      {/* ...then each overlap, as its own degree. */}
+      {regions.map((rg) => (
+        <circle
+          key={rg.deg}
+          className={`mark-dot mark-dot--deg${rg.deg}`}
+          cx={dots[rg.from].cx}
+          cy={dots[rg.from].cy}
+          r={r}
+          clipPath={`url(#${p}-${rg.clip})`}
+        />
+      ))}
 
-      {/* ...and the middle, where all three agree. */}
-      <circle
-        className="mark-dot mark-dot--deg6"
-        cx={a.cx}
-        cy={a.cy}
-        r={r}
-        clipPath={`url(#${p}-bc)`}
-      />
+      {press && (
+        <rect
+          width="100"
+          height="100"
+          filter={`url(#${p}-grain)`}
+          clipPath={`url(#${p}-all)`}
+          opacity="0.3"
+          style={{ mixBlendMode: 'multiply' }}
+        />
+      )}
     </svg>
   );
 }

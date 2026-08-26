@@ -281,3 +281,18 @@ current shape.
 - **The art-book aesthetic** (BACKLOG). *Quiet by default* is a teaching principle,
   not just taste: decluttering serves the music being the star → embodiment over
   screen-time → technology in service of embodiment.
+
+
+## Archive — marks we're keeping in case
+
+Tagged in git, so they can come back whole rather than being reconstructed:
+
+- **`ink-moon-mark`** — the original single mark: a riso ink blot on paper (one
+  saturated ink, its edge eaten by a turbulence mask), becoming the moon at
+  night (no mask, warm light blooming into the dark field). One element, two
+  worlds. Retired when the masthead became a site bar. `git show
+  ink-moon-mark:src/App.css`
+- **`ink-stamp-dots`** — the fretboard's notes as hand-stamped ink: sixteen
+  turbulence masks so no two dots printed alike. Retired because at 30 units
+  across the texture read as noise rather than ink. `git show
+  ink-stamp-dots:src/render/Fretboard.tsx`
