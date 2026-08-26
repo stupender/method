@@ -423,11 +423,23 @@
   color: var(--ink);
 }
 
-/* The selected position: a printed bar in the margin rather than an outline,
-   so it can't fight the table's own rules. */
+/* No background wash on a selected row — a table of tracks should sit still,
+   and a tinted row reads as "something is happening here" when nothing is.
+   Selection gets a quiet bar in the margin; the ACCENT bar is reserved for the
+   row that's actually sounding, so the loud signal means playback. */
 .tab-shelf.tab-shelf--lines .tab-card--on {
-  background: var(--accent-bg);
+  box-shadow: inset 3px 0 0 var(--line);
+}
+.tab-shelf.tab-shelf--lines .tab-card--playing {
   box-shadow: inset 3px 0 0 var(--accent);
+}
+.tab-card--playing .tab-play {
+  color: var(--on-heat-0);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.tab-card--playing .tab-row-title {
+  color: var(--ink);
 }
 
 /* A wrapping row of TAB diagrams — one per playable shape, low -> high. */

@@ -15,11 +15,11 @@ import { GUITAR } from '../data/instruments';
 import { GUITAR_STANDARD } from '../data/tunings';
 import { scalePositions, positionalBoxes, hybridBoxes } from '../theory/scalePositions';
 import { midiOf } from '../theory/notes';
-import { playSequence } from '../audio/player';
+import { playSequence, type Sequence } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
 import { TabSequence } from '../render/TabSequence';
 import { Segmented } from './Segmented';
-import { ShapeStepper, useStepper } from './ShapeStepper';
+import { useStepper } from './ShapeStepper';
 import type { PlacedNote } from '../theory/types';
 
 export function ScaleExplorer({
@@ -92,25 +92,59 @@ export function ScaleExplorer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focus?.seq]);
 
-  // Play a position in the chosen direction (low->high, or high->low).
-  const playPosition = (shape: (typeof shapes)[number]) => {
-    const midis = [...shape]
+  // WHICH POSITION IS SOUNDING. Playback is a state, not a fire-and-forget:
+  // the row's button shows ⏸ while its own run is playing and returns to ▶ when
+  // it finishes (or when you stop it, or start another one).
+  const [playing, setPlaying] = useState<number | null>(null);
+  const run = useRef<{ seq: Sequence; timer: number } | null>(null);
+
+  const stopPlayback = () => {
+    if (run.current) {
+      run.current.seq.stop();
+      clearTimeout(run.current.timer);
+      run.current = null;
+    }
+    setPlaying(null);
+  };
+
+  // Play position `i` in the chosen direction (low->high, or high->low), or
+  // stop it if it's the one already sounding.
+  const togglePlay = (i: number) => {
+    if (playing === i) {
+      stopPlayback();
+      return;
+    }
+    stopPlayback();
+    const midis = [...(shapes[i] ?? [])]
       .sort((a, b) => midiOf(a.note) - midiOf(b.note))
       .map((p) => midiOf(p.note));
     if (direction === 'down') midis.reverse();
-    playSequence(midis, 0.18);
+    if (midis.length === 0) return;
+    const seq = playSequence(midis, 0.18);
+    // Hand the button back to ▶ when the last note has rung out.
+    const timer = window.setTimeout(() => {
+      run.current = null;
+      setPlaying(null);
+    }, seq.durationSec * 1000);
+    run.current = { seq, timer };
+    setPlaying(i);
   };
 
-  // Clicking a position (neck or TAB) plays it AND pins it as the selection.
-  const selectShape = (i: number) => {
-    setPinnedShape(i);
-    playPosition(shapes[i] ?? []);
-  };
+  // Cut any sound when the positions change under us (a new key, scale,
+  // fingering or direction makes the running position meaningless) and on
+  // unmount. This is a CLEANUP rather than an effect body on purpose: React
+  // guarantees a cleanup runs before its effect re-runs, so no dependency
+  // change can slip past and leave a row stuck showing ⏸.
+  useEffect(() => () => stopPlayback(), [modeKey, direction]);
 
-  // Walk the positions in playing order: the ‹ › buttons or the ← → arrow keys
-  // move to the next/previous box and play it (only while this view is visible).
+  // Selecting a position lights it on the neck. It does NOT play — playing is
+  // its own action now, on each row's button.
+  const selectShape = (i: number) => setPinnedShape(i);
+
+  // The ← → arrow keys walk the positions (the visible stepper is gone; the
+  // keys stay, because stepping through positions by hand is the whole point).
   const viewRef = useRef<HTMLDivElement>(null);
-  const stepShape = useStepper(viewRef, shapes.length, activeShape, selectShape);
+  useStepper(viewRef, shapes.length, activeShape, selectShape);
 
   return (
     <>
@@ -126,18 +160,6 @@ export function ScaleExplorer({
             ]}
             value={fingering}
             onChange={setFingering}
-          />
-          <button
-            className="pill pill--play"
-            onClick={() => playPosition(shapes[activeShape ?? 0] ?? [])}
-          >
-            ▶ Play position
-          </button>
-          <ShapeStepper
-            index={activeShape}
-            count={shapes.length}
-            onStep={stepShape}
-            label="position"
           />
         </div>
 
@@ -193,20 +215,24 @@ export function ScaleExplorer({
         {positions.map((pos, i) => (
           <div
             key={i}
-            className={i === activeShape ? 'tab-card tab-card--on' : 'tab-card'}
+            className={
+              'tab-card' +
+              (i === activeShape ? ' tab-card--on' : '') +
+              (playing === i ? ' tab-card--playing' : '')
+            }
             onClick={() => setPinnedShape(i)}
           >
             <div className="tab-row-head">
               <button
                 className="tab-play"
-                aria-label={`Play ${pos.name}`}
+                aria-label={`${playing === i ? 'Stop' : 'Play'} ${pos.name}`}
                 onClick={(e) => {
                   e.stopPropagation(); // playing shouldn't double as selecting
                   setPinnedShape(i);
-                  playPosition(shapes[i] ?? []);
+                  togglePlay(i);
                 }}
               >
-                ▶
+                {playing === i ? '❙❙' : '▶'}
               </button>
               <span className="tab-row-title">{pos.name}</span>
             </div>

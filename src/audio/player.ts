@@ -155,12 +155,36 @@ export function playNote(midi: number, duration = 1.1): void {
   scheduleNote(ctx, midi, ctx.currentTime, duration);
 }
 
+// A running sequence: how long it lasts, and a way to cut it short. Callers
+// that just want to hear something can ignore the handle entirely.
+export interface Sequence {
+  durationSec: number; // from now until the last note has rung out
+  stop: () => void;
+}
+
 // Play a list of notes one after another, `gap` seconds apart (e.g. a scale).
 // Scheduling on the audio clock keeps the timing steady and drift-free.
-export function playSequence(midis: number[], gap = 0.34): void {
+export function playSequence(midis: number[], gap = 0.34): Sequence {
   const ctx = getContext();
   const start = ctx.currentTime;
-  midis.forEach((midi, i) => scheduleNote(ctx, midi, start + i * gap, 0.9));
+  const NOTE = 0.9; // how long each note rings
+  const oscs: OscillatorNode[] = [];
+  midis.forEach((midi, i) =>
+    oscs.push(...scheduleNote(ctx, midi, start + i * gap, NOTE)),
+  );
+  return {
+    durationSec: Math.max(0, (midis.length - 1) * gap + NOTE),
+    stop: () => {
+      const now = ctx.currentTime;
+      for (const o of oscs) {
+        try {
+          o.stop(now);
+        } catch {
+          /* already finished — fine */
+        }
+      }
+    },
+  };
 }
 
 // Play notes together as a chord, with a tiny `strum` delay between voices so it

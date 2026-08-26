@@ -1239,3 +1239,29 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   what follows, and it gives the play button somewhere to live.
 - The play button is a CIRCLE while everything else is a printed rectangle —
   the boards' shape language, used to separate an action from a surface.
+
+## Session 15d — playback as a state; quiet selection
+
+- **Selection is quiet, playback is loud.** A tinted row reads as "something is
+  happening here" when nothing is, so the background wash is gone: selection
+  gets a hairline bar in the margin, and the ACCENT bar plus a filled button are
+  reserved for the row that is actually sounding. One loud signal, and it means
+  the thing you can hear.
+- **Playback had to become a state, not fire-and-forget.** `playSequence` now
+  returns a `Sequence` handle (`durationSec` + `stop()`), so a row's button can
+  show ⏸ while its own run plays and return to ▶ when the last note rings out
+  (verified: flips back at ~4s on its own), or when you stop it, or when
+  another row starts.
+- **Stop in a CLEANUP, not an effect body.** React guarantees a cleanup runs
+  before its effect re-runs and on unmount, so no dependency change can slip
+  past and leave a button stuck on ⏸.
+- **Removing controls was the real fix for redundancy** (Stu): with a play
+  button on every row, the global "▶ Play position" and the ‹ 3/7 › stepper were
+  both saying the same thing again. Both gone — but the ← → ARROW KEYS stay,
+  because stepping through positions by hand was the point; they now just move
+  the selection, silently, matching "click selects, ▶ plays".
+- **Probe hygiene**: my in-page checks located the visible area as "the first
+  non-hidden DIV child of .page" — and the new .theme-switch div broke that,
+  so several probes were silently querying the wrong container and I nearly
+  "fixed" a bug that didn't exist. When a probe reports something impossible,
+  suspect the probe first.
