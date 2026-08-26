@@ -117,6 +117,52 @@ export function Fretboard({
       role="img"
       aria-label={`${instrument.name} fretboard in ${tuning.name} tuning`}
     >
+      {/* THE PRESS. One grain, laid over the whole notes layer at the end (see
+          the <g> below) rather than per-dot — 126 separate filters would be
+          126 separate filter passes.
+
+          `feComposite` with `operator="arithmetic" k1="1"` is a multiply, and
+          the useful part is that it multiplies ALPHA too: outside the dots the
+          source is transparent, so the grain lands on the ink and nowhere
+          else, with no clip path to maintain. The colour matrix before it
+          squeezes the noise into 0.8–1.0 — full-strength grain over a 30-unit
+          dot is dirt, not texture.
+
+          The FREQUENCY is the thing to get right, and it's the same lesson the
+          ink stamp taught: a dot is only 30 units across, so noise finer than
+          about 1 unit falls below a pixel on screen and averages out to a flat
+          grey wash — the texture disappears and all you're left with is dulled
+          colour. Features a few units wide (baseFrequency ~0.25) actually read
+          as uneven ink. This only varies DENSITY, though; it never cuts the
+          edge, which is where the stamp went wrong (see LEARNED.md). */}
+      <defs>
+        <filter id="press-grain" x="0" y="0" width="100%" height="100%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.25"
+            numOctaves={2}
+            stitchTiles="stitch"
+            result="noise"
+          />
+          <feColorMatrix in="noise" type="saturate" values="0" result="grey" />
+          <feColorMatrix
+            in="grey"
+            type="matrix"
+            values="0.2 0 0 0 0.8  0 0.2 0 0 0.8  0 0 0.2 0 0.8  0 0 0 0 1"
+            result="soft"
+          />
+          <feComposite
+            in="soft"
+            in2="SourceGraphic"
+            operator="arithmetic"
+            k1="1"
+            k2="0"
+            k3="0"
+            k4="0"
+          />
+        </filter>
+      </defs>
+
       {/* Inlay position dots, drawn first so they sit behind everything. */}
       {[...SINGLE_INLAYS, ...DOUBLE_INLAYS]
         .filter((f) => f <= fretCount)
@@ -194,6 +240,7 @@ export function Fretboard({
 
       {/* One lit note: a dot + label; roots take the accent colour. `dim` fades
           it when another shape is the active constellation. */}
+      <g className="notes-layer" filter="url(#press-grain)">
       {(() => {
         const renderNote = (h: PlacedNote, key: string, dim: boolean) => {
           const x = noteX(h.position.fret);
@@ -349,6 +396,7 @@ export function Fretboard({
           renderNote(h, `hl-${h.position.stringIndex}-${h.position.fret}`, false),
         );
       })()}
+      </g>
     </svg>
   );
 }

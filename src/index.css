@@ -82,23 +82,18 @@
      (saturation up, lightness down) instead. All seven land in a 3.45–4.99
      contrast band against the paper — an even set, not one weak link. */
   --deg-1: #ab4436; /* R — a truer red, pulled away from the orange */
-  --deg-2: #c47a1e; /* O — orange */
+  --deg-2: #b46218; /* O — orange */
   --deg-3: #d9ac3c; /* Y — marigold, bright, carrying DARK text */
-  --deg-4: #55823f; /* G — green */
+  --deg-4: #4a7337; /* G — green */
   --deg-5: #3a7a9c; /* B — blue */
-  --deg-6: #55639e; /* I — the riso indigo */
-  --deg-7: #8a5f9e; /* V — violet */
-
-  /* THE MARK'S OVERLAPS. The logo's three dots are the degree colours exactly,
-     but where they cross, a flat palette colour reads as a shape sitting on
-     top rather than as two inks meeting. These are those secondaries pushed a
-     third of the way toward what a press would really have produced — same
-     hue, more ink. On paper that means toward MULTIPLY: ink over ink darkens.
-     Set these back to their --deg- twins to return to flat painted overlaps. */
-  --mark-2: #b46218;
-  --mark-4: #4a7337;
-  --mark-6: #444a6e;
-  --mark-7: #6a4b76;
+  --deg-6: #444a6e; /* I — the riso indigo */
+  --deg-7: #6a4b76; /* V — violet */
+  /* 2, 4, 6 and 7 are PRESSED: each pushed a third of the way toward what a
+     press would really have produced where two inks meet (on paper, toward
+     multiply — ink over ink darkens). They started life as the logo's overlap
+     colours, and they turned out to be the better palette, so the fretboard
+     took them too. Flat versions, if these ever go too dark:
+     #c47a1e / #55823f / #55639e / #8a5f9e. */
 
   /* The label inside each dot. Most degrees are dark enough for the paper ink;
      the orange and the marigold are not, and forcing them dark enough to carry
@@ -190,20 +185,15 @@
     --fn-tritone: #9a92e0;
 
     --deg-1: #d9846a;
-    --deg-2: #cf9152;
+    --deg-2: #dba666;
     --deg-3: #c0a044;
-    --deg-4: #74ad63;
+    --deg-4: #94bc85;
     --deg-5: #5b9fbd;
-    --deg-6: #7b85c9;
-    --deg-7: #a382bd;
-
-  /* At night the inks are LIGHT, so overprint runs the other way: pushed
-     toward SCREEN, where light over light brightens. Darkening these on a dark
-     ground would have read as holes in the mark. */
-  --mark-2: #dba666;
-  --mark-4: #94bc85;
-  --mark-6: #a3a7d1;
-  --mark-7: #b99bc6;
+    --deg-6: #a3a7d1;
+    --deg-7: #b99bc6;
+  /* Pressed the other way: at night the inks are LIGHT, so two of them meeting
+     brightens rather than darkens. Flat versions: #cf9152 / #74ad63 /
+     #7b85c9 / #a382bd. */
 
     --deg-1-ink: var(--note-label);
     --deg-2-ink: var(--note-label);
@@ -261,20 +251,15 @@
   --fn-tritone: #9a92e0;
 
   --deg-1: #d9846a;
-  --deg-2: #cf9152;
+  --deg-2: #dba666;
   --deg-3: #c0a044;
-  --deg-4: #74ad63;
+  --deg-4: #94bc85;
   --deg-5: #5b9fbd;
-  --deg-6: #7b85c9;
-  --deg-7: #a382bd;
-
-  /* At night the inks are LIGHT, so overprint runs the other way: pushed
-     toward SCREEN, where light over light brightens. Darkening these on a dark
-     ground would have read as holes in the mark. */
-  --mark-2: #dba666;
-  --mark-4: #94bc85;
-  --mark-6: #a3a7d1;
-  --mark-7: #b99bc6;
+  --deg-6: #a3a7d1;
+  --deg-7: #b99bc6;
+  /* Pressed the other way: at night the inks are LIGHT, so two of them meeting
+     brightens rather than darkens. Flat versions: #cf9152 / #74ad63 /
+     #7b85c9 / #a382bd. */
 
   --deg-1-ink: var(--note-label);
   --deg-2-ink: var(--note-label);

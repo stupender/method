@@ -1478,6 +1478,21 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   newspaper-style bar — mark, name, motto, theme switch, one hairline — the
   whole fretboard and its first TAB now sit above the fold.
 
+- **Texture has a minimum size, and it's not about opacity.** Both failed
+  attempts at inking the fretboard dots failed the same way: the noise was too
+  FINE. A dot is 30 units across, so features below about 1 unit fall under a
+  screen pixel and average out — you lose the texture and keep only dulled,
+  greyed colour. Coarse noise (baseFrequency ~0.25, features a few units wide)
+  reads as uneven ink at actual size. The other half of the lesson is what the
+  noise is allowed to touch: the stamp CUT the dot's edge and looked chewed;
+  the press only varies density inside it, and reads as printing.
+
+- **`feComposite` clips a filter to its own artwork for free.** Laying grain
+  over 126 dots as 126 filters would be 126 passes; one filter on the layer is
+  one. `operator="arithmetic" k1="1"` multiplies alpha along with colour, so
+  where the source is transparent the result is too — the grain lands on the
+  ink and nowhere else, with no clip path to keep in sync.
+
 - **Overprint runs opposite ways in the two worlds.** The mark's overlaps are
   its secondaries pushed a third of the way toward what a press would really
   have produced. On paper that's toward MULTIPLY — ink over ink darkens. At

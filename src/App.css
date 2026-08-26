@@ -92,16 +92,15 @@
      grain can't ever reach through to the page. */
   isolation: isolate;
 }
-/* The three notes take the degree colours exactly; the overlaps take the
-   pressed variants (--mark-N in index.css), which are the same hues carrying
-   more ink. */
+/* Straight from the palette — 2, 4, 6 and 7 are already the pressed inks
+   (see index.css), which is exactly what the overlaps want. */
 .mark-dot--deg1 { fill: var(--deg-1); }
+.mark-dot--deg2 { fill: var(--deg-2); }
 .mark-dot--deg3 { fill: var(--deg-3); }
+.mark-dot--deg4 { fill: var(--deg-4); }
 .mark-dot--deg5 { fill: var(--deg-5); }
-.mark-dot--deg2 { fill: var(--mark-2); }
-.mark-dot--deg4 { fill: var(--mark-4); }
-.mark-dot--deg6 { fill: var(--mark-6); }
-.mark-dot--deg7 { fill: var(--mark-7); }
+.mark-dot--deg6 { fill: var(--deg-6); }
+.mark-dot--deg7 { fill: var(--deg-7); }
 
 /* A VIEW TITLE — what you're looking at, set as a proper heading rather than a
    muted sentence. The name takes the display serif at heading size; its
