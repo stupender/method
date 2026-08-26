@@ -25,25 +25,24 @@
 
 :root {
   /* ---- PAPER: the ground ------------------------------------------------ */
-  --bg: #e9e0cc; /* warm riso stock, well toward the boards' #dad7c8 */
-  --surface: #f3ecdc; /* a raised chip — paper lifting off the stock */
-  --surface-sunk: #ded2b8; /* a recessed groove (segmented tracks) */
-  --neck: #e3d9c1; /* the fretboard's own surface */
-  --line: #cec2a8; /* hairlines, fret wires */
-  --tab-line: #c3b69a; /* TAB string lines */
-  --string: #a89b83; /* the strings on the neck */
-  --inlay: #d5c8ab; /* position-marker dots */
+  --bg: #f4efe3; /* the style sheet's paper, exactly */
+  --surface: #eae3d3; /* a panel on the stock */
+  --surface-sunk: #ded6c2; /* a recessed groove (segmented tracks) */
+  --neck: #e6dfcd; /* the fretboard's own surface */
+  --line: #d9d2c0; /* hairlines, fret wires */
+  --tab-line: #cfc7b1; /* TAB string lines */
+  --string: #b3a892; /* the strings on the neck */
+  --inlay: #ded5bd; /* position-marker dots */
 
   /* ---- PAPER: ink ------------------------------------------------------- */
-  --ink: #1f1c17; /* near-black text */
-  --muted: #756e5f; /* secondary text */
-  --on-ink: #f3ecdc; /* text on an ink-filled pill */
-  --note-label: #f3ecdc; /* the degree number inside a fretboard dot */
+  --ink: #1e1b16; /* near-black text */
+  --muted: #6b6559; /* secondary text */
+  --on-ink: #f4efe3; /* text on an ink-filled pill */
+  --note-label: #f4efe3; /* the degree number inside a fretboard dot */
 
   /* ---- PAPER: colour ---------------------------------------------------- */
-  --accent: #c8553f; /* the warm pole — deeper than the old coral, so it
-                        holds up as ink on stock rather than glowing */
-  --accent-bg: rgba(200, 85, 63, 0.1);
+  --accent: #ac5e40; /* the style sheet's live accent — terracotta */
+  --accent-bg: rgba(172, 94, 64, 0.12);
   --tint-soft: rgba(31, 28, 23, 0.04); /* barely-there panel wash */
   --tint-mid: rgba(31, 28, 23, 0.08);
   --shadow: rgba(31, 28, 23, 0.16);
@@ -84,7 +83,7 @@
   --wrong: #a8443a;
 
   /* ---- PAPER: texture --------------------------------------------------- */
-  --grain-opacity: 0.4;
+  --grain-opacity: 0.28; /* the style sheet's tooth */
   --grain-blend: multiply;
 
   /* ---- Type ------------------------------------------------------------- */
@@ -126,13 +125,13 @@
     --surface: #1e202b;
     --surface-sunk: #0e0f16;
     --neck: #1a1c26;
-    --line: #2c3040;
+    --line: #2b2f3d;
     --tab-line: #363b4d;
     --string: #4a5063;
     --inlay: #2a2f3e;
 
     --ink: #ece7dc;
-    --muted: #8f8879;
+    --muted: #938c7e;
     --on-ink: #14151d;
     --note-label: #14151d;
 
@@ -156,13 +155,13 @@
     --fn-borrowed: #4fb3c9;
     --fn-tritone: #9a92e0;
 
-    --deg-1: #e8b072;
-    --deg-2: #d99a5e;
-    --deg-3: #c9b45e;
-    --deg-4: #7fb98a;
-    --deg-5: #4fb3c9;
-    --deg-6: #86a4d4;
-    --deg-7: #9a92e0;
+    --deg-1: #d9a06a;
+    --deg-2: #b8895c;
+    --deg-3: #9d9068;
+    --deg-4: #6d9179;
+    --deg-5: #52899b;
+    --deg-6: #5f7c9e;
+    --deg-7: #6f6fa0;
 
     --correct: #6fa564;
     --wrong: #d9695c;
@@ -171,8 +170,8 @@
     --mark-glow: rgba(240, 197, 131, 0.34);
     --mark-glow-far: rgba(240, 197, 131, 0.13);
 
-    --grain-opacity: 0.15;
-    --grain-blend: screen;
+    --grain-opacity: 0.05;
+    --grain-blend: normal;
   }
 }
 
@@ -181,13 +180,13 @@
   --surface: #1e202b;
   --surface-sunk: #0e0f16;
   --neck: #1a1c26;
-  --line: #2c3040;
+  --line: #2b2f3d;
   --tab-line: #363b4d;
   --string: #4a5063;
   --inlay: #2a2f3e;
 
   --ink: #ece7dc;
-  --muted: #8f8879;
+  --muted: #938c7e;
   --on-ink: #14151d;
   --note-label: #14151d;
 
@@ -211,13 +210,13 @@
   --fn-borrowed: #4fb3c9;
   --fn-tritone: #9a92e0;
 
-  --deg-1: #e8b072;
-  --deg-2: #d99a5e;
-  --deg-3: #c9b45e;
-  --deg-4: #7fb98a;
-  --deg-5: #4fb3c9;
-  --deg-6: #86a4d4;
-  --deg-7: #9a92e0;
+  --deg-1: #d9a06a;
+  --deg-2: #b8895c;
+  --deg-3: #9d9068;
+  --deg-4: #6d9179;
+  --deg-5: #52899b;
+  --deg-6: #5f7c9e;
+  --deg-7: #6f6fa0;
 
   --correct: #6fa564;
   --wrong: #d9695c;
@@ -226,8 +225,8 @@
   --mark-glow: rgba(240, 197, 131, 0.34);
   --mark-glow-far: rgba(240, 197, 131, 0.13);
 
-  --grain-opacity: 0.15;
-  --grain-blend: screen;
+  --grain-opacity: 0.05;
+  --grain-blend: normal;
 }
 
 * {
@@ -238,6 +237,35 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
+  min-height: 100vh;
+}
+
+/* At night the ground gets depth — the boards' night images always have a
+   horizon or a glow behind the subject, never flat black. It goes on :root,
+   not body: body's box stops where the content does, which left a visible
+   seam across the page near the bottom of a long view. */
+:root[data-theme='night'] {
+  background:
+    radial-gradient(120% 80% at 50% -10%, #1e2030 0%, rgba(30, 32, 48, 0) 60%),
+    var(--bg);
+  background-attachment: fixed;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='paper']) {
+    background:
+      radial-gradient(120% 80% at 50% -10%, #1e2030 0%, rgba(30, 32, 48, 0) 60%),
+      var(--bg);
+    background-attachment: fixed;
+  }
+}
+/* …and body must then be transparent so it doesn't paint over it. */
+:root[data-theme='night'] body {
+  background: transparent;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='paper']) body {
+    background: transparent;
+  }
 }
 
 /* PAPER GRAIN — a fine noise tile laid over everything so the ground reads as

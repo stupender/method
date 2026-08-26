@@ -186,7 +186,7 @@ export function ScaleExplorer({
 
       {/* One TAB per position (the modal fingerings), low -> high. Hovering a
           TAB previews that position; clicking it pins the selection. */}
-      <div className="tab-shelf">
+      <div className="tab-shelf tab-shelf--lines">
         {positions.map((pos, i) => (
           <div
             key={i}

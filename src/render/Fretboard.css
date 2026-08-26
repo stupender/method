@@ -74,19 +74,22 @@
 .fretboard .note-dot--deg6 { fill: var(--deg-6); color: var(--deg-6); }
 .fretboard .note-dot--deg7 { fill: var(--deg-7); color: var(--deg-7); }
 
-/* THE AURA — night only, and deliberately so: on paper, ink soaks INTO the
-   stock, it doesn't emit light, so a glowing dot would be the one dishonest
-   thing on the page. In the dark field it's the whole point — bioluminescence.
-   The three sizes are assigned by fret+string in Fretboard.tsx, so the field
-   breathes unevenly like real light instead of looking mechanically uniform. */
-:root[data-theme='night'] .fretboard .note-dot--aura0 {
+/* THE AURA — night only, and only on ROOTS.
+   Two lessons learned the hard way. First: on paper, ink soaks INTO the stock,
+   it doesn't emit, so a glowing dot there is the one dishonest thing on the
+   page. Second: every night photograph on the boards is ONE warm source in a
+   cool field — when all 126 dots glowed it read as neon signage, which is the
+   opposite of the reference. So the roots are the light, and everything else
+   is simply lit by it. Sizes vary slightly (assigned by fret+string in
+   Fretboard.tsx) so the field breathes rather than pulsing uniformly. */
+:root[data-theme='night'] .fretboard .note-dot--root.note-dot--aura0 {
+  filter: drop-shadow(0 0 5px currentColor);
+}
+:root[data-theme='night'] .fretboard .note-dot--root.note-dot--aura1 {
   filter: drop-shadow(0 0 7px currentColor);
 }
-:root[data-theme='night'] .fretboard .note-dot--aura1 {
-  filter: drop-shadow(0 0 11px currentColor);
-}
-:root[data-theme='night'] .fretboard .note-dot--aura2 {
-  filter: drop-shadow(0 0 15px currentColor);
+:root[data-theme='night'] .fretboard .note-dot--root.note-dot--aura2 {
+  filter: drop-shadow(0 0 9px currentColor);
 }
 
 /* The root keeps its own weight: a ring around it rather than a louder fill,

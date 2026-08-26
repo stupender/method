@@ -2,31 +2,39 @@
    TabSequence.css — horizontal scale TAB (one note per column)
    ========================================================================== */
 
+/* Real tablature: six lines running the FULL width of the page, evenly spaced
+   notes, and rows close enough together to read as a staff. (It used to be an
+   inline-flex block of 22px rows sized to its content, so every run ended
+   wherever its notes ran out and the staff was half again too tall.) */
 .tabseq {
-  display: inline-flex;
+  display: flex;
   flex-direction: column;
-  padding: 12px 16px;
+  width: 100%;
+  padding: 10px 4px;
   font-family: var(--sans);
 }
 
 .tabseq-grid {
   display: flex;
   align-items: stretch;
+  width: 100%;
 }
 
-/* Each column is one note's time-slot: a stack of string cells. */
+/* Each column is one note's time-slot. `flex: 1` spreads them evenly across
+   the whole line, so the staff always reaches the right margin. */
 .tabseq-col {
   display: flex;
   flex-direction: column;
-  width: 20px;
+  flex: 1 1 0;
+  min-width: 0;
 }
 .tabseq-col--labels {
-  width: 22px;
+  flex: 0 0 22px;
   margin-right: 6px;
 }
 
 .tabseq-cell {
-  height: 22px;
+  height: 15px; /* staff spacing, not button spacing */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -49,7 +57,7 @@
 .tabseq-open {
   justify-content: flex-end;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -64,9 +72,12 @@
   padding: 0 3px;
 }
 
+/* The position name, set as an eyebrow like the style guide's section labels. */
 .tabseq-caption {
   margin-top: 8px;
-  text-align: center;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }

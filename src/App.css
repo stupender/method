@@ -259,34 +259,13 @@
   color: var(--on-ink);
   font-weight: 600;
 }
-.seg__btn--on::before,
-.seg__btn--on::after {
+.seg__btn--on::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
   z-index: -1;
-}
-.seg__btn--on::before {
-  background: var(--ink); /* the first pass */
-}
-.seg__btn--on::after {
-  background: var(--accent); /* the second pass, misregistered */
-  transform: translate(1.5px, 1.5px);
-  mix-blend-mode: multiply;
-  opacity: 0.4;
-}
-/* At night the inks glow instead of soaking in, so the second pass SCREENS —
-   a warm halo escaping the block rather than a darker overlap. */
-:root[data-theme='night'] .seg__btn--on::after {
-  mix-blend-mode: screen;
-  opacity: 0.5;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='paper']) .seg__btn--on::after {
-    mix-blend-mode: screen;
-    opacity: 0.5;
-  }
+  background: var(--ink);
 }
 
 /* The shared button look: a calm outlined pill. */
@@ -317,28 +296,6 @@
   position: relative;
   isolation: isolate;
 }
-.pill--on::after {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  background: var(--accent);
-  transform: translate(1.5px, 1.5px);
-  mix-blend-mode: multiply;
-  opacity: 0.4;
-  z-index: -1;
-}
-:root[data-theme='night'] .pill--on::after {
-  mix-blend-mode: screen;
-  opacity: 0.45;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='paper']) .pill--on::after {
-    mix-blend-mode: screen;
-    opacity: 0.45;
-  }
-}
-
 /* Ear-training answer feedback: the right answer goes green, a wrong guess red.
    These stay flat — right/wrong is the one place colour must not be ambiguous,
    so no overprint. */
@@ -397,6 +354,35 @@
 .pill--play:hover {
   background: var(--accent);
   color: var(--on-heat-0);
+}
+
+/* Horizontal scale TAB reads as a STAFF, so those stack full width, one line
+   per position — never side by side like chord diagrams.
+
+   The container is the style guide's swatch table: one outlined block with
+   hairline rules between the rows. The trick is `gap: 1px` over a rule-coloured
+   background — the gaps ARE the dividers, so there's no double-border where
+   rows meet, and the whole set reads as one printed table of positions. */
+.tab-shelf.tab-shelf--lines {
+  display: grid;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.tab-shelf.tab-shelf--lines .tab-card {
+  width: 100%;
+  background: var(--bg);
+  border: none;
+  border-radius: 0;
+  padding: 4px 14px 8px;
+}
+/* The selected position: a printed bar in the margin rather than an outline,
+   so it can't fight the table's own rules. */
+.tab-shelf.tab-shelf--lines .tab-card--on {
+  background: var(--accent-bg);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
 /* A wrapping row of TAB diagrams — one per playable shape, low -> high. */
@@ -586,11 +572,16 @@
 
 /* --- Song: the lead-sheet timeline -------------------------------------- */
 /* A small inline label inside a control row (e.g. "Beats"). */
+/* Eyebrow — the style guide's uppercase, letterspaced section label. Used for
+   every "what is this row" label, so the app has one voice for naming things. */
 .control-label {
   align-self: center;
   color: var(--muted);
-  font-size: 13px;
-  margin-right: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-right: 2px;
 }
 
 /* The score wraps into rows (systems), like a lead sheet. */

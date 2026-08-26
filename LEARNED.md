@@ -1189,3 +1189,38 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   fallback — a failed font load degrades rather than breaks. This is a
   deliberate departure from the "system fonts only" note in the original
   palette comment; the tradeoff is a network dependency for the intended look.
+
+## Session 15b — the corrections that actually made it land
+
+- **"Too neon" was two mistakes, not one.** (1) I invented saturated night hues
+  (#4fb3c9) instead of lifting the boards' own sampled colours; (2) I let ALL
+  126 dots glow. Every night photograph on the boards is ONE warm source in a
+  cool field — so now only ROOTS glow, everything else is merely lit, and the
+  night inks are dusty (#52899b, not #4fb3c9). Neon comes from saturation plus
+  ubiquity; fixing either alone wouldn't have done it.
+- **Match the style sheet EXACTLY when the style sheet is the thing they
+  loved.** I'd "gone further" than the artifact on the paper (#e9e0cc, grain
+  0.4) thinking bolder was better. Wrong: the artifact's own #f4efe3 / 0.28 was
+  the target all along.
+- **TAB was the biggest single win, and it was pure layout**: `inline-flex`
+  with fixed 20px columns and 22px rows meant every staff ended wherever its
+  notes ran out and was half again too tall. Now `width: 100%`, `flex: 1`
+  columns and 15px rows — six lines reaching the right margin, like real
+  tablature.
+- **Misregistration doesn't read at button scale.** A 1.5px offset ink block on
+  a 20px control just looks like a bad drop shadow — which is exactly what Stu
+  saw. Real riso misregistration reads on LARGE areas, so the overprint now
+  lives only on the mark, and buttons are flat ink.
+- **The swatch-table pattern transfers** (Stu's catch): `gap: 1px` over a
+  rule-coloured background makes hairline dividers with no double borders. The
+  TAB positions are now one outlined table of rows rather than seven floating
+  cards — which also fixed the "things float around randomly" spacing problem.
+- **Two CSS traps hit in one session**: `mix-blend-mode` on a `position: fixed`
+  overlay blends against whatever its stacking context contains, so the night
+  grain left a visible seam where the content box ended (fix: no blend at
+  night, just a faint overlay); and `.tab-shelf` defined AFTER
+  `.tab-shelf--lines` at equal specificity silently won the `display` property
+  (fix: qualify the modifier as `.tab-shelf.tab-shelf--lines`).
+- Type now carries structure too: uppercase letterspaced EYEBROWS for every
+  "what is this row" label and TAB position caption, matching the style guide's
+  section labels.
