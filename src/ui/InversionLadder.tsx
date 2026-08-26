@@ -1,16 +1,28 @@
 // ============================================================================
-// ui/InversionLadder.tsx — one chord, all its inversions up the neck
+// ui/InversionLadder.tsx — one chord, every inversion, on every string set
 // ----------------------------------------------------------------------------
-// The other harmony teaching axis (sibling to ChordScaleLadder). Here we hold the
-// CHORD fixed and sweep its inversions, tiling them up the neck on one string set
-// — root in bass, then 3rd, 5th, (7th), then the cycle again an octave higher, and
-// so on. Play it straight through, or click a rung.
+// This used to make you pick a string set from a selector and then showed that
+// one set's inversions climbing the neck. Two problems with that: the thing you
+// most want to compare — the same inversion on different string sets — was the
+// one thing you could never see at once, and a control that hides three
+// quarters of the answer is a control that shouldn't exist.
 //
-// Same reuse as the chord-scale ladder: `placeVoicingAll` places each inversion;
-// we keep the shapes on the chosen string set and octave-copy them up the neck.
+// So the string-set selector is gone and the sets are the STRUCTURE of the
+// page. Each set gets its own block, named by the strings it uses (E A D, A D
+// G, ...), holding that set's inversions in order up the neck. A triad gives 4
+// sets x 3 inversions; a seventh chord gives 3 x 4. Twelve rows either way, and
+// the whole grid is on screen at once.
+//
+// Every row is a track: its own play button, its own name, the TAB underneath.
+// Each block's header plays its set straight through, so you can hear one set
+// climb, then hear the next.
+//
+// One placement per inversion per set — the LOWEST one. The octave repeats
+// above it are the same grip twelve frets up; listing them would double the
+// page to say nothing new.
 // ============================================================================
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Note, ChordDefinition, PlacedNote } from '../theory/types';
 import { GUITAR } from '../data/instruments';
 import { GUITAR_STANDARD } from '../data/tunings';
@@ -20,6 +32,7 @@ import {
   structuresForChord,
   structureName,
   inversionCount,
+  inversionName,
   bassDegree,
   bassNoteName,
 } from '../theory/chord';
@@ -28,22 +41,15 @@ import { playChord } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
 import { TabView } from '../render/TabView';
 import { Segmented } from './Segmented';
-import { ShapeStepper, useStepper } from './ShapeStepper';
+import { useStepper } from './ShapeStepper';
 
-// (These small layout helpers are shared in spirit with ChordScaleLadder; kept
-// local so each ladder file stays self-contained.)
 const stringSetKey = (shape: PlacedNote[]) =>
   shape.map((p) => p.position.stringIndex).sort((a, b) => a - b).join('-');
-const octaveUp = (shape: PlacedNote[]): PlacedNote[] =>
-  shape.map((p) => ({
-    ...p,
-    position: { ...p.position, fret: p.position.fret + 12 },
-    note: { ...p.note, octave: (p.note.octave ?? 4) + 1 },
-  }));
 const loFret = (shape: PlacedNote[]) =>
   shape.length ? Math.min(...shape.map((p) => p.position.fret)) : 0;
-const hiFret = (shape: PlacedNote[]) =>
-  shape.length ? Math.max(...shape.map((p) => p.position.fret)) : 0;
+
+// How long between chords when a whole set plays through.
+const STEP_MS = 620;
 
 export function InversionLadder({
   root,
@@ -55,59 +61,105 @@ export function InversionLadder({
   // What the dots say — a global display setting, owned by the view above.
   labelMode?: 'note' | 'degree';
 }) {
-  const [structureId, setStructureId] = useState('close');
-  const [stringSet, setStringSet] = useState<string | null>(null);
-  // Pinned (clicked/stepped, stays lit) vs hovered (temporary preview).
+  // null means "whatever suits this chord" — see defaultStructureId below. Held
+  // as null rather than a concrete id so switching triads <-> sevenths re-picks
+  // instead of stranding you on a voicing that barely fits.
+  const [structureId, setStructureId] = useState<string | null>(null);
+  // The selected row, as an index into the flat list of every row on the page.
+  // No hover state: a row stays selected until you pick another, so the neck
+  // never shifts under you while you're reading it.
   const [pinned, setPinned] = useState<number | null>(null);
-  const [hovered, setHovered] = useState<number | null>(null);
-  const active = hovered ?? pinned;
+  // Which string set is currently sounding, if any.
+  const [playingSet, setPlayingSet] = useState<string | null>(null);
+  const timers = useRef<number[]>([]);
 
   const voiceCount = inversionCount(chord);
   const structures = structuresForChord(chord, STRUCTURES);
-  const structure = structures.find((s) => s.id === structureId) ?? structures[0];
+  // TRIADS want Close: all four string sets hold all three inversions, so you
+  // get the complete 4 x 3 grid. SEVENTHS can't do that closed — a close-voiced
+  // 7th only fits on the A D G B strings, which is precisely why guitarists
+  // play them as DROP 2. Drop 2 gives the full 3 x 4: E A D G, A D G B,
+  // D G B E, every inversion on each.
+  const defaultStructureId = voiceCount === 4 ? 'drop2' : 'close';
+  const structure =
+    structures.find((s) => s.id === (structureId ?? defaultStructureId)) ?? structures[0];
 
-  // Each inversion's placements; offer only string sets where EVERY inversion fits.
+  // Every inversion's placements, then every string set any of them lands on.
+  // We deliberately DON'T hide the sets that can't hold all of them: a set that
+  // takes only one inversion is still a real place to play the chord, and
+  // hiding it would quietly delete part of the neck. The header says how many
+  // it holds so a short block reads as a fact rather than a bug.
   const perInversion = Array.from({ length: voiceCount }, (_, inv) =>
     placeVoicingAll(GUITAR, GUITAR_STANDARD, root, chord, structure, inv),
   );
-  const setsPerInv = perInversion.map((shapes) => new Set(shapes.map(stringSetKey)));
-  const commonSets = [...setsPerInv[0]].filter((k) => setsPerInv.every((s) => s.has(k)));
-  const chosenSet = stringSet && commonSets.includes(stringSet) ? stringSet : commonSets[0];
+  const allSets = new Set<string>();
+  for (const shapes of perInversion) for (const s of shapes) allSets.add(stringSetKey(s));
+  const commonSets = [...allSets]
+    // Low strings first, so the blocks read up the neck the way the guitar is
+    // strung: E A D, then A D G, and so on.
+    .sort((a, b) => Number(a.split('-')[0]) - Number(b.split('-')[0]));
 
-  // The chord tiled up the neck: each inversion at its base plus octave copies,
-  // then everything sorted low -> high so it climbs.
-  const rungs: { shape: PlacedNote[]; inv: number }[] = [];
-  if (chosenSet) {
+  // Build the blocks, numbering every row as we go so the fretboard and the
+  // keyboard stepper can address them all with one flat index.
+  let counter = 0;
+  const groups = commonSets.map((key) => {
+    const rows = [];
     for (let inv = 0; inv < voiceCount; inv++) {
-      const base = perInversion[inv].find((s) => stringSetKey(s) === chosenSet);
-      if (!base) continue;
-      let s = base;
-      for (;;) {
-        rungs.push({ shape: s, inv });
-        if (hiFret(s) + 12 > GUITAR.fretCount) break;
-        s = octaveUp(s);
-      }
+      // The lowest placement of this inversion on this set.
+      const candidates = perInversion[inv].filter((s) => stringSetKey(s) === key);
+      if (candidates.length === 0) continue;
+      const shape = candidates.reduce((a, b) => (loFret(a) <= loFret(b) ? a : b));
+      rows.push({ inv, shape, index: counter++ });
     }
-    rungs.sort((a, b) => loFret(a.shape) - loFret(b.shape));
-  }
+    rows.sort((a, b) => loFret(a.shape) - loFret(b.shape));
+    return { key, rows };
+  });
 
-  const shapes = rungs.map((r) => r.shape);
-  const playAll = () =>
-    shapes.forEach((shape, i) =>
-      setTimeout(() => playChord(shape.map((p) => midiOf(p.note))), i * 470),
-    );
-  const playRung = (i: number) =>
-    shapes[i]?.length && playChord(shapes[i].map((p) => midiOf(p.note)));
-  // Clicking a rung (neck or TAB) plays it AND pins it as the selection.
-  const selectRung = (i: number) => {
+  const flat = groups.flatMap((g) => g.rows);
+  const shapes = flat.map((r) => r.shape);
+
+  const stopAll = () => {
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
+    setPlayingSet(null);
+  };
+  // Stop any run-through when the chord or voicing changes underneath us.
+  useEffect(() => stopAll, [root, chord, structure.id]);
+
+  const playShape = (shape: PlacedNote[]) =>
+    shape.length && playChord(shape.map((p) => midiOf(p.note)));
+
+  // Clicking a row plays it AND selects it.
+  const selectRow = (i: number) => {
+    stopAll();
     setPinned(i);
-    playRung(i);
+    playShape(shapes[i] ?? []);
   };
 
-  // Walk the inversions up the neck: ‹ › buttons or the ← → arrow keys move to
-  // the next/previous rung and play it (only while this view is visible).
+  // A whole set, climbing. Pressing it again stops it.
+  const toggleSet = (g: (typeof groups)[number]) => {
+    const wasPlaying = playingSet === g.key;
+    stopAll();
+    if (wasPlaying) return;
+    setPlayingSet(g.key);
+    g.rows.forEach((r, n) => {
+      timers.current.push(
+        window.setTimeout(() => {
+          setPinned(r.index);
+          playShape(r.shape);
+          if (n === g.rows.length - 1) {
+            timers.current.push(window.setTimeout(() => setPlayingSet(null), STEP_MS));
+          }
+        }, n * STEP_MS),
+      );
+    });
+  };
+
+  // The ← → keys still walk the rows even though the stepper's buttons are
+  // gone: every row is one click away now, so the arrows are a shortcut rather
+  // than the only way through.
   const viewRef = useRef<HTMLDivElement>(null);
-  const stepRung = useStepper(viewRef, rungs.length, active, selectRung);
+  useStepper(viewRef, flat.length, pinned, selectRow);
 
   const setLabel = (key: string) =>
     key.split('-').map((i) => noteName(GUITAR_STANDARD.openNotes[+i])).join(' ');
@@ -125,73 +177,91 @@ export function InversionLadder({
             value={structure.id}
             onChange={setStructureId}
           />
-          <button className="pill pill--play" onClick={playAll}>
-            ▶ Play inversions
-          </button>
-          <ShapeStepper
-            index={active}
-            count={rungs.length}
-            onStep={stepRung}
-            label="inversion"
-          />
-        </div>
-
-        <div className="controls-row">
-          {/* Which strings the ladder climbs on — labelled so it reads at a
-              glance on a shared screen. */}
-          <span className="control-label">Strings</span>
-          <Segmented
-            ariaLabel="String set"
-            options={commonSets.map((key) => ({ value: key, label: setLabel(key) }))}
-            value={chosenSet ?? ''}
-            onChange={setStringSet}
-          />
         </div>
       </div>
 
-      {chosenSet ? (
+      {groups.length === 0 ? (
+        <p className="control-hint control-hint--warn">
+          This voicing doesn't fit anywhere on the neck — try Close, or a drop
+          voicing.
+        </p>
+      ) : (
         <>
           <Fretboard
             instrument={GUITAR}
             tuning={GUITAR_STANDARD}
             shapes={shapes}
-            activeShapeIndex={active}
-            onShapeHover={setHovered}
-            onShapeTap={selectRung}
+            activeShapeIndex={pinned}
+            onShapeTap={selectRow}
+            onBackgroundClick={() => setPinned(null)}
             labelMode={labelMode}
           />
 
-          {/* One TAB per rung, ascending, labelled by the note in the bass. */}
-          <div className="tab-shelf">
-            {rungs.map((r, i) => (
-              <div
-                key={i}
-                className={i === active ? 'tab-card tab-card--on' : 'tab-card'}
-                onMouseEnter={() => setHovered(i)}
-                onMouseLeave={() => setHovered(null)}
-                onClick={() => selectRung(i)}
-              >
-                <TabView
-                  instrument={GUITAR}
-                  tuning={GUITAR_STANDARD}
-                  placed={r.shape}
-                  caption={bassNoteName(bassDegree(chord, structure, r.inv))}
-                />
-              </div>
+          {/* One block per string set; one row per inversion inside it. */}
+          <div className="voicing-sets">
+            {groups.map((g) => (
+              <section className="voicing-set" key={g.key}>
+                <header className="voicing-set__head">
+                  <button
+                    className="tab-play"
+                    aria-label={`${playingSet === g.key ? 'Stop' : 'Play'} the ${setLabel(g.key)} strings`}
+                    onClick={() => toggleSet(g)}
+                  >
+                    {playingSet === g.key ? '❙❙' : '▶'}
+                  </button>
+                  <span className="voicing-set__name">{setLabel(g.key)}</span>
+                  <span className="voicing-set__note">
+                    {g.rows.length === voiceCount
+                      ? 'strings'
+                      : `strings — ${g.rows.length} of ${voiceCount}`}
+                  </span>
+                </header>
+
+                <div className="tab-shelf">
+                  {g.rows.map((r) => (
+                    <div
+                      key={r.index}
+                      className={
+                        'tab-card' + (r.index === pinned ? ' tab-card--on' : '')
+                      }
+                      onClick={() => selectRow(r.index)}
+                    >
+                      <div className="tab-row-head">
+                        <button
+                          className="tab-play"
+                          aria-label={`Play ${inversionName(r.inv)}`}
+                          onClick={(e) => {
+                            e.stopPropagation(); // playing shouldn't double as selecting
+                            selectRow(r.index);
+                          }}
+                        >
+                          ▶
+                        </button>
+                        <span className="tab-row-title">{inversionName(r.inv)}</span>
+                      </div>
+                      <TabView
+                        instrument={GUITAR}
+                        tuning={GUITAR_STANDARD}
+                        placed={r.shape}
+                        caption={bassNoteName(bassDegree(chord, structure, r.inv))}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
             ))}
           </div>
 
           <footer className="footnote">
             {noteName(root)}
-            {chord.symbol} in every inversion up the {setLabel(chosenSet)} strings —
-            each chord tone taking the bass in turn, climbing the neck.
+            {chord.symbol} in every inversion, on every string set it reaches —
+            each chord tone taking the bass in turn. The same inversion in two
+            blocks is the same sound in a different place on the neck. Where a
+            block is short, that voicing simply doesn't fit those strings:
+            close-voiced sevenths only sit on A D G B, which is exactly why
+            guitarists play them as Drop 2.
           </footer>
         </>
-      ) : (
-        <p className="control-hint control-hint--warn">
-          This close voicing doesn't lay out on one string set — try a Drop 2 or
-          Drop 3 voicing.
-        </p>
       )}
     </>
   );

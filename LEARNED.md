@@ -1501,3 +1501,20 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   the mark. Same rule, mirrored: `--mark-2/4/6/7` in index.css, one set per
   theme, and setting them back to their `--deg-` twins returns flat painted
   overlaps.
+
+- **A control that hides most of the answer shouldn't exist.** Inversions used
+  to make you pick a string set and then showed that one set climbing the neck
+  — so the thing you most want to compare, the same inversion on different
+  string sets, was the one thing you could never see. The sets are now the
+  page's structure: one block each, every inversion inside it, all of it on
+  screen. Twelve voicings either way.
+
+- **Close voicings and seventh chords don't get along on a guitar, and that is
+  the lesson.** Checked against the placement engine rather than guessed: every
+  triad fits all three inversions on all four adjacent string sets, but a
+  close-voiced seventh only fits on A D G B. Drop 2 gives the full grid —
+  E A D G, A D G B, D G B E, four inversions each. So the default structure is
+  Close for triads and DROP 2 for sevenths, which is also just what guitarists
+  actually play. Short blocks are still shown, labelled "2 of 4": a set that
+  takes only one inversion is a real place to play, and hiding it would quietly
+  delete part of the neck.

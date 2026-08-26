@@ -813,10 +813,15 @@ function HarmonyView({
   songLength: number;
 }) {
   const [seventh, setSeventh] = useState(false);
-  // Three ways to explore the harmony: ONE chord in every voicing; the whole CHORD
+  // Two ways to explore the harmony: the whole CHORD
   // SCALE (all seven diatonic chords) in one voicing; or one chord's INVERSIONS,
   // both laid up the neck.
-  const [explore, setExplore] = useState<'chord' | 'scale' | 'inversions'>('chord');
+  // "This chord" used to be a third option here, showing one chord in all its
+  // voicings. It's gone: picking a degree in GRAVITY above already means "this
+  // chord", so the option was asking the same question twice — and Inversions
+  // now shows every string set at once, which is what people actually wanted
+  // from it.
+  const [explore, setExplore] = useState<'scale' | 'inversions'>('inversions');
 
   // The diatonic chords of this key + scale — derived, not stored. Switching the
   // global scale type (major, harmonic minor, ...) changes the whole harmony set.
@@ -841,11 +846,6 @@ function HarmonyView({
   return (
     <>
       <p className="tagline">
-        {shownExplore === 'chord' && (
-          <>
-            Key of {noteName(root)} {scale.name} — {selected.roman}: {selected.name}
-          </>
-        )}
         {shownExplore === 'scale' && (
           <>
             Chord scale of {noteName(root)} {scale.name} — every chord in the key, in
@@ -866,7 +866,6 @@ function HarmonyView({
           <Segmented
             ariaLabel="Explore"
             options={[
-              { value: 'chord' as const, label: 'This chord' },
               { value: 'scale' as const, label: 'Chord scale' },
               { value: 'inversions' as const, label: 'Inversions' },
             ]}
@@ -887,8 +886,9 @@ function HarmonyView({
           />
         </div>
 
-        {/* Send the selected chord over to the Play song (chord mode only). */}
-        {shownExplore === 'chord' && (
+        {/* Send the selected chord over to the Play song. Only when a single
+            degree is in play — "All" isn't one chord to add. */}
+        {!isAll && (
           <div className="controls-row">
             <button className="chart-add" onClick={addThisChord}>
               + Add {noteName(selected.chordRoot)}
@@ -901,15 +901,6 @@ function HarmonyView({
         )}
       </div>
 
-      {shownExplore === 'chord' && (
-        <>
-          {/* The chosen diatonic chord, explored with the shared voicing UI. */}
-          <ChordExplorer root={selected.chordRoot} chord={selected.chord} labelMode="note" />
-          <footer className="footnote">
-            Each chord's quality comes from where it's built in the key.
-          </footer>
-        </>
-      )}
       {shownExplore === 'scale' && (
         <ChordScaleLadder root={root} scale={scale} seventh={seventh} labelMode="note" />
       )}

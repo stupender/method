@@ -627,6 +627,58 @@
   color: var(--ink);
 }
 
+/* STRING-SET BLOCKS — the inversion grid. Each set is one printed block with
+   its own heading; the blocks stack so you read down the neck, E A D first.
+   Same outlined-block language as the CONTROLS panel and the scale-position
+   table: it's all one printed page. */
+.voicing-sets {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+}
+.voicing-set {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0 14px 14px;
+}
+.voicing-set__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 0 4px;
+}
+.voicing-set__name {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.voicing-set__note {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+/* Inside a block the cards sit closer together and carry no top margin — the
+   block's own padding is the air. A GRID rather than a wrapping flex row, so a
+   set's inversions land in one line at even widths: flex-wrap was breaking a
+   seventh chord's fourth inversion onto a row of its own, which made three
+   voicings look like a group and the fourth like an afterthought. `auto-fill`
+   (not auto-fit) keeps the empty track, so a triad's three cards stay the same
+   size as a seventh's four. */
+.voicing-set .tab-shelf {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  margin-top: 0;
+  gap: 10px;
+}
+.voicing-set .tab-card {
+  padding: 0 8px 6px;
+}
+.voicing-set .tab-row-head {
+  padding: 6px 0 2px;
+}
+
 /* A wrapping row of TAB diagrams — one per playable shape, low -> high. */
 .tab-shelf {
   display: flex;
