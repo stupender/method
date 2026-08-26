@@ -164,6 +164,37 @@ chips — they're content, not settings. One more small role: the **stepper**
 (`ui/ShapeStepper.tsx`, ‹ 3 / 7 ›) walks a sequence of shapes in playing order —
 tiny prev/next actions around a live readout, mirrored by the ← → arrow keys.
 
+## The aesthetic direction — "Paper & Night"
+
+Pulled from Stu's three Cosmos boards (*Vision Is Expanding*, *Color, Texture,
+Symbol*, *Gradients*) by sampling every image and grouping pixels by hue. The
+full study, with live specimens, is published as an artifact:
+<https://claude.ai/code/artifact/61a718ff-eff0-4c3a-98b3-31f29f9286c4>
+
+**The finding: two worlds sharing one warm light.**
+
+- **Paper** — riso ink on oatmeal stock. Terracotta is the single most common
+  chromatic pixel (9% of *Color, Texture, Symbol*), then tan and sand, with
+  slate blue as the cool counterpoint. This is where Method already lives.
+- **Night** — a third of *Vision Is Expanding* is dark field, and the colour
+  that survives is amber: firelight, moonlight, a lamp under a shelf of
+  records, against deep teal and indigo. **This is the half that isn't built**,
+  and it's exactly the "constellations + bioluminescence" backlog line.
+
+The boards VALIDATE the existing coral accent (it sits in the dominant hue
+family) — Method wasn't off-direction, it was **under-supplied**: what was
+missing is a *cool pole* to answer the warm one.
+
+**Shipped (the first slice, session 14):** paper grain over the ground;
+`--bg` warmed from `#faf8f4` toward the board's sampled `#dad7c8` (landing at
+`#f4efe3`); function hues split by temperature. See LEARNED.md.
+
+**Still to come:** the heat ramp re-cut as a two-pole warm→cool ramp (Hilma af
+Klint's concentric rings — hot at the tonic, cooling outward); a mark language
+for fretboard roles (the nine-tile grid — so a constellation reads without
+relying on colour); and the night theme proper, which wants a deliberate pass
+over the fretboard, TAB and score.
+
 ## Design principles (for the live-teaching tool)
 
 1. **The neck, TAB, and score are the stars.** Controls support; never out-shout

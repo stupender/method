@@ -10,8 +10,10 @@
   width: 100%;
   height: auto;
   display: block;
-  /* A warm wooden-ish neck tint, kept very subtle. */
-  background: #f3eee4;
+  /* A warm wooden-ish neck tint, kept very subtle — but a clear step deeper
+     than the page ground, so the neck still reads as its own surface now the
+     paper itself is warm stock. */
+  background: #ebe3d1;
   border-radius: 8px;
 }
 
@@ -30,7 +32,7 @@
 
 /* Position-marker inlays. */
 .fretboard .inlay {
-  fill: #e2d9c6;
+  fill: #dbd0b6;
 }
 
 /* Open-string names and fret numbers. */

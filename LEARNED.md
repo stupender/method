@@ -1118,3 +1118,36 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   octave, via placeOnStringSets' `octaveShift = minShift`).
 - Lesson: when the material is cyclic, the STARTING POINT is a free parameter —
   spend it on covering the neck.
+
+## Session 14 — the first aesthetic slice (from Stu's Cosmos boards)
+
+- **Sampling a mood board beats eyeballing it.** Drew all 91+137 images to a
+  canvas, converted to HSL, grouped by hue, and EXCLUDED the neutral greys so
+  the real colour signature could surface. That produced facts, not vibes:
+  terracotta at 9% of one board; 33% dark pixels on the other. It also proved
+  Method's coral accent was already on-direction — the app was under-supplied
+  (no cool pole), not mis-coloured.
+- **Three things shipped**, all token-level and reversible:
+  1. **Paper grain** — an `feTurbulence` noise tile in a data URI, `position:
+     fixed` (so it reads as the stock the app is printed on, not something that
+     scrolls) with `pointer-events: none` (so it never eats a click) at 0.22
+     multiply. No image file to load.
+  2. **Warmed the ground** `#faf8f4` → `#f4efe3`, a step toward the board's
+     sampled `#dad7c8` rather than the whole way — it still has to read as a
+     page you take TAB off.
+  3. **Function hues split by temperature** — secondary/borrowed/blues/tritone
+     all wore one coral, so every chord that reached outside the key looked the
+     same distance away. Now warm-near → cool-far.
+- **Warming the ground has knock-on effects; find them by grepping for
+  literals.** The fretboard's own tint `#f3eee4` became invisible against the
+  new `#f4efe3` (deepened to `#ebe3d1`), the segmented track needed the same,
+  and `--muted` slipped to 3.11:1 (darkened to `#7f7869`, now 3.82).
+- **Measure contrast, don't trust the eye.** The accent coral only reaches
+  2.8:1 on paper — fine as a big Play button, too weak for an 11px function
+  label. The shipped hues are deliberately deeper than the accent (3.79–6.36),
+  and were also checked for pairwise distance from EACH OTHER (min 52) so the
+  four kinds stay distinguishable, not just legible.
+- **A stray `*/` silently kills the declarations after it.** Vite 500'd, HMR
+  stopped applying, and the tokens quietly kept their old values while `--muted`
+  (declared above the break) updated — which is what exposed it. When half a
+  token change lands, suspect the comment syntax.

@@ -171,7 +171,7 @@
   align-items: center;
   gap: 2px;
   padding: 3px;
-  background: #ede8dd; /* recessed into the paper */
+  background: #e6ddc9; /* recessed into the paper */
   border-radius: 999px;
   width: fit-content; /* don't stretch to fill column layouts */
 }
@@ -588,11 +588,20 @@
   color: var(--muted);
   white-space: nowrap;
 }
-.tl-chord__fn--secondary,
-.tl-chord__fn--borrowed,
-.tl-chord__fn--tritone,
+/* Harmonic distance as TEMPERATURE (see the function hues in index.css):
+   warm nearby, cool far out. These used to share one accent, so every chord
+   that reached outside the key looked the same distance away. */
 .tl-chord__fn--blues {
-  color: var(--accent);
+  color: var(--fn-blues);
+}
+.tl-chord__fn--secondary {
+  color: var(--fn-secondary);
+}
+.tl-chord__fn--borrowed {
+  color: var(--fn-borrowed);
+}
+.tl-chord__fn--tritone {
+  color: var(--fn-tritone);
 }
 .tl-chord__fn--outside {
   color: var(--muted);
