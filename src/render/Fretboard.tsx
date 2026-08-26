@@ -28,6 +28,11 @@ const DOT_RADIUS = 15; // radius of a lit-up note marker
 const SINGLE_INLAYS = [3, 5, 7, 9, 15, 17, 19, 21];
 const DOUBLE_INLAYS = [12, 24];
 
+// Sixteen stamps. A note picks one from its position on the neck, so the same
+// fret always prints the same way (stable across re-renders) while the board as
+// a whole never repeats a mark twice in a row.
+const STAMP_SEEDS = [2, 7, 11, 13, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67];
+
 // The plain diatonic number (1–7) inside an interval label, so a dot can be
 // coloured by scale degree. Handles every shape the app produces: "1", "♭3",
 // "♯4" (scale degrees) and "P1", "M3", "m7" (chord intervals). Returns null for
@@ -113,6 +118,50 @@ export function Fretboard({
       role="img"
       aria-label={`${instrument.name} fretboard in ${tuning.name} tuning`}
     >
+      {/* THE INK STAMPS.
+          Every lit note is printed with one of these, so no two dots on the
+          neck are quite identical — the way a hand-stamped page never repeats
+          exactly. Each is a turbulence mask that eats a slightly different
+          bite out of the dot's edge; a different `seed` is a different stamp.
+          The mask goes to the EDGE only (a radial gradient keeps the middle
+          solid), so the note stays legible however ragged its rim gets.
+          Defined once here and referenced by every dot — the browser renders
+          the filter a handful of times, not once per note. */}
+      <defs>
+        {STAMP_SEEDS.map((seed, i) => (
+          <mask key={`stamp-${i}`} id={`stamp-${i}`} maskUnits="objectBoundingBox">
+            <filter id={`stamp-noise-${i}`}>
+              <feTurbulence
+                type="fractalNoise"
+                baseFrequency="0.14"
+                numOctaves={2}
+                seed={seed}
+              />
+              <feColorMatrix
+                type="matrix"
+                values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -9 6.2"
+              />
+            </filter>
+            {/* the ragged bite */}
+            <circle
+              cx={DOT_RADIUS}
+              cy={DOT_RADIUS}
+              r={DOT_RADIUS}
+              fill="#fff"
+              filter={`url(#stamp-noise-${i})`}
+            />
+            {/* ...held back from the centre, so the label always sits on ink */}
+            <circle cx={DOT_RADIUS} cy={DOT_RADIUS} r={DOT_RADIUS * 0.72} fill="#fff" />
+          </mask>
+        ))}
+        {/* The lighter core: ink pools at the rim of a stamp and thins in the
+            middle, so a soft radial lift reads as pressure rather than gloss. */}
+        <radialGradient id="stamp-core" cx="38%" cy="34%" r="72%">
+          <stop offset="0%" stopColor="#fff" stopOpacity="0.30" />
+          <stop offset="55%" stopColor="#fff" stopOpacity="0.06" />
+          <stop offset="100%" stopColor="#fff" stopOpacity="0" />
+        </radialGradient>
+      </defs>
       {/* Inlay position dots, drawn first so they sit behind everything. */}
       {[...SINGLE_INLAYS, ...DOUBLE_INLAYS]
         .filter((f) => f <= fretCount)
@@ -203,12 +252,16 @@ export function Fretboard({
           // size a little from note to note — keyed off the position so it's
           // stable between renders, not flickering.
           const deg = degreeOf(h.intervalName);
-          const aura = (h.position.fret + h.position.stringIndex) % 3;
+          // Which of the sixteen stamps this note prints with — keyed off the
+          // position so it's stable between renders, and offset by string so
+          // neighbours along a fret don't share a mark.
+          const stamp =
+            (h.position.fret * 3 + h.position.stringIndex * 7) % STAMP_SEEDS.length;
           const dotClass =
             'note-dot' +
             (deg ? ` note-dot--deg${deg}` : '') +
             (h.isRoot ? ' note-dot--root' : '') +
-            (dim ? ' note-dot--dim' : ` note-dot--aura${aura}`);
+            (dim ? ' note-dot--dim' : '');
           return (
             <g
               key={key}
@@ -226,7 +279,28 @@ export function Fretboard({
                   : undefined
               }
             >
-              <circle className={dotClass} cx={x} cy={y} r={DOT_RADIUS} />
+              {/* The stamp: the ink itself, masked ragged at the rim, with a
+                  soft core lift over it so it reads as pressed rather than
+                  filled. Both are translated into the mask's own box. */}
+              <g transform={`translate(${x - DOT_RADIUS} ${y - DOT_RADIUS})`}>
+                <circle
+                  className={dotClass}
+                  cx={DOT_RADIUS}
+                  cy={DOT_RADIUS}
+                  r={DOT_RADIUS}
+                  mask={dim ? undefined : `url(#stamp-${stamp})`}
+                />
+                {!dim && (
+                  <circle
+                    className="note-core"
+                    cx={DOT_RADIUS}
+                    cy={DOT_RADIUS}
+                    r={DOT_RADIUS}
+                    fill="url(#stamp-core)"
+                    mask={`url(#stamp-${stamp})`}
+                  />
+                )}
+              </g>
               <text
                 className={dim ? 'note-label note-label--dim' : 'note-label'}
                 x={x}

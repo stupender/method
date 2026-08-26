@@ -1381,3 +1381,25 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   home, which is exactly what the function engine computes.
 - The favicon is the ink blot — the same object the masthead draws, so the
   browser tab and the page carry one mark.
+
+## Session 18b — Stages 2–4: scope, controls, and the ink stamp
+
+- **Hide with a FLAG, not a comment.** Play, Ear Training and Patterns are
+  gated behind a `READY` map. Commented-out features rot — they stop being
+  compiled, type-checked or refactored with the rest. Flagged ones keep
+  building, and come back by flipping one boolean.
+- **ALL (-1) is "the whole key", degrees are slices of it.** In Scales it shows
+  the parent scale itself instead of a mode — the title reads "C Major", not
+  "C Ionian". In Harmony it forces the chord scale instead of one degree's
+  voicings.
+- **Two facts, one dot, no toggle.** The Labels row is gone: dots always print
+  NOTE NAMES and colour always carries the gravity, so you read both at once
+  instead of switching between them. That only works with a key, so the legend
+  under the title names the seven inks and the note each currently lands on.
+- **The ink stamp is a MASK, not a filter per dot.** Sixteen turbulence masks
+  are defined once in <defs> and referenced by every note, so the browser
+  rasterises a handful of textures rather than one per dot. Each note picks its
+  stamp from `fret * 3 + string * 7`, which is stable across renders (no
+  flicker) and never repeats along a row. The mask bites only the RIM — an
+  inner circle at 0.72r stays solid — so however ragged the edge gets, the
+  label still sits on ink. A soft radial core over the top reads as pressure.

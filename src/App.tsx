@@ -21,6 +21,7 @@ import { ChordExplorer } from './ui/ChordExplorer';
 import { ChordScaleLadder } from './ui/ChordScaleLadder';
 import { InversionLadder } from './ui/InversionLadder';
 import { ControlPanel, ControlRow } from './ui/ControlPanel';
+import { DegreeLegend } from './ui/DegreeLegend';
 import { PatternExplorer } from './ui/PatternExplorer';
 import { ScaleExplorer } from './ui/ScaleExplorer';
 import { Segmented } from './ui/Segmented';
@@ -34,6 +35,26 @@ const CHORD_LIST = Object.values(CHORDS);
 
 type Area = 'study' | 'song' | 'ear';
 type Mode = 'scale' | 'pattern' | 'chord' | 'harmony';
+
+// WHAT'S READY FOR THE LIVE SITE.
+// Play, Ear Training and Patterns all work, but aren't finished enough to put
+// in front of a student yet. They're hidden by a flag rather than commented
+// out, so the code keeps compiling and keeps being type-checked — commented-out
+// features rot, flagged ones don't. Flip one to true to bring it back.
+// "All" for the Gravity row — the whole key, not one degree of it.
+export const ALL_DEGREES = -1;
+
+const READY = {
+  play: false,
+  earTraining: false,
+  patterns: false,
+} as const;
+
+const AREAS: Area[] = [
+  'study',
+  ...(READY.play ? (['song'] as Area[]) : []),
+  ...(READY.earTraining ? (['ear'] as Area[]) : []),
+];
 
 // The label each top-level area shows in the nav.
 const AREA_LABELS: Record<Area, string> = {
@@ -289,7 +310,7 @@ function App() {
         </p>
         {/* Top-level areas: a higher separation than the modes within Study. */}
         <nav className="topnav" role="group" aria-label="Area">
-          {(['study', 'song', 'ear'] as Area[]).map((a) => (
+          {AREAS.map((a) => (
             <button
               key={a}
               className={area === a ? 'topnav-item topnav-item--on' : 'topnav-item'}
@@ -306,6 +327,7 @@ function App() {
       <div hidden={area !== 'study'}>
         <StudyArea onAddChord={addToSong} songLength={current.chords.length} />
       </div>
+      {READY.play && (
       <div hidden={area !== 'song'}>
         <SongBook
           songs={songs}
@@ -331,9 +353,12 @@ function App() {
           onRemove={removeCard}
         />
       </div>
-      <div hidden={area !== 'ear'}>
-        <EarTrainingView />
-      </div>
+      )}
+      {READY.earTraining && (
+        <div hidden={area !== 'ear'}>
+          <EarTrainingView />
+        </div>
+      )}
     </main>
   );
 }
@@ -402,11 +427,14 @@ function StudyArea({
   const [mode, setMode] = useState<Mode>('scale');
   const [rootIndex, setRootIndex] = useState(0); // the Key
   const [scaleId, setScaleId] = useState(SCALE_LIST[0].id); // the Scale type
-  const [degree, setDegree] = useState(0); // scale degree (Roman numeral), 0-based
-  // What the neck's dots say — a GLOBAL display setting, set once here so it
-  // persists across Scales/Harmony and every explore mode (it used to live in
-  // each view separately, and reset whenever you switched).
-  const [labelMode, setLabelMode] = useState<'note' | 'degree'>('degree');
+  // The scale degree the view is framed by, 0-based — or ALL (-1), meaning the
+  // whole key rather than one slice of it: in Scales that's the parent scale
+  // itself instead of a mode, and in Harmony the chord scale instead of one
+  // degree's voicings.
+  const [degree, setDegree] = useState(ALL_DEGREES);
+  // The dots always print NOTE NAMES now. The degree is carried by colour (see
+  // --deg-1..7 and the legend under the neck), so the two facts arrive at once
+  // and there's no toggle to lose track of.
   // The fret of the last note clicked on the neck, so the re-rooted mode can land
   // in that position. `seq` bumps each click so re-clicking the same fret re-pins.
   const [focus, setFocus] = useState<{ fret: number; seq: number } | null>(null);
@@ -424,7 +452,7 @@ function StudyArea({
   // ABOVE Scales/Harmony and PERSIST across them: in Scales a degree picks the
   // mode built on it; in Harmony it picks that degree's chord.
   const romanLabels = diatonicChords(root, scale, false).map((c) => c.roman);
-  const deg = Math.min(degree, romanLabels.length - 1);
+  const deg = degree === ALL_DEGREES ? ALL_DEGREES : Math.min(degree, romanLabels.length - 1);
 
   return (
     <>
@@ -460,7 +488,10 @@ function StudyArea({
           <Segmented
             fill
             ariaLabel="Gravity"
-            options={romanLabels.map((roman, i) => ({ value: i, label: roman }))}
+            options={[
+              { value: ALL_DEGREES, label: 'All' },
+              ...romanLabels.map((roman, i) => ({ value: i, label: roman })),
+            ]}
             value={deg}
             onChange={setDegree}
           />
@@ -471,23 +502,11 @@ function StudyArea({
             ariaLabel="Mode"
             options={[
               { value: 'scale' as Mode, label: 'Scales' },
-              { value: 'pattern' as Mode, label: 'Patterns' },
+              ...(READY.patterns ? [{ value: 'pattern' as Mode, label: 'Patterns' }] : []),
               { value: 'harmony' as Mode, label: 'Harmony' },
             ]}
             value={mode}
             onChange={setMode}
-          />
-        </ControlRow>
-        <ControlRow label="Labels">
-          <Segmented
-            fill
-            ariaLabel="Labels"
-            options={[
-              { value: 'degree' as const, label: 'Degrees' },
-              { value: 'note' as const, label: 'Notes' },
-            ]}
-            value={labelMode}
-            onChange={setLabelMode}
           />
         </ControlRow>
       </ControlPanel>
@@ -499,11 +518,10 @@ function StudyArea({
           degree={deg}
           focus={focus}
           onPickNote={pickNote}
-          labelMode={labelMode}
         />
       )}
-      {mode === 'pattern' && (
-        <PatternView root={root} scale={scale} degree={deg} labelMode={labelMode} />
+      {READY.patterns && mode === 'pattern' && (
+        <PatternView root={root} scale={scale} degree={deg} />
       )}
       {mode === 'chord' && <ChordView root={root} />}
       {mode === 'harmony' && (
@@ -513,7 +531,6 @@ function StudyArea({
           degree={deg}
           onAddChord={onAddChord}
           songLength={songLength}
-          labelMode={labelMode}
         />
       )}
     </>
@@ -529,16 +546,18 @@ function ScaleView({
   degree,
   focus,
   onPickNote,
-  labelMode,
 }: {
   root: Note;
   scale: ScaleDefinition;
   degree: number;
   focus: { fret: number; seq: number } | null;
   onPickNote: (degree: number, fret: number) => void;
-  labelMode: 'note' | 'degree';
 }) {
-  const { modeRoot, modeScale } = modeAt(root, scale, degree);
+  // ALL means the key itself — the parent scale, not one of its modes.
+  const isAll = degree === ALL_DEGREES;
+  const { modeRoot, modeScale } = isAll
+    ? { modeRoot: root, modeScale: scale }
+    : modeAt(root, scale, degree);
   const tones = realizeScale(modeRoot, modeScale);
 
   // Click a note on the neck -> make it the new tonic. Map the note's pitch class
@@ -562,12 +581,14 @@ function ScaleView({
         </span>
       </p>
 
+      <DegreeLegend root={modeRoot} scale={modeScale} />
+
       <ScaleExplorer
         root={modeRoot}
         scale={modeScale}
         onPickRoot={pickRoot}
         focus={focus ?? undefined}
-        labelMode={labelMode}
+        labelMode="note"
       />
 
       <footer className="footnote">
@@ -585,14 +606,15 @@ function PatternView({
   root,
   scale,
   degree,
-  labelMode,
 }: {
   root: Note;
   scale: ScaleDefinition;
   degree: number;
-  labelMode: 'note' | 'degree';
 }) {
-  const { modeRoot, modeScale } = modeAt(root, scale, degree);
+  const { modeRoot, modeScale } =
+    degree === ALL_DEGREES
+      ? { modeRoot: root, modeScale: scale }
+      : modeAt(root, scale, degree);
   const tones = realizeScale(modeRoot, modeScale);
 
   return (
@@ -606,7 +628,7 @@ function PatternView({
         </span>
       </p>
 
-      <PatternExplorer root={modeRoot} scale={modeScale} labelMode={labelMode} />
+      <PatternExplorer root={modeRoot} scale={modeScale} labelMode="note" />
     </>
   );
 }
@@ -656,14 +678,12 @@ function HarmonyView({
   degree,
   onAddChord,
   songLength,
-  labelMode,
 }: {
   root: Note;
   scale: ScaleDefinition;
   degree: number;
   onAddChord: (rootIndex: number, chordId: string) => void;
   songLength: number;
-  labelMode: 'note' | 'degree';
 }) {
   const [seventh, setSeventh] = useState(false);
   // Three ways to explore the harmony: ONE chord in every voicing; the whole CHORD
@@ -674,7 +694,12 @@ function HarmonyView({
   // The diatonic chords of this key + scale — derived, not stored. Switching the
   // global scale type (major, harmonic minor, ...) changes the whole harmony set.
   const chords = diatonicChords(root, scale, seventh);
-  const selected = chords[degree] ?? chords[0];
+  // ALL frames the whole key, so it shows the CHORD SCALE (every diatonic
+  // chord) rather than one degree's voicings; a specific degree keeps whatever
+  // way of exploring you last chose.
+  const isAll = degree === ALL_DEGREES;
+  const shownExplore = isAll ? 'scale' : explore;
+  const selected = chords[isAll ? 0 : degree] ?? chords[0];
 
   // To add this chord to the Play song we need its root as an index into the
   // shared root list (Play stores roots that way). Match by pitch class, so the
@@ -689,18 +714,18 @@ function HarmonyView({
   return (
     <>
       <p className="tagline">
-        {explore === 'chord' && (
+        {shownExplore === 'chord' && (
           <>
             Key of {noteName(root)} {scale.name} — {selected.roman}: {selected.name}
           </>
         )}
-        {explore === 'scale' && (
+        {shownExplore === 'scale' && (
           <>
             Chord scale of {noteName(root)} {scale.name} — every chord in the key, in
             one voicing
           </>
         )}
-        {explore === 'inversions' && (
+        {shownExplore === 'inversions' && (
           <>
             {selected.name} — every inversion up the neck ({selected.roman} of{' '}
             {noteName(root)} {scale.name})
@@ -736,7 +761,7 @@ function HarmonyView({
         </div>
 
         {/* Send the selected chord over to the Play song (chord mode only). */}
-        {explore === 'chord' && (
+        {shownExplore === 'chord' && (
           <div className="controls-row">
             <button className="chart-add" onClick={addThisChord}>
               + Add {noteName(selected.chordRoot)}
@@ -749,20 +774,20 @@ function HarmonyView({
         )}
       </div>
 
-      {explore === 'chord' && (
+      {shownExplore === 'chord' && (
         <>
           {/* The chosen diatonic chord, explored with the shared voicing UI. */}
-          <ChordExplorer root={selected.chordRoot} chord={selected.chord} labelMode={labelMode} />
+          <ChordExplorer root={selected.chordRoot} chord={selected.chord} labelMode="note" />
           <footer className="footnote">
             Each chord's quality comes from where it's built in the key.
           </footer>
         </>
       )}
-      {explore === 'scale' && (
-        <ChordScaleLadder root={root} scale={scale} seventh={seventh} labelMode={labelMode} />
+      {shownExplore === 'scale' && (
+        <ChordScaleLadder root={root} scale={scale} seventh={seventh} labelMode="note" />
       )}
-      {explore === 'inversions' && (
-        <InversionLadder root={selected.chordRoot} chord={selected.chord} labelMode={labelMode} />
+      {shownExplore === 'inversions' && (
+        <InversionLadder root={selected.chordRoot} chord={selected.chord} labelMode="note" />
       )}
     </>
   );
