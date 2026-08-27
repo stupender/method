@@ -899,8 +899,19 @@
 .voicing-set .tab-card {
   padding: 0 8px 6px;
 }
+/* The chord's two names sit OVER ITS TAB NUMBERS, not over the card. The
+   staff below starts 48px in — the TabView's own 16px padding, plus the 22px
+   open-string column and the 10px gap after it — so the heading is indented to
+   meet it. Left at the card's edge it floated above the string letters instead,
+   pointing at nothing.
+
+   BASELINE, not centre: the chord name is sans and the Roman numeral is serif
+   at a different size, and centring two different faces leaves them visibly
+   uneven. Sitting them on a shared baseline is what makes them look level. */
 .voicing-set .tab-row-head {
-  padding: 6px 0 2px;
+  align-items: baseline;
+  gap: 7px;
+  padding: 6px 0 2px 48px;
 }
 
 /* A wrapping row of TAB diagrams — one per playable shape, low -> high. */
