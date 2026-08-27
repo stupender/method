@@ -14,6 +14,14 @@
 import type { ChordDefinition } from '../theory/types';
 import { P1, m3, M3, d5, P5, A5, d7, m7, M7 } from './intervals';
 
+// SYMBOLS ARE TYPESET, not typed. A diminished chord is B° and not "Bdim";
+// half-diminished is ø7; augmented is +; and the sharp in maj7♯5 is a ♯ rather
+// than a hash. These are the same signs the Roman numerals already used, and
+// having the chord name spell it one way while the analysis beneath it spelled
+// it another made them look like two different facts. The full English name
+// lives on `name` ("Diminished Triad") and is what the fretboard's heading
+// prints; the symbol is the shorthand for a label on a card.
+
 // --- Triads ---------------------------------------------------------------
 export const MAJOR_TRIAD: ChordDefinition = {
   id: 'major-triad',
@@ -35,7 +43,7 @@ export const DIMINISHED_TRIAD: ChordDefinition = {
   id: 'diminished-triad',
   name: 'Diminished Triad',
   kind: 'chord',
-  symbol: 'dim',         // e.g. "Bdim"
+  symbol: '°',           // e.g. "B°" — the same sign the Roman numeral uses
   intervals: [P1, m3, d5],
 };
 
@@ -43,7 +51,7 @@ export const AUGMENTED_TRIAD: ChordDefinition = {
   id: 'augmented-triad',
   name: 'Augmented Triad',
   kind: 'chord',
-  symbol: 'aug',         // e.g. "Eaug" (the III+ of harmonic/melodic minor)
+  symbol: '+',           // e.g. "E+" (the III+ of harmonic/melodic minor)
   intervals: [P1, M3, A5],
 };
 
@@ -76,7 +84,7 @@ export const HALF_DIMINISHED: ChordDefinition = {
   id: 'half-diminished',
   name: 'Half-Diminished (m7♭5)',
   kind: 'chord',
-  symbol: 'm7b5',        // e.g. "Bm7b5"
+  symbol: 'ø7',          // e.g. "Bø7" — half-diminished, as the numeral has it
   intervals: [P1, m3, d5, m7],
 };
 
@@ -92,7 +100,7 @@ export const DIMINISHED_SEVENTH: ChordDefinition = {
   id: 'diminished-seventh',
   name: 'Diminished Seventh',
   kind: 'chord',
-  symbol: 'dim7',        // e.g. "Bdim7" — the vii°7 of harmonic minor/major
+  symbol: '°7',          // e.g. "B°7" — the vii°7 of harmonic minor/major
   intervals: [P1, m3, d5, d7],
 };
 
@@ -100,7 +108,7 @@ export const AUGMENTED_MAJOR_SEVENTH: ChordDefinition = {
   id: 'augmented-major-seventh',
   name: 'Augmented-Major Seventh',
   kind: 'chord',
-  symbol: 'maj7#5',      // e.g. "Ebmaj7#5" — the III of melodic minor
+  symbol: 'maj7♯5',      // e.g. "E♭maj7♯5" — the III of melodic minor
   intervals: [P1, M3, A5, M7],
 };
 

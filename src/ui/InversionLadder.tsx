@@ -232,12 +232,22 @@ export function InversionLadder({
         <>
           <div className="workbench">
             <NeckPanel
-              name={`${noteName(root)}${chord.symbol}`}
+              /* The FULL name here — "D Diminished Triad", not "D°". This is
+                 the one place on the page with room to say what a thing is,
+                 and the abbreviations elsewhere are labels on cards. */
+              name={`${noteName(root)} ${chord.name}`}
               legend={<DegreeLegend root={gravity.root} scale={gravity.scale} />}
+              /* What's lit RIGHT NOW: the one voicing if you've picked one,
+                 otherwise the set you've scrolled to. It follows the selection
+                 rather than always naming the block, because when a single
+                 chord is showing, "E D G strings" describes the block it came
+                 from and not the thing on the neck. */
               aside={
-                focusedSet !== null && groups[focusedSet]
-                  ? `${groupLabel(groups[focusedSet])} strings`
-                  : undefined
+                pinned !== null && flat[pinned]
+                  ? `${voicingName(chord, structure, flat[pinned].inv)} · ${stringNames(flat[pinned].shape)}`
+                  : focusedSet !== null && groups[focusedSet]
+                    ? `${groupLabel(groups[focusedSet])} strings`
+                    : undefined
               }
             >
             <Fretboard

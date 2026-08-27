@@ -661,7 +661,29 @@ function Module({
                 aria-label="Add a second panel beside this one"
                 title="Add a second panel"
               >
-                ⧉
+                {/* Two overlapping circles — the app's own mark, cut down to
+                    two. Overlapping SQUARES is the operating system's word for
+                    "duplicate a window"; circles that meet is this app's word
+                    for two things sharing something, which is exactly what two
+                    panels side by side are for. */}
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle
+                    cx="9"
+                    cy="12"
+                    r="5.6"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  />
+                  <circle
+                    cx="15"
+                    cy="12"
+                    r="5.6"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  />
+                </svg>
               </button>
             )}
             {onClose && (

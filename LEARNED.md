@@ -1778,3 +1778,16 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   neck. It walks up from a card to its own `.module` now — which also meant the
   module needed to be a real element rather than a fragment, so there was
   something to walk up to.
+
+- **Beams have to exist before the notes are drawn.** `Beam.generateBeams` is
+  what tells a note it belongs to a beam; a note that doesn't know draws its own
+  flag. Generating beams AFTER `voice.draw` gave a scale run thirty-five flags
+  with seventeen beams laid over them, and the flags pointed whichever way an
+  unbeamed stem would go — which is exactly the "mixed up" look. Also: the
+  default grouping is twos, which for a run draws a row of dashes. Fours is how
+  a scale is written and counted.
+
+- **The same careless prune bit twice.** Deleting CSS by scanning from a
+  comment to the next one took `.page--wide` with it, and the whole app had
+  been rendering at 760px instead of 1040 — every "this feels cramped" since
+  then was that. It ate `.sitebar__mark` the first time. Delete rules by name.

@@ -46,7 +46,7 @@ import {
   Voice,
 } from 'vexflow';
 import type { PlacedNote } from '../theory/types';
-import { Beam } from 'vexflow';
+import { Beam, Fraction } from 'vexflow';
 import './System.css';
 
 const STAFF_TOP = 0;
@@ -200,6 +200,21 @@ export function System({
     stave.setNoteStartX(startX);
     tab.setNoteStartX(startX);
 
+    // BEAMS BEFORE DRAWING. Generating them afterwards leaves every note
+    // already drawn with its own flag, so a beamed run came out with beams AND
+    // thirty-five flags on top of them, and the flags — which point whichever
+    // way an unbeamed note's stem goes — disagreed with the beams above them.
+    // `generateBeams` tells each note it belongs to a beam, and a note that
+    // knows that draws no flag and takes its stem direction from the group.
+    // Beamed in FOURS. Left to itself VexFlow groups eighths in twos, which
+    // for a scale run draws thirty-five notes joined in pairs — a row of
+    // dashes rather than a line of music. Fours is how a scale exercise is
+    // written and how it's counted.
+    const beams =
+      moments.length > 1
+        ? Beam.generateBeams(staveNotes, { groups: [new Fraction(4, 8)] })
+        : [];
+
     new Formatter()
       .joinVoices([voice])
       .joinVoices([tabVoice])
@@ -207,11 +222,7 @@ export function System({
 
     voice.draw(ctx, stave);
     tabVoice.draw(ctx, tab);
-
-    // Beams, but only for a run — a single chord has nothing to beam.
-    if (moments.length > 1) {
-      Beam.generateBeams(staveNotes).forEach((b) => b.setContext(ctx).draw());
-    }
+    beams.forEach((b) => b.setContext(ctx).draw());
 
     // LET IT SCALE. VexFlow sizes the SVG in fixed pixels, which means four
     // seventh-chord systems can't share a row that would hold them at 90% —

@@ -19,6 +19,14 @@
    masthead it replaced (56px moon, 44px title, a lede) cost about a third of a
    phone screen every time you opened a tool whose whole point is the neck.
    ========================================================================== */
+/* Wider once the fretboard is on screen — a neck is a wide thing and the
+   default measure is set for reading. This rule went missing at some point
+   (deleted by a careless prune) and the whole app quietly rendered at 760px,
+   which is why the systems and the chord grid had been feeling cramped. */
+.page--wide {
+  max-width: 1040px;
+}
+
 /* FLOATING, so the app's name and the light switch are still there at the
    bottom of a long page. It paints its own background because the page scrolls
    underneath it. (The colour key used to live here too; it's on the neck now,
@@ -966,7 +974,11 @@
      stops working the moment one of them wraps to a line of its own. The
      systems scale down to whatever column they get (see ChordSystem.css), so
      the floor here is about legibility rather than about fitting. */
-  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+  /* auto-FIT, not auto-fill: with the page at its proper width there's room
+     for six columns, and four inversions sitting in the left two-thirds with
+     empty tracks beside them looks like a mistake. auto-fit collapses the
+     empty tracks so the four share the row. */
+  grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
   margin-top: 0;
   gap: 10px;
 }
@@ -1887,4 +1899,9 @@
 .panel__act:hover {
   color: var(--ink);
   border-color: var(--line);
+}
+.panel__act svg {
+  width: 15px;
+  height: 15px;
+  display: block;
 }

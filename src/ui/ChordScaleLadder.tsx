@@ -223,10 +223,14 @@ export function ChordScaleLadder({
             <NeckPanel
               name={`${noteName(root)} ${scale.name}`}
               legend={<DegreeLegend root={root} scale={scale} />}
+              /* The chord you've picked, spelled out in full, or the set
+                 you've scrolled to. */
               aside={
-                focusedSet !== null && groups[focusedSet]
-                  ? `${setLabel(groups[focusedSet].key)} strings`
-                  : undefined
+                pinned !== null && flat[pinned]
+                  ? `${noteName(flat[pinned].degree.chordRoot)} ${flat[pinned].degree.chord.name} · ${flat[pinned].degree.roman}`
+                  : focusedSet !== null && groups[focusedSet]
+                    ? `${setLabel(groups[focusedSet].key)} strings`
+                    : undefined
               }
             >
             <Fretboard
