@@ -908,6 +908,27 @@
    BASELINE, not centre: the chord name is sans and the Roman numeral is serif
    at a different size, and centring two different faces leaves them visibly
    uneven. Sitting them on a shared baseline is what makes them look level. */
+/* A card's selected mark: the lamp, in front of the chord's name. Reserved
+   space whether it's lit or not, so picking a chord doesn't nudge the row. */
+.tab-row-mark {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background: transparent;
+  align-self: center;
+}
+.voicing-set .tab-card--on .tab-row-mark {
+  background: var(--tick-fill);
+  border-color: var(--tick-ring);
+  box-shadow: var(--tick-glow);
+}
+/* ...and the margin bar goes, for the cards that sit several to a line. */
+.voicing-set .tab-card--on {
+  box-shadow: none;
+}
+
 .voicing-set .tab-row-head {
   align-items: baseline;
   gap: 7px;

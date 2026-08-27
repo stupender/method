@@ -1652,3 +1652,11 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   palette darkened the orange and nobody re-checked: 3.83 dark against 3.89
   light is a coin flip, which is exactly why it read badly whichever way you
   called it. A palette change is a contrast change.
+
+- **A margin mark only works one-per-line.** The selected bar in the left
+  margin reads correctly for scale positions, which stack full width. In the
+  chord grid, where cards sit several to a line, the bar lands in the gutter
+  BETWEEN two cards and touches the one before the one it means. Marks that
+  live outside a thing need the thing to own its whole line; otherwise put the
+  mark inside it. The chord cards use the lamp in front of the name, with its
+  space reserved whether lit or not so selecting doesn't nudge the row.

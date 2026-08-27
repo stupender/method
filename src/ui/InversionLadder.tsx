@@ -252,6 +252,13 @@ export function InversionLadder({
                       onClick={() => selectRow(r.index)}
                     >
                       <div className="tab-row-head">
+                        {/* The selected mark is a lit dot in front of the
+                            name, the same lamp the controls use. A bar in the
+                            left margin was the old mark, and it works for rows
+                            stacked one per line — but in a grid the bar lands
+                            in the gutter BETWEEN two cards, touching the one
+                            before the one it means. */}
+                        <span className="tab-row-mark" aria-hidden="true" />
                         {SHOW_PLAY_BUTTONS && (
                           <button
                             className="tab-play"
