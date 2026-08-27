@@ -21,7 +21,10 @@ const STRING_SPACING = 40; // vertical gap between strings
 const PAD_LEFT = 56; // room for open-string note labels left of the nut
 const PAD_RIGHT = 28;
 const PAD_TOP = 30;
-const PAD_BOTTOM = 34; // room for fret numbers under the neck
+// Room for fret numbers under the neck. Generous on purpose: the numbers were
+// tucked up close under the bottom string, so they read as part of the dots
+// rather than as a ruler beneath them.
+const PAD_BOTTOM = 46;
 const DOT_RADIUS = 15; // radius of a lit-up note marker
 
 // Frets that get position-marker inlays (the dots fretboards have for the eye).
@@ -243,7 +246,7 @@ export function Fretboard({
             key={`num-${fret}`}
             className="fret-number"
             x={fretX(fret)}
-            y={height - 10}
+            y={height - 12}
             textAnchor="middle"
           >
             {fret}

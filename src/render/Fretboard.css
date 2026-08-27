@@ -42,10 +42,17 @@
   font-weight: 600;
   text-anchor: middle;
 }
+/* The ruler under the neck. Bigger and a little letterspaced: these are read
+   at a glance from a few feet away while someone else is holding the guitar,
+   and at 12px tucked under the strings they were neither. Tabular figures so
+   10, 11, 12 line up as a scale rather than drifting. */
 .fretboard .fret-number {
   fill: var(--muted);
   font-family: var(--sans);
-  font-size: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
 }
 
 /* A lit-up note. */
@@ -88,7 +95,7 @@
    ink letting a little of the neck through. Keep it slight: at 30 units across
    a dot has no room for texture, only for a change in density. */
 .fretboard .notes-layer {
-  opacity: 0.95;
+  opacity: 0.98;
 }
 
 /* NO GLOW, in either world. The dots are printed stamps on a surface, not

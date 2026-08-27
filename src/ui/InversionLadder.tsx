@@ -23,14 +23,16 @@
 // ============================================================================
 
 import { useEffect, useRef, useState } from 'react';
-import type { Note, ChordDefinition, PlacedNote } from '../theory/types';
+import type {
+  Note,
+  ChordDefinition,
+  PlacedNote,
+  VoicingStructure,
+} from '../theory/types';
 import { GUITAR } from '../data/instruments';
 import { GUITAR_STANDARD } from '../data/tunings';
-import { STRUCTURES } from '../data/voicings';
 import {
   placeVoicingAll,
-  structuresForChord,
-  structureName,
   inversionCount,
   voicingName,
 } from '../theory/chord';
@@ -40,7 +42,6 @@ import { Fretboard } from '../render/Fretboard';
 import { NeckPanel } from './NeckPanel';
 import { useScrollFocus } from './useScrollFocus';
 import { TabView } from '../render/TabView';
-import { Segmented } from './Segmented';
 import { useStepper } from './ShapeStepper';
 
 const stringSetKey = (shape: PlacedNote[]) =>
@@ -54,17 +55,16 @@ const STEP_MS = 620;
 export function InversionLadder({
   root,
   chord,
+  structure,
   labelMode = 'degree',
 }: {
   root: Note;
   chord: ChordDefinition;
+  // From the CONTROLS panel — see the note in ChordScaleLadder.
+  structure: VoicingStructure;
   // What the dots say — a global display setting, owned by the view above.
   labelMode?: 'note' | 'degree';
 }) {
-  // null means "whatever suits this chord" — see defaultStructureId below. Held
-  // as null rather than a concrete id so switching triads <-> sevenths re-picks
-  // instead of stranding you on a voicing that barely fits.
-  const [structureId, setStructureId] = useState<string | null>(null);
   // The selected row, as an index into the flat list of every row on the page.
   // No hover state: a row stays selected until you pick another, so the neck
   // never shifts under you while you're reading it.
@@ -74,15 +74,6 @@ export function InversionLadder({
   const timers = useRef<number[]>([]);
 
   const voiceCount = inversionCount(chord);
-  const structures = structuresForChord(chord, STRUCTURES);
-  // TRIADS want Close: all four string sets hold all three inversions, so you
-  // get the complete 4 x 3 grid. SEVENTHS can't do that closed — a close-voiced
-  // 7th only fits on the A D G B strings, which is precisely why guitarists
-  // play them as DROP 2. Drop 2 gives the full 3 x 4: E A D G, A D G B,
-  // D G B E, every inversion on each.
-  const defaultStructureId = voiceCount === 4 ? 'drop2' : 'close';
-  const structure =
-    structures.find((s) => s.id === (structureId ?? defaultStructureId)) ?? structures[0];
 
   // Every inversion's placements, then every string set any of them lands on.
   // We deliberately DON'T hide the sets that can't hold all of them: a set that
@@ -186,19 +177,11 @@ export function InversionLadder({
 
   return (
     <>
-      <div className="view-controls" ref={viewRef}>
-        <div className="controls-row">
-          <Segmented
-            ariaLabel="Structure"
-            options={structures.map((s) => ({
-              value: s.id,
-              label: structureName(s, voiceCount),
-            }))}
-            value={structure.id}
-            onChange={setStructureId}
-          />
-        </div>
-      </div>
+      {/* No controls of its own: Type and Voicing live in the CONTROLS panel.
+          (There's no Inversion control here on purpose — this page already
+          shows every inversion, so there'd be nothing to choose.) The div
+          stays because the ← → keys are bound to it. */}
+      <div className="view-controls" ref={viewRef} />
 
       {groups.length === 0 ? (
         <p className="control-hint control-hint--warn">

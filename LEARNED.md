@@ -1555,3 +1555,16 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **`overflow: hidden` kills `position: sticky`.** The workbench wants clipped
   corners and holds a floating neck; you cannot have both from the same
   element. Children square off their own corners instead.
+
+- **One measure, one place.** Harmony's Type / Voicing / Inversion used to live
+  inside the ladders under their own headings, so the page had two things that
+  looked like controls: the CONTROLS panel, and then more controls further
+  down. They're rows at the end of the panel now, shown only in Harmony, and
+  both ladders read the same values so neither can drift from the other.
+  INVERSION is the one that comes and goes: with GRAVITY on a single degree the
+  page already lays out every inversion, so there's nothing left to choose.
+
+- **Order cells the way a musician looks for them.** The inversion cells are
+  ordered by the note in the BASS — root, 3rd, 5th, 7th. Ordering by inversion
+  NUMBER is identical for close voicings, where the two agree, but a drop 2
+  lists them 5th, 7th, root, 3rd, which reads like a bug.

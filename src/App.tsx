@@ -9,13 +9,26 @@
 // ============================================================================
 
 import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
-import type { Note, ScaleDefinition, PlacedNote } from './theory/types';
+import type {
+  Note,
+  ScaleDefinition,
+  PlacedNote,
+  VoicingStructure,
+} from './theory/types';
 import { SCALES } from './data/scales';
 import { CHORDS } from './data/chords';
 import { ROOT_CHOICES } from './data/roots';
 import { realizeScale } from './theory/scale';
 import { modeAt } from './theory/mode';
 import { diatonicChords } from './theory/harmony';
+import {
+  structuresForChord,
+  structureName,
+  inversionCount,
+  voicingName,
+  bassDegree,
+} from './theory/chord';
+import { STRUCTURES } from './data/voicings';
 import { noteName, pitchClassOf } from './theory/notes';
 import { ChordExplorer } from './ui/ChordExplorer';
 import { ChordScaleLadder } from './ui/ChordScaleLadder';
@@ -521,6 +534,48 @@ function StudyArea({
   // ABOVE Scales/Harmony and PERSIST across them: in Scales a degree picks the
   // mode built on it; in Harmony it picks that degree's chord.
   const romanLabels = diatonicChords(root, scale, false).map((c) => c.roman);
+
+  // HARMONY'S OWN THREE CHOICES. They used to live inside the ladders, under
+  // their own headings, which meant the page had two places that looked like
+  // controls: the CONTROLS panel, and then some more controls further down. One
+  // measure, one place. They're lifted here so both ladders read the same
+  // values and neither can drift from the other.
+  const [seventh, setSeventh] = useState(false);
+  // null = "whatever suits this chord type" (see harmonyStructure below), held
+  // as null rather than an id so switching Triads <-> Sevenths re-picks instead
+  // of stranding you on a voicing that barely fits.
+  const [structureId, setStructureId] = useState<string | null>(null);
+  const [inversionIndex, setInversionIndex] = useState(0);
+
+
+  // The voicings available for the chord type in play. All seven diatonic
+  // chords share a voice count, so the tonic's chord answers for all of them.
+  const harmonySample = diatonicChords(root, scale, seventh)[0].chord;
+  const harmonyVoices = inversionCount(harmonySample);
+  const harmonyStructures = structuresForChord(harmonySample, STRUCTURES);
+  // Triads want Close (all four string sets hold all three inversions);
+  // sevenths want DROP 2, because a close-voiced seventh only fits on A D G B.
+  const harmonyStructure =
+    harmonyStructures.find(
+      (s) => s.id === (structureId ?? (harmonyVoices === 4 ? 'drop2' : 'close')),
+    ) ?? harmonyStructures[0];
+  const harmonyInversion = Math.min(inversionIndex, harmonyVoices - 1);
+  // The inversion cells, ordered by the note in the BASS — root, 3rd, 5th, 7th.
+  // Ordering them by inversion NUMBER instead is fine for close voicings, where
+  // the two agree, but a drop 2 lists them as 5th, 7th, root, 3rd, which reads
+  // like a bug. Same cells either way; this is just the order a musician
+  // expects to find them in.
+  const harmonyInversions = harmonySample.intervals
+    .map((iv) => {
+      const degree = String(iv.diatonicSteps + 1);
+      const inv = Array.from({ length: harmonyVoices }, (_, i) => i).find(
+        (i) => bassDegree(harmonySample, harmonyStructure, i) === degree,
+      );
+      return inv === undefined
+        ? null
+        : { value: inv, label: voicingName(harmonySample, harmonyStructure, inv) };
+    })
+    .filter((o): o is { value: number; label: string } => o != null);
   const deg = degree === ALL_DEGREES ? ALL_DEGREES : Math.min(degree, romanLabels.length - 1);
 
   // Where gravity is held, for the colour key in the bar's drawer.
@@ -668,6 +723,53 @@ function StudyArea({
             />
           )}
         </ControlRow>
+        {/* HARMONY'S THREE, at the end of the panel: what the chords are, how
+            they're voiced, and which note is in the bass. They only appear in
+            Harmony, because that's the only place they mean anything.
+
+            INVERSION is the exception to "always show every control": in the
+            chord scale it picks one voicing for all seven chords, but with
+            GRAVITY on a single degree the page already lays out EVERY
+            inversion of that chord, so there'd be nothing left to choose. */}
+        {studyMode === 'fretboard' && mode === 'harmony' && (
+          <>
+            <ControlRow label="Type">
+              <Segmented
+                fill
+                ariaLabel="Chord type"
+                options={[
+                  { value: 'triads', label: 'Triads' },
+                  { value: 'sevenths', label: 'Sevenths' },
+                ]}
+                value={seventh ? 'sevenths' : 'triads'}
+                onChange={(v) => setSeventh(v === 'sevenths')}
+              />
+            </ControlRow>
+            <ControlRow label="Voicing">
+              <Segmented
+                fill
+                ariaLabel="Voicing"
+                options={harmonyStructures.map((s) => ({
+                  value: s.id,
+                  label: structureName(s, harmonyVoices),
+                }))}
+                value={harmonyStructure.id}
+                onChange={setStructureId}
+              />
+            </ControlRow>
+            {deg === ALL_DEGREES && (
+              <ControlRow label="Inversion">
+                <Segmented
+                  fill
+                  ariaLabel="Inversion"
+                  options={harmonyInversions}
+                  value={harmonyInversion}
+                  onChange={setInversionIndex}
+                />
+              </ControlRow>
+            )}
+          </>
+        )}
       </ControlPanel>
 
       {studyMode === 'ear' && (
@@ -700,6 +802,9 @@ function StudyArea({
           root={root}
           scale={scale}
           degree={deg}
+          seventh={seventh}
+          structure={harmonyStructure}
+          inversion={harmonyInversion}
           onAddChord={onAddChord}
           songLength={songLength}
         />
@@ -846,16 +951,21 @@ function HarmonyView({
   root,
   scale,
   degree,
+  seventh,
+  structure,
+  inversion,
   onAddChord,
   songLength,
 }: {
   root: Note;
   scale: ScaleDefinition;
   degree: number;
+  seventh: boolean;
+  structure: VoicingStructure;
+  inversion: number;
   onAddChord: (rootIndex: number, chordId: string) => void;
   songLength: number;
 }) {
-  const [seventh, setSeventh] = useState(false);
   // The diatonic chords of this key + scale — derived, not stored. Switching the
   // global scale type (major, harmonic minor, ...) changes the whole harmony set.
   const chords = diatonicChords(root, scale, seventh);
@@ -895,19 +1005,8 @@ function HarmonyView({
       </p>
 
       <div className="view-controls">
-        <div className="controls-row">
-          {/* Triads vs seventh chords (the degree is chosen by the shared selector
-              above). */}
-          <Segmented
-            ariaLabel="Chord size"
-            options={[
-              { value: 'triads', label: 'Triads' },
-              { value: 'sevenths', label: 'Sevenths' },
-            ]}
-            value={seventh ? 'sevenths' : 'triads'}
-            onChange={(v) => setSeventh(v === 'sevenths')}
-          />
-        </div>
+        {/* Type / Voicing / Inversion all live in the CONTROLS panel now — one
+            measure, one place, and both ladders read the same values. */}
 
         {/* Send the selected chord over to the Play song. Only when a single
             degree is in play — "All" isn't one chord to add. */}
@@ -925,9 +1024,21 @@ function HarmonyView({
       </div>
 
       {isAll ? (
-        <ChordScaleLadder root={root} scale={scale} seventh={seventh} labelMode="note" />
+        <ChordScaleLadder
+          root={root}
+          scale={scale}
+          seventh={seventh}
+          structure={structure}
+          inversion={inversion}
+          labelMode="note"
+        />
       ) : (
-        <InversionLadder root={selected.chordRoot} chord={selected.chord} labelMode="note" />
+        <InversionLadder
+          root={selected.chordRoot}
+          chord={selected.chord}
+          structure={structure}
+          labelMode="note"
+        />
       )}
     </>
   );

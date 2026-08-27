@@ -20,18 +20,18 @@
 // ============================================================================
 
 import { useEffect, useRef, useState } from 'react';
-import type { Note, ScaleDefinition, PlacedNote } from '../theory/types';
+import type {
+  Note,
+  ScaleDefinition,
+  PlacedNote,
+  VoicingStructure,
+} from '../theory/types';
 import { GUITAR } from '../data/instruments';
 import { GUITAR_STANDARD } from '../data/tunings';
-import { STRUCTURES } from '../data/voicings';
 import { diatonicChords } from '../theory/harmony';
 import { relabelByScale } from '../theory/scale';
 import {
   placeVoicingAll,
-  structuresForChord,
-  structureName,
-  inversionCount,
-  voicingName,
 } from '../theory/chord';
 import { midiOf, noteName } from '../theory/notes';
 import { playChord } from '../audio/player';
@@ -39,7 +39,6 @@ import { Fretboard } from '../render/Fretboard';
 import { NeckPanel } from './NeckPanel';
 import { useScrollFocus } from './useScrollFocus';
 import { TabView } from '../render/TabView';
-import { Segmented } from './Segmented';
 import { useStepper } from './ShapeStepper';
 
 // A stable key for a shape's string set, e.g. "0-1-2-3".
@@ -63,33 +62,25 @@ export function ChordScaleLadder({
   root,
   scale,
   seventh,
+  structure,
+  inversion,
   labelMode = 'degree',
 }: {
   root: Note;
   scale: ScaleDefinition;
   seventh: boolean;
+  // Voicing and bass note both come from the CONTROLS panel — one measure, one
+  // place, and the two ladders can't drift apart.
+  structure: VoicingStructure;
+  inversion: number;
   // What the dots say — a global display setting, owned by the view above.
   labelMode?: 'note' | 'degree';
 }) {
-  const [structureId, setStructureId] = useState<string | null>(null);
-  const [inversionIndex, setInversionIndex] = useState(0); // the bass note
   const [pinned, setPinned] = useState<number | null>(null);
   const [playingSet, setPlayingSet] = useState<string | null>(null);
   const timers = useRef<number[]>([]);
 
   const degrees = diatonicChords(root, scale, seventh);
-  // All seven share a voice count (all triads, or all sevenths), so the structure
-  // and bass options can be read off the tonic.
-  const sample = degrees[0].chord;
-  const voiceCount = inversionCount(sample);
-  const structures = structuresForChord(sample, STRUCTURES);
-  // Same reasoning as InversionLadder: close-voiced sevenths only fit on one
-  // string set, so sevenths start on Drop 2, where the whole key lays out on
-  // three of them.
-  const defaultStructureId = voiceCount === 4 ? 'drop2' : 'close';
-  const structure =
-    structures.find((s) => s.id === (structureId ?? defaultStructureId)) ?? structures[0];
-  const inversion = Math.min(inversionIndex, voiceCount - 1);
 
   // Place every chord, then find the string sets where EVERY chord of the key
   // has a placement. A set missing one chord isn't a chord scale, it's a chord
@@ -208,31 +199,10 @@ export function ChordScaleLadder({
 
   return (
     <>
-      <div className="view-controls" ref={viewRef}>
-        <div className="controls-row">
-          <Segmented
-            ariaLabel="Structure"
-            options={structures.map((s) => ({
-              value: s.id,
-              label: structureName(s, voiceCount),
-            }))}
-            value={structure.id}
-            onChange={setStructureId}
-          />
-        </div>
-
-        <div className="controls-row">
-          <Segmented
-            ariaLabel="Voicing"
-            options={Array.from({ length: voiceCount }, (_, i) => ({
-              value: i,
-              label: voicingName(sample, structure, i),
-            }))}
-            value={inversion}
-            onChange={setInversionIndex}
-          />
-        </div>
-      </div>
+      {/* No controls of its own any more: Type, Voicing and Inversion are all
+          in the CONTROLS panel above. This div stays because the ← → keys are
+          bound to it. */}
+      <div className="view-controls" ref={viewRef} />
 
       {groups.length === 0 ? (
         <p className="control-hint control-hint--warn">
