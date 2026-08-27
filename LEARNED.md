@@ -1813,3 +1813,22 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   see all six are at fret 0. Moving up a key, every string gains a note at the
   nut and there is nothing for it to slide from; moving down, the same thing
   happens at the far end. The count was never the measure — the position was.
+
+- **Not every change is a move.** Changing GRAVITY inside a key leaves every
+  note exactly where it is and renumbers them — C major and D dorian are the
+  same seven pitches. Matching by degree couldn't see that (every degree
+  changed, so nothing matched) and a page where nothing moved dissolved and
+  reassembled. When the set of PLACES is unchanged, notes are matched by place
+  instead: same element, same spot, new colour and letter.
+
+- **Whichever path you took, record the result the same way.** The by-place
+  path first carried the old degree groups forward untouched — but the notes
+  had just been renumbered, so the NEXT key change matched against degrees that
+  no longer existed and the whole neck appeared at once. Both paths now end by
+  writing down where everything landed under the labels it has now.
+
+- **Group by the degree NUMBER, not its name.** Major to harmonic minor turns
+  the 3 into a ♭3 and the 6 into a ♭6. Keyed by the full name those are
+  different notes and the neck dissolves; keyed by the number they're the same
+  finger moving one fret, which is the single most worth-watching movement the
+  thing does.

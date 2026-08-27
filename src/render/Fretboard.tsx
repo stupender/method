@@ -143,17 +143,52 @@ export function Fretboard({
   //
   // A dot only appears when nothing on this string was near enough to be it.
   const prevGroups = useRef(new Map<string, { id: string; x: number }[]>());
+  // The same notes keyed by WHERE they are, for the case below.
+  const prevByPlace = useRef(new Map<string, string>());
   const freshId = useRef(0);
   const identityOf = new Map<PlacedNote, string>();
   const arrivals = new Set<PlacedNote>();
   const nextGroups = new Map<string, { id: string; x: number }[]>();
 
-  {
+  // NOT EVERY CHANGE IS A MOVE. Change GRAVITY inside a key and the neck holds
+  // exactly the same notes in exactly the same places — C major and D dorian
+  // are the same seven pitches — and all that happens is that they're numbered
+  // from somewhere else. Matching by degree can't see that: every degree
+  // changed, so nothing matched, and a page where nothing moved dissolved and
+  // reassembled itself.
+  //
+  // So when the set of PLACES is unchanged, notes are matched by place. Every
+  // dot keeps its element, stays exactly where it is, and simply takes its new
+  // colour and letter. Which is the truth of it: nothing moved, because
+  // nothing moved.
+  const places = (highlights ?? []).map(
+    (h) => `${h.position.stringIndex}:${h.position.fret}`,
+  );
+  const sameNeck =
+    places.length > 0 &&
+    places.length === prevByPlace.current.size &&
+    places.every((k) => prevByPlace.current.has(k));
+
+  const nextByPlace = new Map<string, string>();
+
+  if (sameNeck) {
+    (highlights ?? []).forEach((h, i) => {
+      const place = places[i];
+      const id = prevByPlace.current.get(place)!;
+      identityOf.set(h, id);
+      nextByPlace.set(place, id);
+    });
+  } else {
     // One group per string + degree: the notes that could plausibly BE each
     // other from one key to the next.
     const groups = new Map<string, PlacedNote[]>();
     for (const h of highlights ?? []) {
-      const key = `${h.position.stringIndex}:${h.intervalName}`;
+      // Grouped by the degree's NUMBER, not its full name: going from major to
+      // harmonic minor, the 3 becomes a ♭3 and the 6 a ♭6, and those are the
+      // same finger moving a fret — which is the most worth watching of all
+      // the movements this thing does. Keyed by the whole name they were
+      // different notes and the neck dissolved instead.
+      const key = `${h.position.stringIndex}:${degreeOf(h.intervalName) ?? h.intervalName}`;
       const list = groups.get(key);
       if (list) list.push(h);
       else groups.set(key, [h]);
@@ -195,7 +230,6 @@ export function Fretboard({
         }
       }
 
-      const assigned: { id: string; x: number }[] = [];
       notes.forEach((h, i) => {
         const was = previous[i + bestShift];
         const x = noteX(h.position.fret);
@@ -209,11 +243,27 @@ export function Fretboard({
         const id = keep ? keep.id : `${key}:new${freshId.current++}`;
         identityOf.set(h, id);
         if (!keep) arrivals.add(h);
-        assigned.push({ id, x });
       });
-      nextGroups.set(key, assigned);
+    }
+    for (const [h, id] of identityOf) {
+      nextByPlace.set(`${h.position.stringIndex}:${h.position.fret}`, id);
     }
   }
+
+  // WHERE EVERYTHING LANDED, under the labels it has NOW. Both paths finish
+  // here, and it matters that the by-place path does too: after a GRAVITY
+  // change the notes haven't moved but they've all been renumbered, and
+  // carrying the old groups forward left the next key change matching against
+  // degrees that no longer existed — so the whole neck appeared at once,
+  // scattered, exactly the fault this was meant to fix.
+  for (const h of highlights ?? []) {
+    const key = `${h.position.stringIndex}:${degreeOf(h.intervalName) ?? h.intervalName}`;
+    const entry = { id: identityOf.get(h)!, x: noteX(h.position.fret) };
+    const list = nextGroups.get(key);
+    if (list) list.push(entry);
+    else nextGroups.set(key, [entry]);
+  }
+  for (const list of nextGroups.values()) list.sort((a, b) => a.x - b.x);
 
   // Thicker line for lower (bass) strings, like real string gauges. Index 0 is
   // the lowest string AND the bottom row, so the gauge has to count DOWN from
@@ -228,6 +278,7 @@ export function Fretboard({
   // actually painted.
   useEffect(() => {
     prevGroups.current = nextGroups;
+    prevByPlace.current = nextByPlace;
   });
 
   return (
