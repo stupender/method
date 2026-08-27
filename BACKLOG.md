@@ -63,6 +63,27 @@ function layer — build once, reuse everywhere.
 
 ## Held for later — decided but deliberately not built yet
 
+- **The bundle got big, and here's what can be done about it.** Adding VexFlow
+  took the app from ~284KB to ~1.4MB (778KB gzipped). It loads fine on a
+  desktop and is slow on a phone on a bad connection. Three options, roughly in
+  order of effort:
+
+  1. **Split it out.** VexFlow is only used in Harmony. A dynamic `import()`
+     behind `React.lazy` means Scales and Ear never download it at all — the
+     app opens at its old size and the notation arrives when you first ask for
+     a chord. Cheapest real win, no visual change. Half a day.
+  2. **Load fewer fonts.** Most of VexFlow's weight is music fonts, and it
+     ships several. Version 5 can be told to load one (Bravura) instead of the
+     whole set, which is a config line, but the API for it moves between
+     versions and needs checking against whatever we're on.
+  3. **Draw only what's on screen.** A chord scale renders 21 systems at once
+     and you see four. Rendering a system only when it scrolls into view would
+     cut the work sharply — but it's a change to how the page renders, not just
+     to what it loads, so it's the biggest of the three and the last resort.
+
+  Decided 2026-08-27 to ship the size and fix it later. Worth doing (1) before
+  anyone uses this on a phone.
+
 - **Zoom the floating neck — MOBILE ONLY, and near the end.** As you scroll,
   zoom the neck to the frets that matter for the section you're on. Deferred
   deliberately: keeping all six strings visible while narrowing the fret range

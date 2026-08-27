@@ -132,6 +132,19 @@ export function ChordSystem({
     Formatter.FormatAndDraw(ctx, stave, [chord]);
     Formatter.FormatAndDraw(ctx, tab, [tabChord]);
 
+    // LET IT SCALE. VexFlow sizes the SVG in fixed pixels, which means four
+    // seventh-chord systems can't share a row that would hold them at 90% —
+    // they just wrap. It also writes a viewBox, so handing the width over to
+    // CSS is enough to make the drawing responsive: it shrinks to its column
+    // and never grows past the size it was engraved at.
+    const svg = el.querySelector('svg');
+    if (svg) {
+      svg.removeAttribute('width');
+      svg.removeAttribute('height');
+      svg.style.width = '100%';
+      svg.style.height = 'auto';
+    }
+
     return () => {
       el.innerHTML = '';
     };

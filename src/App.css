@@ -953,10 +953,12 @@
    size as a seventh's four. */
 .voicing-set .tab-shelf {
   display: grid;
-  /* Wide enough for a whole system: the staff and the TAB are both 184px, plus
-     the card's own padding. Sized to the content rather than to a guess, so
-     nothing spills over the edge of its card. */
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  /* Sized so a seventh chord's FOUR inversions share one row wherever there's
+     room for them — that's the comparison the page exists to make, and it
+     stops working the moment one of them wraps to a line of its own. The
+     systems scale down to whatever column they get (see ChordSystem.css), so
+     the floor here is about legibility rather than about fitting. */
+  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
   margin-top: 0;
   gap: 10px;
 }
@@ -993,10 +995,24 @@
   box-shadow: none;
 }
 
+/* A FIXED HEIGHT, because the titles aren't all one line: "ROOT IN BASS" wraps
+   where "3RD IN BASS" doesn't, and a taller heading pushed its own staff down
+   so the row of systems no longer lined up. Reserving two lines everywhere
+   keeps every staff on the same rule across the row — which is the whole point
+   of setting them side by side. */
 .voicing-set .tab-row-head {
   align-items: baseline;
   gap: 7px;
-  padding: 6px 0 2px 48px;
+  min-height: 38px;
+  padding: 6px 0 2px;
+}
+
+/* The title starts where the STAFF starts. The lamp sits in the margin to the
+   left of both, so the heading reads as a label ON the system rather than
+   floating somewhere above its middle. These two have to agree: 8px of lamp
+   plus the 7px gap after it. */
+.voicing-set .system {
+  padding-left: 15px;
 }
 
 /* A wrapping row of TAB diagrams — one per playable shape, low -> high. */
