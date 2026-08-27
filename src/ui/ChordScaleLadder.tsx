@@ -36,6 +36,8 @@ import {
 import { midiOf, noteName } from '../theory/notes';
 import { playChord } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
+import { NeckPanel } from './NeckPanel';
+import { useScrollFocus } from './useScrollFocus';
 import { TabView } from '../render/TabView';
 import { Segmented } from './Segmented';
 import { useStepper } from './ShapeStepper';
@@ -143,6 +145,19 @@ export function ChordScaleLadder({
   const flat = groups.flatMap((g) => g.rows);
   const shapes = flat.map((r) => r.shape);
 
+  // SCROLLING IS THE SELECTION. The unit here is the string-set BLOCK, not the
+  // single card: the cards sit side by side in a row, so scrolling past them
+  // would pick between neighbours at the same height more or less at random.
+  // A block is a real thing to arrive at, and lighting the whole set at once is
+  // the more useful picture anyway — you see where that set puts the chord all
+  // the way up the neck.
+  const [focusedSet, setFocusedSet] = useState<number | null>(null);
+  const focusRef = useScrollFocus(groups.length, setFocusedSet);
+  const litShapes =
+    focusedSet !== null && groups[focusedSet]
+      ? groups[focusedSet].rows.map((r) => r.index)
+      : null;
+
   const stopAll = () => {
     timers.current.forEach(clearTimeout);
     timers.current = [];
@@ -226,19 +241,24 @@ export function ChordScaleLadder({
         </p>
       ) : (
         <>
-          <Fretboard
-            instrument={GUITAR}
-            tuning={GUITAR_STANDARD}
-            shapes={shapes}
-            activeShapeIndex={pinned}
-            onShapeTap={selectRow}
-            onBackgroundClick={() => setPinned(null)}
-            labelMode={labelMode}
-          />
+          <NeckPanel
+            aside={focusedSet !== null && groups[focusedSet] ? `${setLabel(groups[focusedSet].key)} strings` : undefined}
+          >
+            <Fretboard
+              instrument={GUITAR}
+              tuning={GUITAR_STANDARD}
+              shapes={shapes}
+              activeShapeIndex={pinned}
+              activeShapeIndices={pinned === null ? litShapes : null}
+              onShapeTap={selectRow}
+              onBackgroundClick={() => setPinned(null)}
+              labelMode={labelMode}
+            />
+          </NeckPanel>
 
           <div className="voicing-sets">
-            {groups.map((g) => (
-              <section className="voicing-set" key={g.key}>
+            {groups.map((g, gi) => (
+              <section className="voicing-set" key={g.key} ref={focusRef(gi)}>
                 <header className="voicing-set__head">
                   <button
                     className="tab-play"

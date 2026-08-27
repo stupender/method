@@ -18,6 +18,8 @@ import { placeScale } from '../theory/scale';
 import { midiOf } from '../theory/notes';
 import { playSequence, type Sequence } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
+import { NeckPanel } from './NeckPanel';
+import { useScrollFocus } from './useScrollFocus';
 import { TabSequence } from '../render/TabSequence';
 import { Segmented } from './Segmented';
 import { useStepper } from './ShapeStepper';
@@ -51,9 +53,12 @@ export function ScaleExplorer({
   // Ascending / Descending toggle here; it made you pick half the exercise.
   // Pinned (clicked, stays lit) vs hovered (temporary preview). Hover wins while
   // over a box; otherwise the pinned one shows. Click the empty neck to unpin.
+  // What the floating neck is showing. SCROLLING sets it — whichever position
+  // is under the neck is the one lit — so there's no hover state any more:
+  // hovering did nothing on a phone and made the neck flicker as the pointer
+  // crossed the page on its way somewhere else.
   const [pinnedShape, setPinnedShape] = useState<number | null>(null);
-  const [hoveredShape, setHoveredShape] = useState<number | null>(null);
-  const activeShape = hoveredShape ?? pinnedShape;
+  const activeShape = pinnedShape;
 
   const positions =
     fingering === '3nps'
@@ -62,6 +67,12 @@ export function ScaleExplorer({
         ? positionalBoxes(GUITAR, GUITAR_STANDARD, root, scale)
         : hybridBoxes(GUITAR, GUITAR_STANDARD, root, scale);
   const shapes = positions.map((p) => p.notes);
+
+  // Reading down the page walks the positions: whichever card is under the
+  // floating neck becomes the shape the neck shows. Re-measures whenever the
+  // list changes length, which is when the old measurements stop meaning
+  // anything.
+  const focusRef = useScrollFocus(positions.length, setPinnedShape);
 
   // The run as it's read and played: up, then back down, with the top note
   // sounded once rather than twice at the turn.
@@ -190,36 +201,37 @@ export function ScaleExplorer({
         </div>
       </div>
 
-      <Fretboard
-        instrument={GUITAR}
-        tuning={GUITAR_STANDARD}
-        highlights={wholeNeck}
-        shapes={shapes}
-        activeShapeIndex={activeShape}
-        onShapeHover={setHoveredShape}
-        onShapeTap={selectShape}
-        onBackgroundClick={() => setPinnedShape(null)}
-        onNoteTap={
-          onPickRoot
-            ? (p) => {
-                setShowAll(false); // focusing a position exits the all-boxes view
-                onPickRoot(p);
-              }
-            : undefined
-        }
-        showAllShapes={showAll}
-        labelMode={labelMode}
-      />
+      <NeckPanel aside={activeShape != null ? positions[activeShape]?.name : undefined}>
+        <Fretboard
+          instrument={GUITAR}
+          tuning={GUITAR_STANDARD}
+          highlights={wholeNeck}
+          shapes={shapes}
+          activeShapeIndex={activeShape}
+          onShapeTap={selectShape}
+          onBackgroundClick={() => setPinnedShape(null)}
+          onNoteTap={
+            onPickRoot
+              ? (p) => {
+                  setShowAll(false); // focusing a position exits the all-boxes view
+                  onPickRoot(p);
+                }
+              : undefined
+          }
+          showAllShapes={showAll}
+          labelMode={labelMode}
+        />
+      </NeckPanel>
 
       {/* One TAB per position (the modal fingerings), low -> high — a table of
           tracks. Each row names itself ABOVE its staff and carries its own play
-          button, like a track listing. Nothing happens on hover: a row stays
-          selected until you pick another, so the neck never shifts under you
-          while you're reading it. */}
+          button, like a track listing. Scrolling a row under the floating neck
+          is what lights it: reading down the page walks the positions. */}
       <div className="tab-shelf tab-shelf--lines">
         {positions.map((pos, i) => (
           <div
             key={i}
+            ref={focusRef(i)}
             className={
               'tab-card' +
               (i === activeShape ? ' tab-card--on' : '') +

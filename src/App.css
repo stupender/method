@@ -707,6 +707,56 @@
   color: var(--ink);
 }
 
+/* ==========================================================================
+   THE FLOATING NECK
+   --------------------------------------------------------------------------
+   Same printed-block language as CONTROLS — eyebrow in the margin, one
+   outlined box — but it STICKS under the site bar while the positions or
+   voicings scroll past underneath. Square bottom corners and no bottom border,
+   so the block that follows joins onto it and the two read as one object.
+   ========================================================================== */
+.neckpanel {
+  position: sticky;
+  top: 55px; /* clears the site bar */
+  z-index: 20;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
+  background: var(--bg);
+  overflow: hidden;
+}
+.neckpanel__head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.neckpanel__title {
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+/* What the neck is currently showing — set in the serif, because it's a name
+   rather than a label. */
+.neckpanel__aside {
+  font-family: var(--serif);
+  font-size: 14px;
+  color: var(--ink);
+}
+/* The list joins the neck above it: no gap, and its own top corners squared
+   off where they meet. */
+.neckpanel + .voicing-sets,
+.neckpanel + .tab-shelf {
+  margin-top: 0;
+}
+.neckpanel + .tab-shelf.tab-shelf--lines {
+  border-radius: 0 0 4px 4px;
+}
+
 /* STRING-SET BLOCKS — the inversion grid. Each set is one printed block with
    its own heading; the blocks stack so you read down the neck, E A D first.
    Same outlined-block language as the CONTROLS panel and the scale-position

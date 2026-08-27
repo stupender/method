@@ -53,6 +53,9 @@ interface FretboardProps {
   // Which shape is currently active (highlighted). Controlled by the parent so
   // the TAB and the neck share one hovered-shape state. null = none.
   activeShapeIndex?: number | null;
+  // Or a GROUP of shapes, lit together — a whole string set's worth of chords,
+  // say. Takes precedence over activeShapeIndex when given.
+  activeShapeIndices?: readonly number[] | null;
   // Called when the pointer enters/leaves a shape on the neck (index, or null).
   onShapeHover?: (index: number | null) => void;
   // Called when a whole shape is clicked (by its index) — used to play + pin it.
@@ -75,6 +78,7 @@ export function Fretboard({
   highlights = [],
   shapes,
   activeShapeIndex = null,
+  activeShapeIndices = null,
   onShapeHover,
   onShapeTap,
   onBackgroundClick,
@@ -83,6 +87,15 @@ export function Fretboard({
   showAllShapes = false,
 }: FretboardProps) {
   const { stringCount, fretCount } = instrument;
+
+  // WHAT'S LIT. One shape or a group of them, normalised to a single set so
+  // everything downstream asks the same question: is this shape in it?
+  const activeSet =
+    activeShapeIndices && activeShapeIndices.length > 0
+      ? new Set(activeShapeIndices)
+      : activeShapeIndex !== null
+        ? new Set([activeShapeIndex])
+        : null;
 
   // Overall canvas size derived from how many strings/frets we're drawing.
   const nutX = PAD_LEFT;
@@ -312,13 +325,15 @@ export function Fretboard({
           // exactly once here and let the shapes contribute only their
           // constellation lines and which notes count as "in" the active box.
           const inActive =
-            activeShapeIndex !== null && shapes[activeShapeIndex]
-              ? new Set(
-                  shapes[activeShapeIndex].map(
-                    (h) => `${h.position.stringIndex}:${h.position.fret}`,
+            activeSet === null
+              ? null
+              : new Set(
+                  [...activeSet].flatMap((si) =>
+                    (shapes[si] ?? []).map(
+                      (h) => `${h.position.stringIndex}:${h.position.fret}`,
+                    ),
                   ),
-                )
-              : null;
+                );
           const base = highlights.map((h, i) => {
             const key = `${h.position.stringIndex}:${h.position.fret}`;
             // Dim anything outside the box you're looking at (unless we're
@@ -330,10 +345,10 @@ export function Fretboard({
           return [
             ...base,
             ...shapes.map((shape, si) => {
-            const isActive = activeShapeIndex === si;
+            const isActive = activeSet !== null && activeSet.has(si);
             // "Show all" lights every box equally; otherwise the active one wins
             // and the rest dim.
-            const dim = showAllShapes ? false : activeShapeIndex !== null && !isActive;
+            const dim = showAllShapes ? false : activeSet !== null && !isActive;
             const drawLine = showAllShapes ? shape.length > 1 : isActive && shape.length > 1;
             // The connecting "constellation" line, drawn through the shape's
             // notes in string order, only when the shape is active.

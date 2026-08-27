@@ -99,7 +99,23 @@
 /* The root takes no ring — its colour is the signal. (A stroke around it read
    as an outline bug rather than emphasis.) */
 
-/* Faded when another shape is the active constellation. */
+/* Faded when another shape is the active constellation. The fade is ANIMATED
+   because the neck floats now and the page scrolling past it is what changes
+   the selection: a hard cut every time a block passes under the neck reads as
+   a flicker, while a short fade reads as the neck following you. Short enough
+   (0.26s) that it never feels like waiting. */
+.fretboard .note-dot,
+.fretboard .note-label,
+.fretboard .constellation {
+  transition: opacity 0.26s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fretboard .note-dot,
+  .fretboard .note-label,
+  .fretboard .constellation {
+    transition: none;
+  }
+}
 .fretboard .note-dot--dim {
   opacity: 0.16;
   filter: none;
