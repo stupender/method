@@ -54,6 +54,18 @@
      paper, far too low to read as a hue. */
   --accent: #4a4238;
   --accent-bg: rgba(74, 66, 56, 0.10);
+  /* A LIT SELECTOR DOT — an indicator lamp, in both worlds.
+     These are the one place colour is allowed back in outside the degrees, and
+     they get away with it because a lamp isn't a hue you have to read: it's
+     either lit or it isn't, and there are no degree dots in this panel to
+     confuse it with. Everything else structural stays ink.
+     On paper it's an amber indicator; at night a cool white one. Both have a
+     hot centre falling off to the rim, and the faintest halo. */
+  --tick-fill: radial-gradient(circle at 50% 38%, #e9a94e 0%, #b46218 62%);
+  --tick-ring: #a2570f;
+  --tick-glow:
+    0 0 3px rgba(180, 98, 24, 0.5),
+    0 0 8px rgba(180, 98, 24, 0.2);
   --tint-soft: rgba(31, 28, 23, 0.04); /* barely-there panel wash */
   --tint-mid: rgba(31, 28, 23, 0.08);
   --shadow: rgba(31, 28, 23, 0.16);
@@ -180,6 +192,15 @@
        to each other. */
     --accent: #d9d2c4;
     --accent-bg: rgba(217, 210, 196, 0.14);
+    /* At night the dots are the only lit things in a dark box, so they behave
+    like the LEDs they resemble: a hot centre falling off to the edge, and the
+    faintest halo around it. Kept very low — this is a panel of small switches
+    catching the light, not the neon the fretboard dots were rescued from. */
+    --tick-fill: radial-gradient(circle at 50% 38%, #fbf7ee 0%, #d9d2c4 62%);
+    --tick-ring: #d9d2c4;
+    --tick-glow:
+    0 0 3px rgba(217, 210, 196, 0.55),
+    0 0 8px rgba(217, 210, 196, 0.22);
     --tint-soft: rgba(236, 231, 220, 0.04);
     --tint-mid: rgba(236, 231, 220, 0.08);
     --shadow: rgba(0, 0, 0, 0.5);
@@ -261,6 +282,15 @@
      to each other. */
   --accent: #d9d2c4;
   --accent-bg: rgba(217, 210, 196, 0.14);
+  /* At night the dots are the only lit things in a dark box, so they behave
+  like the LEDs they resemble: a hot centre falling off to the edge, and the
+  faintest halo around it. Kept very low — this is a panel of small switches
+  catching the light, not the neon the fretboard dots were rescued from. */
+  --tick-fill: radial-gradient(circle at 50% 38%, #fbf7ee 0%, #d9d2c4 62%);
+  --tick-ring: #d9d2c4;
+  --tick-glow:
+  0 0 3px rgba(217, 210, 196, 0.55),
+  0 0 8px rgba(217, 210, 196, 0.22);
   --tint-soft: rgba(236, 231, 220, 0.04);
   --tint-mid: rgba(236, 231, 220, 0.08);
   --shadow: rgba(0, 0, 0, 0.5);

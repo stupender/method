@@ -2,13 +2,28 @@
 // ui/Segmented.tsx — the either/or control (a connected segmented toggle)
 // ----------------------------------------------------------------------------
 // The app's control grammar (see DESIGN.md):
-//   - SEGMENTED TRACK  = choose exactly ONE of these  (this component)
-//   - pill             = an independent on/off toggle, or a multi-select pool
-//   - accent pill      = an action (▶ Play)
+//   - this component = choose exactly ONE of these
+//   - MultiSelect    = choose any number
+//   - accent pill    = an action (▶ Play)
 //
-// Visually: a gently recessed track holds the options as one connected unit;
-// the chosen segment sits raised on it like a paper chip. That makes "these are
-// alternatives" legible at a glance, where a row of separate pills doesn't.
+// INSIDE THE CONTROLS PANEL (the `fill` variant) the mark is a DOT before the
+// word — the same mark MultiSelect uses. That's a deliberate merge: the panel
+// now reads as one instrument with one kind of switch, rather than two visual
+// languages stacked in the same box. The dot is also just the older convention
+// — a radio button IS a filled dot, and always has been.
+//
+// It does mean the MARK no longer tells you whether a row takes one answer or
+// several; the ROW does, because a pick-one row never has two dots filled. If
+// that ever proves too subtle, the fix is a rounded square for MultiSelect
+// (checkbox) against this round dot (radio), which is the convention people
+// already read without being taught.
+//
+// The dot is on EVERY segmented control, not just the panel's. A page where
+// the CONTROLS box marks its choices one way and the row of fingerings just
+// below marks them another is the same two-languages problem, only spread over
+// more of the page. (The theme switch used to be the exception that justified
+// keeping the rule around; it's a sun/moon icon now, so there's no exception
+// left to keep it for.)
 // ============================================================================
 
 import type { ReactNode } from 'react';
@@ -48,9 +63,14 @@ export function Segmented<T extends string | number>({
           className={o.value === value ? 'seg__btn seg__btn--on' : 'seg__btn'}
           onClick={() => onChange(o.value)}
         >
-          {/* The label is wrapped so the selection rule hugs the TEXT rather
-              than stretching across its (equal-width) grid cell. */}
-          <span className="seg__label">{o.label}</span>
+          {/* The label is wrapped so the mark travels with the TEXT rather
+              than sitting at the edge of its (equal-width) grid cell. */}
+          <span className="seg__label">
+            <span className="seg__tick" aria-hidden="true" />
+            {/* The text truncates, not the label — the label holds the dot, and
+                clipping it clips the dot's glow. */}
+            <span className="seg__text">{o.label}</span>
+          </span>
         </button>
       ))}
     </div>

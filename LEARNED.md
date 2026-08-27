@@ -1599,3 +1599,23 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   seventh chords in inversion still won't fit E A D G: Cmaj7 with the 3rd in
   the bass would need frets 0, 10, 9, 5 — a ten-fret span. Two string sets is
   the true answer there, not three.
+
+
+- **Two marks in one box read as two designs.** The CONTROLS panel used a rule
+  under the word for pick-one rows and a dot before it for pick-many, which was
+  a principled distinction and looked like an accident. Everything wears a dot
+  now, lit like an indicator lamp. The one/many distinction survives in the row
+  rather than the mark — a pick-one row never has two lit — and if that ever
+  proves too subtle, the fix is a rounded square for pick-many against the
+  round dot, which people read without being taught.
+
+- **A dot has no width to argue about.** The selection rule had to decide how
+  wide to be and both answers were wrong: hugging gave "I" a 6px stub, spanning
+  the cell made the mark belong to the column instead of the word. Retiring the
+  shape retired the problem.
+
+- **Whatever holds the lamp must not clip.** `overflow: hidden` for text
+  ellipsis, put on the box containing the dot, sliced the dot's glow off flat
+  on one side. The CELL clips (so a long name can't spill into its neighbour)
+  and the text truncates; the box between them, which holds the mark, never
+  clips.

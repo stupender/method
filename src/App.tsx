@@ -39,6 +39,7 @@ import { MultiSelect } from './ui/MultiSelect';
 import { PatternExplorer } from './ui/PatternExplorer';
 import { ScaleExplorer } from './ui/ScaleExplorer';
 import { Segmented } from './ui/Segmented';
+import { ThemeToggle } from './ui/ThemeToggle';
 import { SongView, type ChartChord } from './ui/SongView';
 import { PracticeCards, type PracticeCard } from './ui/PracticeCards';
 import { EarTrainingView } from './ui/EarTrainingView';
@@ -315,9 +316,6 @@ function App() {
       <header className="sitebar">
         <Mark className="sitebar__mark" variant="triad" press />
         <h1 className="sitebar__name">Fretboard Constellations</h1>
-        <p className="sitebar__motto">
-          See the shape, hear the sound, find out what it's doing.
-        </p>
         {/* Top-level areas: a higher separation than the modes within Study. */}
         {AREAS.length > 1 && (
           <nav className="topnav" role="group" aria-label="Area">
@@ -338,25 +336,21 @@ function App() {
           className={keyOpen ? 'sitebar__key sitebar__key--on' : 'sitebar__key'}
           onClick={() => setKeyOpen((v) => !v)}
           aria-pressed={keyOpen}
+          aria-label="What the colours mean"
+          title="What the colours mean"
         >
+          {/* Three dots and no word. It used to say "Key", which is the one
+              word on this page that already means something else — the musical
+              key, two rows down in CONTROLS. The dots say what it opens. */}
           <span className="sitebar__key-dots" aria-hidden="true">
             <i className="sitebar__key-dot sitebar__key-dot--deg1" />
             <i className="sitebar__key-dot sitebar__key-dot--deg3" />
             <i className="sitebar__key-dot sitebar__key-dot--deg5" />
           </span>
-          Key
         </button>
 
         <div className="sitebar__theme">
-          <Segmented
-            ariaLabel="Theme"
-            options={[
-              { value: 'paper' as Theme, label: 'Paper' },
-              { value: 'night' as Theme, label: 'Night' },
-            ]}
-            value={theme}
-            onChange={setTheme}
-          />
+          <ThemeToggle theme={theme} onChange={setTheme} />
         </div>
       </header>
 
@@ -541,6 +535,9 @@ function StudyArea({
   // measure, one place. They're lifted here so both ladders read the same
   // values and neither can drift from the other.
   const [seventh, setSeventh] = useState(false);
+  // Which ear drill. Up here with the rest, so Ear's panel reads the same way
+  // the fretboard's does rather than keeping one of its choices downstairs.
+  const [quiz, setQuiz] = useState<'quality' | 'inversion' | 'function'>('quality');
   // null = "whatever suits this chord type" (see harmonyStructure below), held
   // as null rather than an id so switching Triads <-> Sevenths re-picks instead
   // of stranding you on a voicing that barely fits.
@@ -683,20 +680,6 @@ function StudyArea({
             />
           )}
         </ControlRow>
-        {studyMode === 'ear' && (
-          <ControlRow label="Chords">
-            <Segmented
-              fill
-              ariaLabel="Chord size"
-              options={[
-                { value: 'triads', label: 'Triads' },
-                { value: 'sevenths', label: 'Sevenths' },
-              ]}
-              value={seventhsInEar ? 'sevenths' : 'triads'}
-              onChange={(v) => setSeventhsInEar(v === 'sevenths')}
-            />
-          </ControlRow>
-        )}
         <ControlRow label="View">
           {studyMode === 'ear' ? (
             <MultiSelect
@@ -723,6 +706,40 @@ function StudyArea({
             />
           )}
         </ControlRow>
+        {/* TYPE, in the same place and under the same name as the fretboard's
+            — Ear is the same instrument listened to rather than looked at, so
+            its panel should read down in the same order. It was called Chords
+            and sat above View, which made the two modes look like two apps. */}
+        {studyMode === 'ear' && (
+          <ControlRow label="Type">
+            <Segmented
+              fill
+              ariaLabel="Chord type"
+              options={[
+                { value: 'triads', label: 'Triads' },
+                { value: 'sevenths', label: 'Sevenths' },
+              ]}
+              value={seventhsInEar ? 'sevenths' : 'triads'}
+              onChange={(v) => setSeventhsInEar(v === 'sevenths')}
+            />
+          </ControlRow>
+        )}
+        {studyMode === 'ear' && (
+          <ControlRow label="Quiz">
+            <Segmented
+              fill
+              ariaLabel="Which drill"
+              options={[
+                { value: 'quality' as const, label: 'Quality' },
+                { value: 'inversion' as const, label: 'Inversion' },
+                { value: 'function' as const, label: 'Function' },
+              ]}
+              value={quiz}
+              onChange={setQuiz}
+            />
+          </ControlRow>
+        )}
+
         {/* HARMONY'S THREE, at the end of the panel: what the chords are, how
             they're voiced, and which note is in the bass. They only appear in
             Harmony, because that's the only place they mean anything.
@@ -774,6 +791,7 @@ function StudyArea({
 
       {studyMode === 'ear' && (
         <EarTrainingView
+          quiz={quiz}
           selection={{
             roots: earRoots,
             scaleIds: earScaleIds,

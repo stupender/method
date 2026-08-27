@@ -53,7 +53,7 @@ export function MultiSelect<T extends string | number>({
           >
             <span className="seg__label">
               <span className="seg__tick" aria-hidden="true" />
-              {o.label}
+              <span className="seg__text">{o.label}</span>
             </span>
           </button>
         );

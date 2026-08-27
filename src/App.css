@@ -101,20 +101,32 @@
   white-space: nowrap;
 }
 
-/* The motto, set off by a rule the way a masthead sets off its strapline.
-   First thing to go when the line gets tight — it's orientation for a cold
-   visitor, not something you need on the twentieth visit. */
-.sitebar__motto {
-  font-family: var(--serif);
-  font-style: italic;
-  font-weight: 300;
-  font-size: 15px;
+/* One icon, no frame — it sits in the bar as a mark rather than a control,
+   and grows a ring only when you're about to press it. */
+.themetoggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
   color: var(--muted);
-  margin: 0;
-  padding-left: 14px;
-  border-left: 1px solid var(--line);
-  line-height: 1.3;
-  white-space: nowrap; /* one line or none — a wrapped motto breaks the bar */
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  transition:
+    color 0.12s ease,
+    border-color 0.12s ease;
+}
+.themetoggle:hover {
+  color: var(--ink);
+  border-color: var(--line);
+}
+.themetoggle svg {
+  width: 17px;
+  height: 17px;
+  display: block;
 }
 
 /* `flex: none` matters: without it the motto squeezes the switch until Paper
@@ -123,11 +135,6 @@
   flex: none;
 }
 
-@media (max-width: 900px) {
-  .sitebar__motto {
-    display: none;
-  }
-}
 @media (max-width: 560px) {
   .sitebar {
     flex-wrap: wrap;
@@ -444,36 +451,44 @@
   text-align: center;
   transition: color 0.12s ease;
 }
+/* Every option wears a dot; the lit one is an indicator lamp (--tick-* in
+   index.css). The mark used to be a rule under the word, which had to decide
+   how wide to be and got it wrong both ways — a 6px stub under "I", or a rule
+   so wide it belonged to the column rather than the word. A dot has no width
+   to argue about. */
 .seg__label {
-  display: inline-block;
-  border-bottom: 2px solid transparent;
-  padding-bottom: 2px;
-  transition: border-color 0.12s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
 }
-/* THE RULE HUGS ITS WORD, with a floor under it.
-   Two failures to steer between. Hugging exactly gives "I" a 6px stub that
-   reads as a rendering bug. Spanning the whole cell (the previous fix, capped
-   at 130px) makes the rule a property of the COLUMN rather than of the word —
-   under a short label it floats off on both sides, attached to nothing.
-   So: the word's own width plus a little air, and a minimum width so the
-   Roman numerals still get a rule you'd draw on purpose. */
+/* IN THE PANEL, THE MARK IS A DOT. One kind of switch for the whole box: the
+   underline that used to mark a pick-one row is gone from here, because a
+   panel holding two different marks read as two designs sharing a box. (It
+   survives outside the panel, on the theme switch — see Segmented.tsx.)
+
+   This also retires a fiddly problem rather than solving it: a rule has to
+   decide how wide to be, and both answers were wrong — hugging gave "I" a 6px
+   stub, spanning the cell made the rule belong to the column instead of the
+   word. A dot has no width to argue about. */
 .seg--fill .seg__label {
-  display: inline-block;
   width: auto;
-  min-width: 46px;
   max-width: 100%;
-  padding-left: 9px;
-  padding-right: 9px;
-  /* A long name in a narrow column truncates on the LABEL, not the button —
-     the rule has to end where the visible text ends. */
+  /* No overflow clipping here: this box contains the dot, and a clipped box
+     cuts the dot's glow off flat on one side. Truncation is .seg__text's job. */
+}
+.seg__text {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 .seg--fill .seg__btn {
   padding-left: 4px;
   padding-right: 4px;
   min-width: 0;
+  /* The CELL clips, so a long name can't spill into its neighbour. The label
+     inside must NOT clip — that's what cut the dot's glow off flat — and the
+     dot sits far enough from this edge that the halo clears it. */
   overflow: hidden;
 }
 .seg__btn:hover {
@@ -483,16 +498,17 @@
   color: var(--ink);
   font-weight: 600;
 }
+.seg__btn--on .seg__tick {
+  background: var(--tick-fill);
+  border-color: var(--tick-ring);
+  box-shadow: var(--tick-glow);
+}
 
-/* PICK-MANY: a filled dot before the word instead of a rule under it, so an
-   independent on/off never looks like a chosen-one-of-several. */
+/* PICK-MANY uses the same dot — see the note in Segmented.tsx for why the two
+   marks merged. */
 .seg--multi .seg__label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   width: auto;
   max-width: none;
-  border-bottom: 0;
 }
 .seg__tick {
   width: 8px;
@@ -510,11 +526,9 @@
   font-weight: 600;
 }
 .seg__btn--picked .seg__tick {
-  background: var(--accent);
-  border-color: var(--accent);
-}
-.seg__btn--on .seg__label {
-  border-bottom-color: var(--accent);
+  background: var(--tick-fill);
+  border-color: var(--tick-ring);
+  box-shadow: var(--tick-glow);
 }
 
 /* The shared button look: a calm outlined pill. */
@@ -763,6 +777,41 @@
 .workbench .tab-shelf.tab-shelf--lines {
   border: 0;
   border-radius: 0;
+}
+
+/* THE EAR TEST, as a block. Same printed language as the neck and the controls
+   — an eyebrow strip over a body — so the drill reads as an instrument on the
+   page rather than some buttons that happened to land there. */
+.quizpanel {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  margin-top: 22px;
+}
+.quizpanel__head {
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.quizpanel__title {
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.quizpanel__body {
+  padding: 16px 14px 18px;
+}
+/* Inside the block the drill's own rows sit closer together, and its first
+   line doesn't need the margin it carries when it's floating loose. */
+.quizpanel__body > :first-child {
+  margin-top: 0;
+}
+.quizpanel .controls-row {
+  margin-bottom: 12px;
+}
+.quizpanel .footnote {
+  margin-bottom: 0;
 }
 
 /* ==========================================================================

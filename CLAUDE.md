@@ -91,9 +91,13 @@ must match the repo name (`/method/`).
 
 Note: the app has three top-level AREAS — **Possibility** (scale/harmony study),
 **Play** (the lead-sheet workbench + analysis), **Ear Training** (chord-quality
-and function quizzes). The UI follows a strict control grammar (segmented track
-= pick-one; pill = independent toggle / multi-select; accent pill = action) —
-see DESIGN.md. **Start any new session by reading BACKLOG.md "Next-session
+and function quizzes). The UI follows a strict control grammar: every choice
+wears a DOT before the word — lit like an indicator lamp when chosen — whether
+it's pick-one (`Segmented`) or pick-many (`MultiSelect`); the row says which,
+because a pick-one row never has two lit. Accent pill / circled ▶ = action. The
+older grammar used a rule under the word for pick-one; it was retired because a
+panel holding two different marks read as two designs sharing a box. See
+DESIGN.md. **Start any new session by reading BACKLOG.md "Next-session
 briefs".**
 
 ## Backlog — see [BACKLOG.md](BACKLOG.md) for the full triaged plan. In short:

@@ -25,44 +25,47 @@ import {
   type EarChord,
 } from '../theory/earMaterial';
 import { InversionQuizView } from './InversionQuizView';
-import { Segmented } from './Segmented';
 
 // The Ear Training area: a shell that picks WHICH skill to drill. Quality =
 // "what did I hear?" (key-agnostic); Inversion = "which tone is on the bottom?"
 // (the lean of a voicing); Function = "what is it doing in the key?" (roman
 // numerals + secondary dominants + borrowed, riding the function engine).
-export function EarTrainingView({ selection }: { selection: EarSelection }) {
-  const [quiz, setQuiz] = useState<'quality' | 'inversion' | 'function'>('quality');
+export function EarTrainingView({
+  selection,
+  quiz,
+}: {
+  selection: EarSelection;
+  // Which drill — chosen in the CONTROLS panel, like everything else.
+  quiz: 'quality' | 'inversion' | 'function';
+}) {
   // What the CONTROLS panel above has put in play. The quizzes draw from this
   // rather than inventing their own pools, so what you hear is always
   // something you asked for.
   const material = earMaterial(selection);
   return (
     <>
-      <div className="controls">
-        <Segmented
-          ariaLabel="Quiz"
-          options={[
-            { value: 'quality' as const, label: 'Chord quality' },
-            { value: 'inversion' as const, label: 'Inversion' },
-            { value: 'function' as const, label: 'Function' },
-          ]}
-          value={quiz}
-          onChange={setQuiz}
-        />
-      </div>
-      {material.chords.length === 0 ? (
-        <p className="control-hint control-hint--warn">
-          Nothing to quiz yet — turn on Harmony in the View row, and at least
-          one key, scale and degree.
-        </p>
-      ) : quiz === 'quality' ? (
-        <QualityQuiz material={material} />
-      ) : quiz === 'inversion' ? (
-        <InversionQuizView material={material} />
-      ) : (
-        <FunctionQuizView />
-      )}
+      {/* One block, like the neck and the CONTROLS panel — the drills used to
+          float loose on the page under a bare row of buttons. Which drill it is
+          now comes from the CONTROLS panel like every other choice. */}
+      <section className="quizpanel">
+        <header className="quizpanel__head">
+          <span className="quizpanel__title">Ear test</span>
+        </header>
+        <div className="quizpanel__body">
+          {material.chords.length === 0 ? (
+            <p className="control-hint control-hint--warn">
+              Nothing to quiz yet — turn on Harmony in the View row, and at
+              least one key, scale and degree.
+            </p>
+          ) : quiz === 'quality' ? (
+            <QualityQuiz material={material} />
+          ) : quiz === 'inversion' ? (
+            <InversionQuizView material={material} />
+          ) : (
+            <FunctionQuizView />
+          )}
+        </div>
+      </section>
     </>
   );
 }
