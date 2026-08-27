@@ -105,7 +105,7 @@
      (saturation up, lightness down) instead. All seven land in a 3.45–4.99
      contrast band against the paper — an even set, not one weak link. */
   --deg-1: #ab4436; /* R — a truer red, pulled away from the orange */
-  --deg-2: #b46218; /* O — orange */
+  --deg-2: #9d530e; /* O — orange */
   --deg-3: #d9ac3c; /* Y — marigold, bright, carrying DARK text */
   --deg-4: #4a7337; /* G — green */
   --deg-5: #3a7a9c; /* B — blue */
@@ -123,7 +123,13 @@
      it is what turned the 3 to mud. So those two take DARK text instead — the
      label follows the ink, rather than the ink bending to the label. */
   --deg-1-ink: var(--note-label);
-  --deg-2-ink: #241a08;
+  /* The 2 takes LIGHT text like its neighbours. It was dark, chosen back when
+     the orange was #c47a1e and dark clearly won; adopting the pressed palette
+     darkened the orange and nobody re-checked, leaving 3.83 against 3.89 — a
+     coin flip, which is why it read badly whichever way you called it. The
+     orange is a shade deeper again so light ink wins outright (4.98), and it's
+     still 24 delta-E clear of every other degree. */
+  --deg-2-ink: var(--note-label);
   --deg-3-ink: #241a08;
   --deg-4-ink: var(--note-label);
   --deg-5-ink: var(--note-label);

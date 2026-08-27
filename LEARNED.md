@@ -1646,3 +1646,9 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   at 11px on a 19px disc; the neck was printing 13px on a 30px dot, which is
   proportionally much smaller. The key was easier to read than the instrument
   it explains. Same ratio (~0.58 of the dot) and same weight fixes it.
+
+- **Change a colour, re-check what sits on it.** The 2 carried dark text,
+  chosen when the orange was #c47a1e and dark clearly won. Adopting the pressed
+  palette darkened the orange and nobody re-checked: 3.83 dark against 3.89
+  light is a coin flip, which is exactly why it read badly whichever way you
+  called it. A palette change is a contrast change.

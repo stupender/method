@@ -29,8 +29,16 @@ export function DegreeLegend({ root, scale }: { root: Note; scale: ScaleDefiniti
     <ol className="legend" aria-label="What each dot colour means">
       {tones.map((tone, i) => (
         <li className="legend__item" key={i}>
-          <span className={`legend__dot legend__dot--deg${i + 1}`}>{i + 1}</span>
-          <span className="legend__note">{noteName(tone.note)}</span>
+          {/* The dot holds the NOTE, exactly as it does on the neck below, and
+              the degree is the small numeral in front of it. It used to be the
+              other way round — number in the dot, note trailing after it —
+              which made the key's dots a different object from the fretboard's
+              and left you translating between them. Now the row is literally a
+              sample of the neck, with the degree annotating it. */}
+          <span className="legend__degree">{i + 1}</span>
+          <span className={`legend__dot legend__dot--deg${i + 1}`}>
+            {noteName(tone.note)}
+          </span>
         </li>
       ))}
     </ol>
