@@ -1568,3 +1568,12 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   ordered by the note in the BASS — root, 3rd, 5th, 7th. Ordering by inversion
   NUMBER is identical for close voicings, where the two agree, but a drop 2
   lists them 5th, 7th, root, 3rd, which reads like a bug.
+
+- **If colour means something, the chrome can't use colour.** Each hue on this
+  page is a scale degree — so an accent that is also a hue is a second,
+  contradictory colour language. Measured, the terracotta accent sat 14 ΔE from
+  the 1st degree's red and the amber night accent 15 from the 2nd degree's
+  orange: nearer than most degrees are to each other, so "this is selected" and
+  "this is the 2nd" looked the same. The accent is neutral ink now (chroma
+  under 8) and emphasis comes from contrast and weight. The seven degrees own
+  the colour.

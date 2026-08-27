@@ -41,8 +41,19 @@
   --note-label: #f4efe3; /* the degree number inside a fretboard dot */
 
   /* ---- PAPER: colour ---------------------------------------------------- */
-  --accent: #ac5e40; /* the style sheet's live accent — terracotta */
-  --accent-bg: rgba(172, 94, 64, 0.12);
+  /* THE ACCENT IS NEUTRAL, and that's the whole point.
+     It was a terracotta, and terracotta is 14 delta-E from the 1st degree's
+     red — close enough to be the same colour. So a page where colour MEANS
+     something (each hue is a scale degree) was also using colour to mean
+     "selected", and the two were indistinguishable: an amber underline could
+     as easily have been announcing the 2nd degree.
+     The seven degrees own the colour on this page. Everything structural —
+     the selected underline, the play buttons, the constellation line — is ink.
+     Emphasis comes from contrast and weight instead, which is what it should
+     have come from all along. Chroma here is 7.5: warm enough to belong to the
+     paper, far too low to read as a hue. */
+  --accent: #4a4238;
+  --accent-bg: rgba(74, 66, 56, 0.10);
   --tint-soft: rgba(31, 28, 23, 0.04); /* barely-there panel wash */
   --tint-mid: rgba(31, 28, 23, 0.08);
   --shadow: rgba(31, 28, 23, 0.16);
@@ -164,8 +175,11 @@
     --on-ink: #14151d;
     --note-label: #14151d;
 
-    --accent: #e8b072; /* the one warm light in the dark field */
-    --accent-bg: rgba(232, 176, 114, 0.14);
+    /* Neutral at night too — see the note on the paper accent. The amber was 15
+       delta-E from the 2nd degree, which is nearer than most of the degrees are
+       to each other. */
+    --accent: #d9d2c4;
+    --accent-bg: rgba(217, 210, 196, 0.14);
     --tint-soft: rgba(236, 231, 220, 0.04);
     --tint-mid: rgba(236, 231, 220, 0.08);
     --shadow: rgba(0, 0, 0, 0.5);
@@ -242,8 +256,11 @@
   --on-ink: #14151d;
   --note-label: #14151d;
 
-  --accent: #e8b072;
-  --accent-bg: rgba(232, 176, 114, 0.14);
+  /* Neutral at night too — see the note on the paper accent. The amber was 15
+     delta-E from the 2nd degree, which is nearer than most of the degrees are
+     to each other. */
+  --accent: #d9d2c4;
+  --accent-bg: rgba(217, 210, 196, 0.14);
   --tint-soft: rgba(236, 231, 220, 0.04);
   --tint-mid: rgba(236, 231, 220, 0.08);
   --shadow: rgba(0, 0, 0, 0.5);
