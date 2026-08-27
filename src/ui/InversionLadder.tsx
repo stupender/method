@@ -32,7 +32,8 @@ import type {
 import { GUITAR } from '../data/instruments';
 import { GUITAR_STANDARD } from '../data/tunings';
 import {
-  placeVoicingAll,
+  placeVoicingByStringSet,
+  isStretch,
   inversionCount,
   voicingName,
 } from '../theory/chord';
@@ -81,7 +82,7 @@ export function InversionLadder({
   // hiding it would quietly delete part of the neck. The header says how many
   // it holds so a short block reads as a fact rather than a bug.
   const perInversion = Array.from({ length: voiceCount }, (_, inv) =>
-    placeVoicingAll(GUITAR, GUITAR_STANDARD, root, chord, structure, inv),
+    placeVoicingByStringSet(GUITAR, GUITAR_STANDARD, root, chord, structure, inv),
   );
   const allSets = new Set<string>();
   for (const shapes of perInversion) for (const s of shapes) allSets.add(stringSetKey(s));
@@ -254,7 +255,11 @@ export function InversionLadder({
                         instrument={GUITAR}
                         tuning={GUITAR_STANDARD}
                         placed={r.shape}
-                        caption={`fr. ${loFret(r.shape)}`}
+                        caption={
+                          isStretch(r.shape)
+                            ? `fr. ${loFret(r.shape)} · a stretch`
+                            : `fr. ${loFret(r.shape)}`
+                        }
                       />
                     </div>
                   ))}

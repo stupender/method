@@ -204,6 +204,9 @@ function skipStringSets(voiceCount: number, stringCount: number): number[][] {
 // voicings stretch much wider on adjacent strings (which is exactly why they
 // belong on skip string sets), so this cutoff routes them there.
 const MAX_SPAN = 4;
+// ...and the widest a hand will actually reach. Between the two lies a real
+// voicing that's a stretch — most close-voiced seventh chords live here.
+const REACH_SPAN = 6;
 
 // Try to place the voicing on each of the given string sets, once per set, at
 // its lowest playable position. (Span is octave-independent for a fixed string
@@ -242,6 +245,13 @@ function placeOnStringSets(
   return shapes;
 }
 
+// Is this grip wider than comfortable? Between MAX_SPAN and REACH_SPAN sit the
+// voicings a hand can reach but wouldn't choose — worth saying out loud on the
+// page rather than letting someone wonder why a shape feels impossible.
+export function isStretch(shape: PlacedNote[]): boolean {
+  return shape.length > 0 && fretSpan(shape) > MAX_SPAN;
+}
+
 // The fret span (stretch) of a shape: highest fret minus lowest.
 function fretSpan(shape: PlacedNote[]): number {
   const frets = shape.map((p) => p.position.fret);
@@ -267,6 +277,83 @@ function leastStretchPerRegister(shapes: PlacedNote[][]): PlacedNote[][] {
     if (!current || fretSpan(shape) < fretSpan(current)) best.set(key, shape);
   }
   return [...best.values()];
+}
+
+// PLACEMENT FOR A STRING-SET-GROUPED PAGE.
+// ----------------------------------------------------------------------------
+// `placeVoicingAll` below answers "where's the best grip for this voicing?" —
+// one shape per REGISTER, the least-stretch one. That's the right question when
+// the neck is the whole answer, and the wrong one for a page whose sections ARE
+// the string sets, because collapsing per register throws away whole sets: a
+// drop 3 starting on the low E can skip the A or stretch up it, and only the
+// winner survived. On a page that asks "show me this chord on E A D G, then on
+// A D G B", deleting one of them looks like the voicing doesn't exist.
+//
+// So this answers the other question: what's the most playable grip on EACH
+// string set? One shape per set, contiguous sets and skipped-string sets alike.
+//
+// The fallback matters as much as the rule. Some voicings — close-voiced
+// seventh chords in their inversions, most of all — don't sit within a
+// comfortable span ANYWHERE; a close 7th with the 3rd in the bass wants six
+// frets. The old code kept a single least-stretch shape for the whole neck,
+// which is why those showed up on the A D G B strings and nowhere else, as if
+// the other two sets couldn't play them. They can; it's a stretch on all three.
+// So when nothing fits comfortably we show the best grip on every contiguous
+// set and let the UI say it's a stretch. Six frets is a real voicing that real
+// guitarists really play — it just isn't a comfortable one.
+export function placeVoicingByStringSet(
+  instrument: Instrument,
+  tuning: Tuning,
+  root: Note,
+  chord: ChordDefinition,
+  structure: VoicingStructure,
+  inversion: number,
+): PlacedNote[][] {
+  const voices = buildVoices(root, chord, structure, inversion);
+  const contiguous = contiguousStringSets(voices.length, instrument.stringCount);
+  const skipping = skipStringSets(voices.length, instrument.stringCount);
+
+  // TWO LIMITS, not one. MAX_SPAN (4 frets) is what's COMFORTABLE; REACH_SPAN
+  // (6) is what a hand can actually do. A single cutoff at 4 was quietly
+  // deciding that real voicings don't exist: a close ii7 in root position wants
+  // five frets across E A D G, so it vanished from that string set while the
+  // Imaj7 — which happens to want four — stayed. Same voicing, same key, and
+  // the string set flickering in and out chord by chord.
+  //
+  // So show every set the hand can reach, and let the UI flag the stretches.
+  // `placeOnStringSets` already emits at most one shape per set (its lowest
+  // playable octave), so there's nothing to collapse.
+  // The reach applies to CONTIGUOUS sets only. A skipped string is there to
+  // make a wide-gap voicing comfortable — if it isn't comfortable there, the
+  // voicing doesn't belong on that set, and allowing stretches let close triads
+  // sprawl onto skipped strings, which is not a close grip by any definition.
+  const reachable = [
+    ...placeOnStringSets(instrument, tuning, voices, contiguous, REACH_SPAN),
+    ...placeOnStringSets(instrument, tuning, voices, skipping, MAX_SPAN),
+  ];
+  if (reachable.length > 0) return sortByStringSet(reachable);
+
+  // Beyond even that: the best grip on each contiguous set, so a hard voicing
+  // still shows everywhere it's possible rather than in one arbitrary place.
+  return sortByStringSet(
+    placeOnStringSets(instrument, tuning, voices, contiguous, Infinity),
+  );
+}
+
+// Low strings first, then by fret — so a page of sets reads up the neck the way
+// the guitar is strung.
+function sortByStringSet(shapes: PlacedNote[][]): PlacedNote[][] {
+  const strings = (shape: PlacedNote[]) =>
+    shape.map((p) => p.position.stringIndex).sort((x, y) => x - y);
+  return [...shapes].sort((a, b) => {
+    const sa = strings(a);
+    const sb = strings(b);
+    for (let i = 0; i < sa.length; i++) {
+      if (sa[i] !== sb[i]) return sa[i] - sb[i];
+    }
+    return Math.min(...a.map((p) => p.position.fret)) -
+      Math.min(...b.map((p) => p.position.fret));
+  });
 }
 
 // Step 4 — place the built voicing on the neck, ONCE PER REGISTER it fits.

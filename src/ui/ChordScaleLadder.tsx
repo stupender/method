@@ -31,7 +31,8 @@ import { GUITAR_STANDARD } from '../data/tunings';
 import { diatonicChords } from '../theory/harmony';
 import { relabelByScale } from '../theory/scale';
 import {
-  placeVoicingAll,
+  placeVoicingByStringSet,
+  isStretch,
 } from '../theory/chord';
 import { midiOf, noteName } from '../theory/notes';
 import { playChord } from '../audio/player';
@@ -95,7 +96,7 @@ export function ChordScaleLadder({
   // chord instead — GRAVITY: ii — and the centre moves to it; that's
   // InversionLadder, where the chord's own labels are the right ones.)
   const placedPerChord = degrees.map((d) =>
-    placeVoicingAll(GUITAR, GUITAR_STANDARD, d.chordRoot, d.chord, structure, inversion).map(
+    placeVoicingByStringSet(GUITAR, GUITAR_STANDARD, d.chordRoot, d.chord, structure, inversion).map(
       (shape) => relabelByScale(root, scale, shape),
     ),
   );
@@ -274,7 +275,11 @@ export function ChordScaleLadder({
                         instrument={GUITAR}
                         tuning={GUITAR_STANDARD}
                         placed={r.shape}
-                        caption={`fr. ${loFret(r.shape)}`}
+                        caption={
+                          isStretch(r.shape)
+                            ? `fr. ${loFret(r.shape)} · a stretch`
+                            : `fr. ${loFret(r.shape)}`
+                        }
                       />
                     </div>
                   ))}

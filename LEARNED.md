@@ -1577,3 +1577,25 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   "this is the 2nd" looked the same. The accent is neutral ink now (chroma
   under 8) and emphasis comes from contrast and weight. The seven degrees own
   the colour.
+
+- **"Best grip per register" and "every string set" are different questions.**
+  `leastStretchPerRegister` answers the first: a drop 3 from the low E can skip
+  the A or stretch up it, keep the better one. Right when the neck is the whole
+  answer — and wrong for a page whose sections ARE the string sets, because it
+  deletes the loser and the voicing looks like it doesn't exist there. Hence
+  `placeVoicingByStringSet`: one shape per SET, not per register.
+
+- **One span limit was doing two jobs.** MAX_SPAN of 4 frets meant "comfortable"
+  AND "possible", so real voicings were being quietly declared nonexistent: a
+  close ii7 in root position wants five frets across E A D G, so it vanished
+  from that set while the Imaj7 — which happens to want four — stayed, and the
+  string set flickered in and out chord by chord. Now REACH_SPAN (6) says what
+  a hand can do, MAX_SPAN says what it enjoys, and anything between is shown
+  and labelled "a stretch". The reach applies to CONTIGUOUS sets only: a
+  skipped string exists to make a wide voicing comfortable, and allowing
+  stretches there let close triads sprawl onto skipped strings.
+
+- **Some of this really is impossible, and the engine was right.** Close
+  seventh chords in inversion still won't fit E A D G: Cmaj7 with the 3rd in
+  the bass would need frets 0, 10, 9, 5 — a ten-fret span. Two string sets is
+  the true answer there, not three.
