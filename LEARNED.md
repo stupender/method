@@ -1748,3 +1748,11 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   its fret number only if the notation voice and the tab voice go through one
   Formatter. Formatting them separately looks fine for a chord (one column) and
   falls apart across a run.
+
+- **Scaling a drawing down shrinks everything in it.** The scale runs were
+  engraved at 860 units and displayed in a 680px row, so at 79% the staff
+  lines, note heads and fret numbers all came down with it — legible on paper,
+  tiny on screen. A system with no fixed width now MEASURES its container and
+  draws at that size, so a staff line is a staff line. The first measurement
+  has to be synchronous (a layout effect), because ResizeObserver only delivers
+  at the end of a rendered frame and never fires at all in a hidden tab.

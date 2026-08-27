@@ -318,7 +318,7 @@ export function ChordScaleLadder({
                       </div>
                       {/* Notation over tablature, joined down the left —
                           one system, the way guitar music is set. */}
-                      <System events={[r.shape]} />
+                      <System events={[r.shape]} width={210} />
                       {/* Where on the neck, and whether it's a reach. The TAB
                           shows the frets; this says which end of the neck they
                           are, which the numbers alone don't. */}

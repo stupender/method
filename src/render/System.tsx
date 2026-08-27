@@ -33,7 +33,7 @@
 //     that would silently produce a wrong-looking TAB if it were missed.
 // ============================================================================
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   Accidental,
   Formatter,
@@ -73,13 +73,49 @@ function vexKey(p: PlacedNote): string {
 
 export function System({
   events,
-  width = 210,
+  width,
 }: {
   // Each entry is one moment: the notes sounding together at it.
   events: PlacedNote[][];
+  /**
+   * Draw at this many units wide. Omit it and the system MEASURES its
+   * container and draws at that size instead — which is the difference between
+   * a scale run rendered at 860 units and squeezed into a 680px row at 79%
+   * (everything shrinks: staff lines, note heads, fret numbers) and one drawn
+   * at 680 in the first place, where a staff line is a staff line.
+   */
   width?: number;
 }) {
   const host = useRef<HTMLDivElement>(null);
+  const [measured, setMeasured] = useState<number | null>(null);
+
+  // Only when no width is given. A chord card wants a fixed engraving that
+  // scales down into its column; a run wants the room it actually has.
+  //
+  // The first measurement is taken SYNCHRONOUSLY in a layout effect rather than
+  // waiting for the ResizeObserver, which only delivers at the end of a
+  // rendered frame — so in a tab that isn't visible it never fires at all and
+  // nothing is ever drawn. The observer then handles later changes, which is
+  // what it's good for.
+  useLayoutEffect(() => {
+    if (width !== undefined) return;
+    const el = host.current;
+    if (!el) return;
+    const w = Math.round(el.getBoundingClientRect().width);
+    if (w > 0) setMeasured(w);
+  }, [width]);
+
+  useEffect(() => {
+    if (width !== undefined) return;
+    const el = host.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => {
+      const w = Math.round(entry.contentRect.width);
+      if (w > 0) setMeasured(w);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [width]);
 
   useEffect(() => {
     const el = host.current;
@@ -92,11 +128,14 @@ export function System({
     // written.
     const duration = moments.length === 1 ? 'w' : '8';
 
+    const drawWidth = width ?? measured;
+    if (!drawWidth) return; // nothing drawn until we know how much room there is
+
     const renderer = new Renderer(el, Renderer.Backends.SVG);
-    renderer.resize(width, HEIGHT);
+    renderer.resize(drawWidth, HEIGHT);
     const ctx = renderer.getContext();
 
-    const staveWidth = width - 2;
+    const staveWidth = drawWidth - 2;
     const stave = new Stave(0, STAFF_TOP, staveWidth);
     // "8vb" is the little 8 under the clef: sounds an octave lower than
     // written, which is what guitar notation means.
@@ -190,7 +229,7 @@ export function System({
     return () => {
       el.innerHTML = '';
     };
-  }, [events, width]);
+  }, [events, width, measured]);
 
   return <div className="system" ref={host} aria-label="Notation and tablature" />;
 }

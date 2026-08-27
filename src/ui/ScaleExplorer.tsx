@@ -279,10 +279,7 @@ export function ScaleExplorer({
             </div>
             {/* The run as notation over tablature — one note per moment, in
                 the order it's played. */}
-            <System
-              events={upAndDown(pos.notes).map((n) => [n])}
-              width={860}
-            />
+            <System events={upAndDown(pos.notes).map((n) => [n])} />
           </div>
         ))}
       </div>
