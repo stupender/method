@@ -594,6 +594,20 @@
   border-radius: 0;
   padding: 4px 14px 8px;
 }
+/* The staff, sitting above the TAB it doubles. Scrolls sideways on its own if
+   a long run outgrows the column, so it can never widen the page. */
+.tab-card__notation,
+.tab-row-staff {
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+.tab-card__notation {
+  padding-left: 4px;
+}
+.tab-row-staff {
+  margin: 2px 0 6px;
+}
+
 /* ALL NOTES — the first row of the position list, and the widest choice in it.
    Styled as a row rather than a card because it has no staff of its own. */
 .tab-allnotes {

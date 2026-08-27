@@ -43,6 +43,7 @@ import { SHOW_PLAY_BUTTONS } from './flags';
 import { DegreeLegend } from './DegreeLegend';
 import { useScrollFocus } from './useScrollFocus';
 import { TabView } from '../render/TabView';
+import { Staff } from '../render/Staff';
 import { useStepper } from './ShapeStepper';
 
 // A stable key for a shape's string set, e.g. "0-1-2-3".
@@ -315,6 +316,11 @@ export function ChordScaleLadder({
                           {r.degree.chord.symbol}
                         </span>
                         <span className="tab-row-roman">{r.degree.roman}</span>
+                      </div>
+                      {/* The same chord twice: where it sits in pitch, then
+                          where your hand goes. */}
+                      <div className="tab-card__notation">
+                        <Staff placed={r.shape} chord />
                       </div>
                       <TabView
                         instrument={GUITAR}

@@ -30,7 +30,7 @@ const LINE_GAP = STEP * 2;
 const STAFF_HEIGHT = LINE_GAP * 4; // five lines
 const HEAD_RX = STEP * 1.15;
 const HEAD_RY = STEP * 0.92;
-const CLEF_WIDTH = 30;
+const CLEF_WIDTH = 34;
 const NOTE_GAP = 22; // between successive notes when they're a sequence
 const PAD_X = 8;
 
@@ -68,8 +68,13 @@ export function Staff({
 
   const notes = [...placed].sort((a, b) => staffStep(a) - staffStep(b));
   const steps = notes.map(staffStep);
-  const lowest = Math.min(...steps, 0);
-  const highest = Math.max(...steps, 8);
+  // The box has to hold the CLEF as well as the notes. A treble clef runs from
+  // below the bottom line to well above the top one — that's what it looks
+  // like — so reserving room only for note heads let it draw straight over the
+  // TAB underneath. These two bounds are the clef's own extent; notes push
+  // them further out when they need to.
+  const lowest = Math.min(...steps, -4);
+  const highest = Math.max(...steps, 12);
 
   // Room for however many ledger lines these notes actually need.
   const padTop = Math.max(0, highest - 8) * STEP + STEP * 2;
@@ -95,7 +100,7 @@ export function Staff({
 
   return (
     <svg
-      className="staff"
+      className="notation"
       viewBox={`0 0 ${width} ${height}`}
       style={{ width, height }}
       role="img"
@@ -105,7 +110,7 @@ export function Staff({
       {[0, 2, 4, 6, 8].map((step) => (
         <line
           key={step}
-          className="staff__line"
+          className="notation__line"
           x1={PAD_X}
           x2={width - PAD_X}
           y1={y(step)}
@@ -114,10 +119,10 @@ export function Staff({
       ))}
 
       {/* Treble clef, with the 8 that says "sounds an octave lower". */}
-      <text className="staff__clef" x={PAD_X + 2} y={y(2)}>
+      <text className="notation__clef" x={PAD_X + 2} y={y(2)}>
         𝄞
       </text>
-      <text className="staff__octave" x={PAD_X + 13} y={y(-3)}>
+      <text className="notation__octave" x={PAD_X + 13} y={y(-3)}>
         8
       </text>
 
@@ -131,7 +136,7 @@ export function Staff({
             return (
               <line
                 key={`${step}-${i}`}
-                className="staff__ledger"
+                className="notation__ledger"
                 x1={x - HEAD_RX - 3}
                 x2={x + HEAD_RX + 3}
                 y1={y(step)}
@@ -153,11 +158,11 @@ export function Staff({
         return (
           <g key={i}>
             {n.note.accidental !== 0 && (
-              <text className="staff__accidental" x={x - HEAD_RX - 4} y={y(step)}>
+              <text className="notation__accidental" x={x - HEAD_RX - 4} y={y(step)}>
                 {ACCIDENTAL[n.note.accidental]}
               </text>
             )}
-            <ellipse className="staff__head" cx={x} cy={y(step)} rx={HEAD_RX} ry={HEAD_RY} />
+            <ellipse className="notation__head" cx={x} cy={y(step)} rx={HEAD_RX} ry={HEAD_RY} />
           </g>
         );
       })}

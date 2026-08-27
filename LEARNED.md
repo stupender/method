@@ -1683,3 +1683,18 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   grip per register, least stretch, with a fret-and-a-half penalty on skipping
   a string: enough that a drop 3 (which turns a six-fret stretch into a
   one-fret grab) still wins, and a drop 2 never does.
+
+- **Global class names are a shared namespace.** The new staff renderer took
+  the class `.staff` — which the Song score already owned, and had set to
+  `position: absolute`. The SVG left the flow and printed itself across the TAB
+  below, which looked exactly like a layout bug in the new file. Half an hour
+  went into the wrong file. Grep for a class name before claiming it.
+
+- **A staff is what our Note already is.** `letter + octave` IS a staff
+  position — that's the whole reason the app stores spelling rather than pitch
+  classes, and it means a notation library would convert our notes into its own
+  format only to convert them back into the positions we started with. VexFlow
+  earns its keep on rhythm, beaming and voices; for note heads on lines this is
+  150 lines and no dependency. (The clef glyph does need a real music font:
+  system fonts don't reliably carry the Musical Symbols block, so Noto Music
+  comes from the Google Fonts link that was already there.)
