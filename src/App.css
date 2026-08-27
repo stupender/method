@@ -450,23 +450,31 @@
   padding-bottom: 2px;
   transition: border-color 0.12s ease;
 }
-/* In a filled row the rule spans its CELL rather than hugging the word — a
-   6px underline beneath "I" looks like a mistake — but it's capped so a
-   two-option row doesn't draw a half-page rule under one short word. Between
-   those two failures, ~130px is the width that reads as deliberate at every
-   row size. */
+/* THE RULE HUGS ITS WORD, with a floor under it.
+   Two failures to steer between. Hugging exactly gives "I" a 6px stub that
+   reads as a rendering bug. Spanning the whole cell (the previous fix, capped
+   at 130px) makes the rule a property of the COLUMN rather than of the word —
+   under a short label it floats off on both sides, attached to nothing.
+   So: the word's own width plus a little air, and a minimum width so the
+   Roman numerals still get a rule you'd draw on purpose. */
 .seg--fill .seg__label {
-  display: block;
-  width: 100%;
-  max-width: 130px;
-  margin: 0 auto;
+  display: inline-block;
+  width: auto;
+  min-width: 46px;
+  max-width: 100%;
+  padding-left: 9px;
+  padding-right: 9px;
+  /* A long name in a narrow column truncates on the LABEL, not the button —
+     the rule has to end where the visible text ends. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .seg--fill .seg__btn {
   padding-left: 4px;
   padding-right: 4px;
   min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 .seg__btn:hover {
   color: var(--ink);
