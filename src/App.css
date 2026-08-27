@@ -594,6 +594,23 @@
   border-radius: 0;
   padding: 4px 14px 8px;
 }
+/* ALL NOTES — the first row of the position list, and the widest choice in it.
+   Styled as a row rather than a card because it has no staff of its own. */
+.tab-allnotes {
+  background: var(--bg);
+  padding: 4px 14px 8px;
+  cursor: pointer;
+}
+.tab-allnotes--on .tab-row-mark {
+  background: var(--tick-fill);
+  border-color: var(--tick-ring);
+  box-shadow: var(--tick-glow);
+}
+.tab-allnotes--on .tab-row-title,
+.tab-allnotes:hover .tab-row-title {
+  color: var(--ink);
+}
+
 /* A row's header — a track listing: its own play button, then its name, sitting
    ABOVE the staff it describes. The button is a circle because that's the
    boards' shape language; everything rectangular here is a printed block. */
@@ -665,10 +682,19 @@
 
 /* No background wash on a selected row — a table of tracks should sit still,
    and a tinted row reads as "something is happening here" when nothing is.
-   Selection gets a quiet bar in the margin; the ACCENT bar is reserved for the
-   row that's actually sounding, so the loud signal means playback. */
+   Selection is the LAMP in front of the row's name, the same mark the chord
+   cards and every control in the app use. (It was a bar in the left margin,
+   which worked here — these rows are one per line — but meant the app had two
+   different ways of saying "this one is chosen". The accent bar below is still
+   reserved for the row that's actually sounding, so the loud signal means
+   playback and nothing else.) */
 .tab-shelf.tab-shelf--lines .tab-card--on {
-  box-shadow: inset 3px 0 0 var(--line);
+  box-shadow: none;
+}
+.tab-shelf--lines .tab-card--on .tab-row-mark {
+  background: var(--tick-fill);
+  border-color: var(--tick-ring);
+  box-shadow: var(--tick-glow);
 }
 .tab-shelf.tab-shelf--lines .tab-card--playing {
   box-shadow: inset 3px 0 0 var(--accent);

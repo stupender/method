@@ -74,7 +74,13 @@ export function ScaleExplorer({
   // floating neck becomes the shape the neck shows. Re-measures whenever the
   // list changes length, which is when the old measurements stop meaning
   // anything.
-  const focusRef = useScrollFocus(positions.length, setPinnedShape);
+  const focusRef = useScrollFocus(positions.length, (i) => {
+    setPinnedShape(i);
+    // Scrolling onto a position is choosing it, so it leaves "All notes".
+    // Only when the focused row actually CHANGES, which is the hook's own
+    // rule — a nudge within one position doesn't count as picking another.
+    if (i !== null) setShowAll(false);
+  });
 
   // The run as it's read and played: up, then back down, with the top note
   // sounded once rather than twice at the turn.
@@ -188,19 +194,6 @@ export function ScaleExplorer({
             onChange={setFingering}
           />
         </div>
-
-        {/* Row 2 — one box, or all of them at once. */}
-        <div className="controls-row">
-          <button
-            className={showAll ? 'pill pill--on' : 'pill'}
-            onClick={() => {
-              setShowAll((v) => !v);
-              setPinnedShape(null);
-            }}
-          >
-            All positions
-          </button>
-        </div>
       </div>
 
       <div className="workbench">
@@ -235,6 +228,22 @@ export function ScaleExplorer({
           button, like a track listing. Scrolling a row under the floating neck
           is what lights it: reading down the page walks the positions. */}
       <div className="tab-shelf tab-shelf--lines">
+        {/* ALL NOTES — the whole scale at once, as the first row of the list
+            rather than a loose button above the neck. It belongs here: it's the
+            same kind of choice as the positions under it, one step wider, and
+            it sits where Harmony puts its string-set heading. */}
+        <div
+          className={showAll ? 'tab-allnotes tab-allnotes--on' : 'tab-allnotes'}
+          onClick={() => {
+            setShowAll(true);
+            setPinnedShape(null);
+          }}
+        >
+          <div className="tab-row-head">
+            <span className="tab-row-mark" aria-hidden="true" />
+            <span className="tab-row-title">All notes</span>
+          </div>
+        </div>
         {positions.map((pos, i) => (
           <div
             key={i}
@@ -244,9 +253,15 @@ export function ScaleExplorer({
               (i === activeShape ? ' tab-card--on' : '') +
               (playing === i ? ' tab-card--playing' : '')
             }
-            onClick={() => setPinnedShape(i)}
+            onClick={() => {
+              setShowAll(false);
+              setPinnedShape(i);
+            }}
           >
             <div className="tab-row-head">
+              {/* Same lamp as everything else — see the note in the ladders on
+                  why the margin bar went. */}
+              <span className="tab-row-mark" aria-hidden="true" />
               {SHOW_PLAY_BUTTONS && (
                 <button
                   className="tab-play"
