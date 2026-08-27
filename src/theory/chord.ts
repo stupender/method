@@ -331,13 +331,47 @@ export function placeVoicingByStringSet(
     ...placeOnStringSets(instrument, tuning, voices, contiguous, REACH_SPAN),
     ...placeOnStringSets(instrument, tuning, voices, skipping, MAX_SPAN),
   ];
-  if (reachable.length > 0) return sortByStringSet(reachable);
+  if (reachable.length > 0) return sortByStringSet(bestPerRegister(reachable));
 
   // Beyond even that: the best grip on each contiguous set, so a hard voicing
   // still shows everywhere it's possible rather than in one arbitrary place.
   return sortByStringSet(
     placeOnStringSets(instrument, tuning, voices, contiguous, Infinity),
   );
+}
+
+// ONE GRIP PER REGISTER, and a skipped string has to EARN its place.
+//
+// A "register" is the lowest string the voicing starts on. Within one, the
+// guitar usually offers several ways to hold the same notes — E A D G, or E A G
+// B, or E D G B — and they are not equally good. Listing them all was the
+// mistake: a drop 2 came out with five string sets, three of which were
+// awkward novelties nobody would choose, and blocks appeared holding a single
+// chord because only one inversion happened to fit some odd skip.
+//
+// So: the least-stretch grip wins its register, and a SKIPPED string carries a
+// penalty — it must be more than a fret and a half easier than the adjacent
+// grip to be worth showing. That's the difference between a drop 3, where
+// skipping the A string turns a six-fret stretch into a one-fret grab, and a
+// drop 2, where skipping just makes an easy shape harder.
+//
+// This is the placement principle from CLAUDE.md, restored: it was removed
+// wholesale to fix a different bug (the chord scale needed every string set,
+// not the best one), which threw out the rule along with the problem.
+const SKIP_PENALTY = 1.5;
+function bestPerRegister(shapes: PlacedNote[][]): PlacedNote[][] {
+  const cost = (shape: PlacedNote[]) => {
+    const strings = shape.map((p) => p.position.stringIndex).sort((a, b) => a - b);
+    const adjacent = strings.every((s, i) => i === 0 || s === strings[i - 1] + 1);
+    return fretSpan(shape) + (adjacent ? 0 : SKIP_PENALTY);
+  };
+  const best = new Map<number, PlacedNote[]>();
+  for (const shape of shapes) {
+    const register = Math.min(...shape.map((p) => p.position.stringIndex));
+    const current = best.get(register);
+    if (!current || cost(shape) < cost(current)) best.set(register, shape);
+  }
+  return [...best.values()];
 }
 
 // Low strings first, then by fret — so a page of sets reads up the neck the way

@@ -1660,3 +1660,26 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   live outside a thing need the thing to own its whole line; otherwise put the
   mark inside it. The chord cards use the lamp in front of the name, with its
   space reserved whether lit or not so selecting doesn't nudge the row.
+
+- **Number a list AFTER you sort it.** The inversion grid assigned each row an
+  index, then sorted the rows by fret, then built the fretboard's array from
+  the sorted rows — so a card's index pointed at whatever shape used to be in
+  that slot. On the D G B E strings, clicking "7th in bass" lit root position.
+  Nothing on screen looked wrong; both halves were individually plausible. The
+  fix is structural: a row's index IS its position in the array the fretboard
+  is handed, taken from that array. theory/agree.ts then checks it out loud in
+  development, because this class of bug is invisible by construction.
+
+- **Group by what stays the same.** Grouping voicings by exact string set
+  shattered open triads into seven blocks, several holding one chord — because
+  which string an open voicing skips depends on the inversion. Grouping by
+  REGISTER (the string it starts from) keeps the voicing whole: three or four
+  blocks, each holding every inversion playable from that string. For close and
+  drop-2 grips, register and string set are the same thing, so nothing changes
+  there.
+
+- **A skipped string has to earn its place.** Offering every physically
+  playable set gave a drop 2 five of them, three being awkward novelties. One
+  grip per register, least stretch, with a fret-and-a-half penalty on skipping
+  a string: enough that a drop 3 (which turns a six-fret stretch into a
+  one-fret grab) still wins, and a drop 2 never does.

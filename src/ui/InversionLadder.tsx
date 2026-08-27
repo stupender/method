@@ -39,6 +39,7 @@ import {
   voicingName,
 } from '../theory/chord';
 import { midiOf, noteName } from '../theory/notes';
+import { checkRowsAgree } from '../theory/agree';
 import { playChord } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
 import { NeckPanel } from './NeckPanel';
@@ -48,8 +49,6 @@ import { useScrollFocus } from './useScrollFocus';
 import { TabView } from '../render/TabView';
 import { useStepper } from './ShapeStepper';
 
-const stringSetKey = (shape: PlacedNote[]) =>
-  shape.map((p) => p.position.stringIndex).sort((a, b) => a - b).join('-');
 const loFret = (shape: PlacedNote[]) =>
   shape.length ? Math.min(...shape.map((p) => p.position.fret)) : 0;
 
@@ -83,39 +82,59 @@ export function InversionLadder({
 
   const voiceCount = inversionCount(chord);
 
-  // Every inversion's placements, then every string set any of them lands on.
-  // We deliberately DON'T hide the sets that can't hold all of them: a set that
-  // takes only one inversion is still a real place to play the chord, and
-  // hiding it would quietly delete part of the neck. The header says how many
-  // it holds so a short block reads as a fact rather than a bug.
+  // GROUP BY REGISTER, NOT BY EXACT STRING SET.
+  //
+  // A "register" is the lowest string the grip starts on — from the low E, from
+  // the A, from the D. For close and drop-2 voicings that's the same thing as
+  // the string set, because those sit on adjacent strings and a register has
+  // only one of those. For OPEN triads and drop 3 it isn't: which string the
+  // skip falls on depends on the inversion, so root position might want E D G
+  // while the 2nd inversion wants E A G.
+  //
+  // Grouping by exact set turned that into seven blocks, several holding a
+  // single chord — the same voicing shattered across the page by an accident
+  // of which string it skipped. Grouped by register there are three or four
+  // blocks, each holding every inversion that can be played from that string,
+  // which is what a guitarist means by "the same shape further up".
   const perInversion = Array.from({ length: voiceCount }, (_, inv) =>
     placeVoicingByStringSet(GUITAR, GUITAR_STANDARD, root, chord, structure, inv),
   );
-  const allSets = new Set<string>();
-  for (const shapes of perInversion) for (const s of shapes) allSets.add(stringSetKey(s));
-  const commonSets = [...allSets]
-    // Low strings first, so the blocks read up the neck the way the guitar is
-    // strung: E A D, then A D G, and so on.
-    .sort((a, b) => Number(a.split('-')[0]) - Number(b.split('-')[0]));
+  const registerOf = (shape: PlacedNote[]) =>
+    Math.min(...shape.map((p) => p.position.stringIndex));
+  const registers = [
+    ...new Set(perInversion.flatMap((shapes) => shapes.map(registerOf))),
+  ].sort((a, b) => a - b);
 
-  // Build the blocks, numbering every row as we go so the fretboard and the
-  // keyboard stepper can address them all with one flat index.
-  let counter = 0;
-  const groups = commonSets.map((key) => {
-    const rows = [];
+  // Build the blocks. NUMBERING COMES LAST, and that matters: the rows are
+  // sorted by fret after they're built, and numbering them before that sort
+  // meant a card's index pointed at whatever shape used to be in that slot.
+  // On the D G B E strings you'd click "7th in bass" and the neck would light
+  // root position. The index is now literally the row's position in the array
+  // that becomes `shapes`, so the two cannot disagree.
+  const groups = registers.map((register) => {
+    const rows: { inv: number; shape: PlacedNote[] }[] = [];
     for (let inv = 0; inv < voiceCount; inv++) {
-      // The lowest placement of this inversion on this set.
-      const candidates = perInversion[inv].filter((s) => stringSetKey(s) === key);
+      const candidates = perInversion[inv].filter((s) => registerOf(s) === register);
       if (candidates.length === 0) continue;
+      // placeVoicingByStringSet already kept only the best grip per register,
+      // so there's at most one here; take the lowest if that ever changes.
       const shape = candidates.reduce((a, b) => (loFret(a) <= loFret(b) ? a : b));
-      rows.push({ inv, shape, index: counter++ });
+      rows.push({ inv, shape });
     }
     rows.sort((a, b) => loFret(a.shape) - loFret(b.shape));
-    return { key, rows };
+    return { key: String(register), rows };
   });
 
   const flat = groups.flatMap((g) => g.rows);
   const shapes = flat.map((r) => r.shape);
+  // One source of truth for "which shape is this row": its own position in the
+  // list the fretboard is handed.
+  const indexOf = new Map(flat.map((row, i) => [row, i]));
+  checkRowsAgree(
+    'InversionLadder',
+    flat.map((row) => ({ shape: row.shape, index: indexOf.get(row)! })),
+    shapes,
+  );
 
   // SCROLLING IS THE SELECTION. The unit here is the string-set BLOCK, not the
   // single card: the cards sit side by side in a row, so scrolling past them
@@ -127,7 +146,7 @@ export function InversionLadder({
   const focusRef = useScrollFocus(groups.length, setFocusedSet);
   const litShapes =
     focusedSet !== null && groups[focusedSet]
-      ? groups[focusedSet].rows.map((r) => r.index)
+      ? groups[focusedSet].rows.map((r) => indexOf.get(r)!)
       : null;
 
   const stopAll = () => {
@@ -164,7 +183,7 @@ export function InversionLadder({
     g.rows.forEach((r, n) => {
       timers.current.push(
         window.setTimeout(() => {
-          setPinned(r.index);
+          setPinned(indexOf.get(r)!);
           playShape(r.shape);
           if (n === g.rows.length - 1) {
             timers.current.push(window.setTimeout(() => setPlayingSet(null), STEP_MS));
@@ -180,8 +199,21 @@ export function InversionLadder({
   const viewRef = useRef<HTMLDivElement>(null);
   useStepper(viewRef, flat.length, pinned, selectRow);
 
-  const setLabel = (key: string) =>
-    key.split('-').map((i) => noteName(GUITAR_STANDARD.openNotes[+i])).join(' ');
+  const stringNames = (shape: PlacedNote[]) =>
+    shape
+      .map((p) => p.position.stringIndex)
+      .sort((a, b) => a - b)
+      .map((i) => noteName(GUITAR_STANDARD.openNotes[i]))
+      .join(' ');
+  // Name a block by its strings when every inversion in it uses the same ones —
+  // which is the usual case. When they differ (an open voicing skipping a
+  // different string per inversion) naming one set would be a lie, so it's
+  // named by where it starts instead.
+  const groupLabel = (g: { key: string; rows: { shape: PlacedNote[] }[] }) => {
+    const names = new Set(g.rows.map((r) => stringNames(r.shape)));
+    if (names.size === 1) return [...names][0];
+    return `from ${noteName(GUITAR_STANDARD.openNotes[Number(g.key)])}`;
+  };
 
   return (
     <>
@@ -204,7 +236,7 @@ export function InversionLadder({
               legend={<DegreeLegend root={gravity.root} scale={gravity.scale} />}
               aside={
                 focusedSet !== null && groups[focusedSet]
-                  ? `${setLabel(groups[focusedSet].key)} strings`
+                  ? `${groupLabel(groups[focusedSet])} strings`
                   : undefined
               }
             >
@@ -246,7 +278,7 @@ export function InversionLadder({
                   {SHOW_PLAY_BUTTONS && (
                     <button
                       className="tab-play"
-                      aria-label={`${playingSet === g.key ? 'Stop' : 'Play'} the ${setLabel(g.key)} strings`}
+                      aria-label={`${playingSet === g.key ? 'Stop' : 'Play'} the ${groupLabel(g)} strings`}
                       onClick={(e) => {
                         e.stopPropagation(); // selecting the set is the header's job
                         toggleSet(g);
@@ -255,7 +287,7 @@ export function InversionLadder({
                       {playingSet === g.key ? '❙❙' : '▶'}
                     </button>
                   )}
-                  <span className="voicing-set__name">{setLabel(g.key)}</span>
+                  <span className="voicing-set__name">{groupLabel(g)}</span>
                   <span className="voicing-set__note">
                     {g.rows.length === voiceCount
                       ? 'strings'
@@ -266,11 +298,12 @@ export function InversionLadder({
                 <div className="tab-shelf">
                   {g.rows.map((r) => (
                     <div
-                      key={r.index}
+                      key={indexOf.get(r)}
                       className={
-                        'tab-card' + (r.index === pinned ? ' tab-card--on' : '')
+                        'tab-card' +
+                        (indexOf.get(r) === pinned ? ' tab-card--on' : '')
                       }
-                      onClick={() => selectRow(r.index)}
+                      onClick={() => selectRow(indexOf.get(r)!)}
                     >
                       <div className="tab-row-head">
                         {/* The selected mark is a lit dot in front of the
@@ -286,7 +319,7 @@ export function InversionLadder({
                             aria-label={`Play ${voicingName(chord, structure, r.inv)}`}
                             onClick={(e) => {
                               e.stopPropagation(); // selecting is the row's own job
-                              playRow(r.index);
+                              playRow(indexOf.get(r)!);
                             }}
                           >
                             ▶

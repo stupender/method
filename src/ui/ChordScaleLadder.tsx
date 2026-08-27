@@ -35,6 +35,7 @@ import {
   isStretch,
 } from '../theory/chord';
 import { midiOf, noteName } from '../theory/notes';
+import { checkRowsAgree } from '../theory/agree';
 import { playChord } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
 import { NeckPanel } from './NeckPanel';
@@ -138,6 +139,10 @@ export function ChordScaleLadder({
 
   const flat = groups.flatMap((g) => g.rows);
   const shapes = flat.map((r) => r.shape);
+  // These rows are numbered in the order they're built and never re-sorted, so
+  // they agree by construction — but the inversion grid also looked like it
+  // agreed by construction, right up until it didn't.
+  checkRowsAgree('ChordScaleLadder', flat, shapes);
 
   // SCROLLING IS THE SELECTION. The unit here is the string-set BLOCK, not the
   // single card: the cards sit side by side in a row, so scrolling past them

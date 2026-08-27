@@ -30,6 +30,9 @@
   --surface-sunk: #ded6c2; /* a recessed groove (segmented tracks) */
   --neck: #e6dfcd; /* the fretboard's own surface */
   --line: #d9d2c0; /* hairlines, fret wires */
+  /* Clefs and accidentals. Falls back to serif, which has ♯ ♭ ♮ nearly
+     everywhere even when it lacks the clef. */
+  --music: 'Noto Music', serif;
   --tab-line: #cfc7b1; /* TAB string lines */
   --string: #b3a892; /* the strings on the neck */
   --inlay: #ded5bd; /* position-marker dots */
