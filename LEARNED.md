@@ -1535,3 +1535,23 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   the whole key, one degree = one chord). Two controls for one fact means they
   can disagree, and then the page is wrong in a way no one can see. Derived it
   instead.
+
+
+- **Measure the palette, don't squint at it.** "The orange and yellow are very
+  close" at night measured as ΔE 16 in CIELAB — and the same check found a
+  worse pair nobody had noticed, indigo and violet at 12 (about 20 is where
+  two swatches stop being confusable). The fix wasn't new hues but more of the
+  hue circle: ROYGBIV crowds both ends, red-to-yellow and blue-to-violet, so
+  those runs got opened up. Maximising separation outright produces neon —
+  capping chroma at 33 keeps it riso and still lands every neighbouring pair at
+  26 or better.
+
+- **The label flips with the ground.** Paper has dark dots and light labels.
+  Night has LIGHT dots on a dark page, so it needs dark labels — but it had
+  inherited the paper rule unchanged, printing light text on light dots at
+  about 2:1. Whenever a theme inverts, check the things sitting ON the inverted
+  thing, not just the thing itself.
+
+- **`overflow: hidden` kills `position: sticky`.** The workbench wants clipped
+  corners and holds a floating neck; you cannot have both from the same
+  element. Children square off their own corners instead.

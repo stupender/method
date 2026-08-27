@@ -708,6 +708,56 @@
 }
 
 /* ==========================================================================
+   THE WORKBENCH — the neck and its list, as ONE printed block
+   --------------------------------------------------------------------------
+   They were separate boxes with their own rounded corners, stacked with gaps,
+   which read as a pile of cards rather than one instrument. Now it's the
+   CONTROLS shape at full size: a single outlined block whose SECTIONS are
+   divided by hairlines. The neck is the darker part at the top — the same
+   relationship the CONTROLS panel has with its title strip — and every group
+   of TAB below it is a section ruled off from the next.
+
+   Note there's no `overflow: hidden` here, however tempting for the corners:
+   it would clip the sticky neck to this box's scroll range and stop it
+   floating. Children square off their own corners instead.
+   ========================================================================== */
+.workbench {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--bg);
+  margin-top: 22px;
+}
+/* Inside the workbench the neck loses its own frame and becomes the top
+   section: darker ground, ruled off from what follows. */
+.workbench .neckpanel {
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 4px 4px 0 0;
+  background: var(--surface);
+}
+.workbench .neckpanel__head {
+  border-bottom: 0;
+  background: transparent;
+}
+/* Sections, not boxes: no frames of their own, just a rule before the next. */
+.workbench .voicing-sets {
+  display: block;
+}
+.workbench .voicing-set {
+  border: 0;
+  border-radius: 0;
+  border-top: 1px solid var(--line);
+  padding: 0 14px 14px;
+}
+.workbench .voicing-set:first-child {
+  border-top: 0;
+}
+.workbench .tab-shelf.tab-shelf--lines {
+  border: 0;
+  border-radius: 0;
+}
+
+/* ==========================================================================
    THE FLOATING NECK
    --------------------------------------------------------------------------
    Same printed-block language as CONTROLS — eyebrow in the margin, one
@@ -747,14 +797,10 @@
   font-size: 14px;
   color: var(--ink);
 }
-/* The list joins the neck above it: no gap, and its own top corners squared
-   off where they meet. */
+/* The list joins the neck above it. */
 .neckpanel + .voicing-sets,
 .neckpanel + .tab-shelf {
   margin-top: 0;
-}
-.neckpanel + .tab-shelf.tab-shelf--lines {
-  border-radius: 0 0 4px 4px;
 }
 
 /* STRING-SET BLOCKS — the inversion grid. Each set is one printed block with

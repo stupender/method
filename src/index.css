@@ -184,24 +184,36 @@
     --fn-borrowed: #4fb3c9;
     --fn-tritone: #9a92e0;
 
-    --deg-1: #d9846a;
-    --deg-2: #dba666;
-    --deg-3: #c0a044;
-    --deg-4: #94bc85;
-    --deg-5: #5b9fbd;
-    --deg-6: #a3a7d1;
-    --deg-7: #b99bc6;
-  /* Pressed the other way: at night the inks are LIGHT, so two of them meeting
-     brightens rather than darkens. Flat versions: #cf9152 / #74ad63 /
-     #7b85c9 / #a382bd. */
+    --deg-1: #be7173;
+    --deg-2: #c49166;
+    --deg-3: #d2c889;
+    --deg-4: #76a371;
+    --deg-5: #43aad0;
+    --deg-6: #a6aae6;
+    --deg-7: #b37ba9;
+  /* THE NIGHT RAMP, spaced by measurement rather than by eye. The old set had
+     orange and yellow only 16 ΔE apart and indigo and violet 12 — close enough
+     that two dots on the same fret could read as one colour. Same ROYGBIV
+     order, but with the crowded ends opened up (red-to-yellow and
+     blue-to-violet both had too little of the hue circle between them), every
+     neighbouring pair now at least 26 ΔE apart, and chroma capped so it stays
+     riso rather than going neon. Yellow keeps its lightness on purpose: a dark
+     yellow is an olive.
 
-    --deg-1-ink: var(--note-label);
-    --deg-2-ink: var(--note-label);
-    --deg-3-ink: var(--note-label);
-    --deg-4-ink: var(--note-label);
-    --deg-5-ink: var(--note-label);
-    --deg-6-ink: var(--note-label);
-    --deg-7-ink: var(--note-label);
+     And the LABEL FLIPS. At night the dots are light and the page is dark, so
+     dark ink is the readable choice on all seven. The old set inherited the
+     paper rule — light ink, dark on the two palest — which put a light label
+     on a light dot at about 2:1. Dark ink is 4.7:1 at worst.
+
+     Previous values: #d9846a #dba666 #c0a044 #94bc85 #5b9fbd #a3a7d1 #b99bc6. */
+
+    --deg-1-ink: #201a12;
+    --deg-2-ink: #201a12;
+    --deg-3-ink: #201a12;
+    --deg-4-ink: #201a12;
+    --deg-5-ink: #201a12;
+    --deg-6-ink: #201a12;
+    --deg-7-ink: #201a12;
 
     --correct: #6fa564;
     --wrong: #d9695c;
@@ -250,24 +262,36 @@
   --fn-borrowed: #4fb3c9;
   --fn-tritone: #9a92e0;
 
-  --deg-1: #d9846a;
-  --deg-2: #dba666;
-  --deg-3: #c0a044;
-  --deg-4: #94bc85;
-  --deg-5: #5b9fbd;
-  --deg-6: #a3a7d1;
-  --deg-7: #b99bc6;
-  /* Pressed the other way: at night the inks are LIGHT, so two of them meeting
-     brightens rather than darkens. Flat versions: #cf9152 / #74ad63 /
-     #7b85c9 / #a382bd. */
+  --deg-1: #be7173;
+  --deg-2: #c49166;
+  --deg-3: #d2c889;
+  --deg-4: #76a371;
+  --deg-5: #43aad0;
+  --deg-6: #a6aae6;
+  --deg-7: #b37ba9;
+  /* THE NIGHT RAMP, spaced by measurement rather than by eye. The old set had
+     orange and yellow only 16 ΔE apart and indigo and violet 12 — close enough
+     that two dots on the same fret could read as one colour. Same ROYGBIV
+     order, but with the crowded ends opened up (red-to-yellow and
+     blue-to-violet both had too little of the hue circle between them), every
+     neighbouring pair now at least 26 ΔE apart, and chroma capped so it stays
+     riso rather than going neon. Yellow keeps its lightness on purpose: a dark
+     yellow is an olive.
 
-  --deg-1-ink: var(--note-label);
-  --deg-2-ink: var(--note-label);
-  --deg-3-ink: var(--note-label);
-  --deg-4-ink: var(--note-label);
-  --deg-5-ink: var(--note-label);
-  --deg-6-ink: var(--note-label);
-  --deg-7-ink: var(--note-label);
+     And the LABEL FLIPS. At night the dots are light and the page is dark, so
+     dark ink is the readable choice on all seven. The old set inherited the
+     paper rule — light ink, dark on the two palest — which put a light label
+     on a light dot at about 2:1. Dark ink is 4.7:1 at worst.
+
+     Previous values: #d9846a #dba666 #c0a044 #94bc85 #5b9fbd #a3a7d1 #b99bc6. */
+
+  --deg-1-ink: #201a12;
+  --deg-2-ink: #201a12;
+  --deg-3-ink: #201a12;
+  --deg-4-ink: #201a12;
+  --deg-5-ink: #201a12;
+  --deg-6-ink: #201a12;
+  --deg-7-ink: #201a12;
 
   --correct: #6fa564;
   --wrong: #d9695c;

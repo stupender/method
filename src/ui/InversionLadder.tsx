@@ -207,7 +207,8 @@ export function InversionLadder({
         </p>
       ) : (
         <>
-          <NeckPanel
+          <div className="workbench">
+        <NeckPanel
             aside={focusedSet !== null && groups[focusedSet] ? `${setLabel(groups[focusedSet].key)} strings` : undefined}
           >
             <Fretboard
@@ -278,6 +279,7 @@ export function InversionLadder({
               </section>
             ))}
           </div>
+        </div>
 
           <footer className="footnote">
             {noteName(root)}

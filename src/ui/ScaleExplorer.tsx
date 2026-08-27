@@ -201,7 +201,8 @@ export function ScaleExplorer({
         </div>
       </div>
 
-      <NeckPanel aside={activeShape != null ? positions[activeShape]?.name : undefined}>
+      <div className="workbench">
+        <NeckPanel aside={activeShape != null ? positions[activeShape]?.name : undefined}>
         <Fretboard
           instrument={GUITAR}
           tuning={GUITAR_STANDARD}
@@ -262,6 +263,7 @@ export function ScaleExplorer({
           </div>
         ))}
       </div>
+    </div>
     </>
   );
 }

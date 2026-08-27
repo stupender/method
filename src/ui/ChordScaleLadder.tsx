@@ -241,7 +241,8 @@ export function ChordScaleLadder({
         </p>
       ) : (
         <>
-          <NeckPanel
+          <div className="workbench">
+        <NeckPanel
             aside={focusedSet !== null && groups[focusedSet] ? `${setLabel(groups[focusedSet].key)} strings` : undefined}
           >
             <Fretboard
@@ -311,6 +312,7 @@ export function ChordScaleLadder({
               </section>
             ))}
           </div>
+        </div>
 
           <footer className="footnote">
             The whole key harmonised, on every string set that holds all seven

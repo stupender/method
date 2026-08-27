@@ -63,6 +63,14 @@ function layer — build once, reuse everywhere.
 
 ## Held for later — decided but deliberately not built yet
 
+- **Zoom the floating neck — MOBILE ONLY, and near the end.** As you scroll,
+  zoom the neck to the frets that matter for the section you're on. Deferred
+  deliberately: keeping all six strings visible while narrowing the fret range
+  necessarily makes the neck TALLER (fewer frets across the same width means
+  everything grows), which is right on a phone and wrong on a desktop where
+  the floating panel would eat the screen. So: phone widths only, and last.
+  Decided 2026-08-26.
+
 - **Inversion colouring.** When an inversion is selected, colour it in shades
   rather than flat degree colours. Two readings, and Stu hasn't picked:
   (a) shades of the chord's GRAVITY degree, so all of ii's inversions are
