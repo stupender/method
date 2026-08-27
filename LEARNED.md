@@ -1619,3 +1619,19 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   on one side. The CELL clips (so a long name can't spill into its neighbour)
   and the text truncates; the box between them, which holds the mark, never
   clips.
+
+- **A reference you have to open is a reference you don't consult.** The scale's
+  name sat in the gap above the neck and scrolled away; the colour key hid in a
+  drawer behind a button. Both failed at the only moment they mattered — mid-
+  phrase, having forgotten which key you're in. They're pinned to the floating
+  neck now, which also fills the dead space between CONTROLS and the fretboard
+  with the two things that were missing from it.
+
+- **SVG paints in document order.** The constellation line ran across the faces
+  of the dots in scale mode and under them in chord mode, because chord shapes
+  draw their own notes inside the same group after the line, while scale mode
+  drew the whole note layer first. One order for both: shapes, then notes.
+
+- **Deleting CSS by scanning to the next comment deletes more than you meant.**
+  Pruning the retired Key button took `.sitebar__mark` and `.sitebar__name` with
+  it — the mark blew up to 425px and the bar collapsed. Delete rules by name.

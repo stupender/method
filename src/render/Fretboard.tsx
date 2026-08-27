@@ -345,9 +345,12 @@ export function Fretboard({
             return renderNote(h, `neck-${i}`, dim);
           });
 
-          return [
-            ...base,
-            ...shapes.map((shape, si) => {
+          // LINES FIRST, DOTS OVER THEM. SVG paints in document order, so the
+          // shape groups have to come before the note layer or the joining line
+          // runs across the faces of the dots and their letters. It only showed
+          // in scale mode: chord shapes draw their own notes inside the same
+          // group, after the line, so they were already covered.
+          const shapeNodes = shapes.map((shape, si) => {
             const isActive = activeSet !== null && activeSet.has(si);
             // "Show all" lights every box equally; otherwise the active one wins
             // and the rest dim.
@@ -405,8 +408,11 @@ export function Fretboard({
                   shape.map((h, ni) => renderNote(h, `shape-${si}-note-${ni}`, dim))}
               </g>
             );
-          }),
-          ];
+          });
+
+          // `base` is empty when the shapes carry their own notes, so this one
+          // order is right for both modes.
+          return [...shapeNodes, ...base];
         }
 
         // FLAT MODE: a simple list of notes (e.g. a scale).

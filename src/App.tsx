@@ -34,7 +34,6 @@ import { ChordExplorer } from './ui/ChordExplorer';
 import { ChordScaleLadder } from './ui/ChordScaleLadder';
 import { InversionLadder } from './ui/InversionLadder';
 import { ControlPanel, ControlRow } from './ui/ControlPanel';
-import { DegreeLegend } from './ui/DegreeLegend';
 import { MultiSelect } from './ui/MultiSelect';
 import { PatternExplorer } from './ui/PatternExplorer';
 import { ScaleExplorer } from './ui/ScaleExplorer';
@@ -256,12 +255,6 @@ function App() {
 
   // --- Theme --------------------------------------------------------------
   const [theme, setTheme] = useState<Theme>(loadTheme);
-  // The colour KEY — which ink means which degree. It belongs in the bar
-  // because it's true of every view, and it opens as a drawer under the bar so
-  // it can sit alongside whatever you're reading rather than replacing it. The
-  // button lives up here; the drawer is drawn by the view, which is the thing
-  // that knows what key and scale are in play.
-  const [keyOpen, setKeyOpen] = useState(false);
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     try {
@@ -332,23 +325,6 @@ function App() {
         )}
         {/* Paper or Night — the two worlds of the design direction (DESIGN.md).
             Parked at the far end: it's a room setting, not a music choice. */}
-        <button
-          className={keyOpen ? 'sitebar__key sitebar__key--on' : 'sitebar__key'}
-          onClick={() => setKeyOpen((v) => !v)}
-          aria-pressed={keyOpen}
-          aria-label="What the colours mean"
-          title="What the colours mean"
-        >
-          {/* Three dots and no word. It used to say "Key", which is the one
-              word on this page that already means something else — the musical
-              key, two rows down in CONTROLS. The dots say what it opens. */}
-          <span className="sitebar__key-dots" aria-hidden="true">
-            <i className="sitebar__key-dot sitebar__key-dot--deg1" />
-            <i className="sitebar__key-dot sitebar__key-dot--deg3" />
-            <i className="sitebar__key-dot sitebar__key-dot--deg5" />
-          </span>
-        </button>
-
         <div className="sitebar__theme">
           <ThemeToggle theme={theme} onChange={setTheme} />
         </div>
@@ -357,11 +333,7 @@ function App() {
       {/* Both areas stay mounted (just hidden) so each keeps its own state when
           you switch — the songbook, and Possibility's key/scale/mode choices. */}
       <div hidden={area !== 'study'}>
-        <StudyArea
-          onAddChord={addToSong}
-          songLength={current.chords.length}
-          keyOpen={keyOpen}
-        />
+        <StudyArea onAddChord={addToSong} songLength={current.chords.length} />
       </div>
       {READY.play && (
       <div hidden={area !== 'song'}>
@@ -452,13 +424,9 @@ function SongBook({
 function StudyArea({
   onAddChord,
   songLength,
-  keyOpen,
 }: {
   onAddChord: (rootIndex: number, chordId: string) => void;
   songLength: number;
-  // Whether the bar's colour KEY drawer is open (the button is up in the bar;
-  // the contents belong here, where the key and scale are known).
-  keyOpen: boolean;
 }) {
   // WHICH INSTRUMENT OF THE APP you're using: the fretboard, or your ears.
   // It lives here, beside Key/Scale/Gravity, because the CONTROLS panel has to
@@ -575,25 +543,15 @@ function StudyArea({
     .filter((o): o is { value: number; label: string } => o != null);
   const deg = degree === ALL_DEGREES ? ALL_DEGREES : Math.min(degree, romanLabels.length - 1);
 
-  // Where gravity is held, for the colour key in the bar's drawer.
-  const { modeRoot: legendRoot, modeScale: legendScale } =
+  // WHERE GRAVITY IS HELD, as a root + scale. The neck's colour key reads from
+  // it, so the key can't contradict the dots: with GRAVITY on ii the dots are
+  // relative to the ii and the key has to be too. In Harmony it still lines up,
+  // because a chord's root, 3rd and 5th are its mode's 1, 3 and 5.
+  const { modeRoot: gravityRoot, modeScale: gravityScale } =
     deg === ALL_DEGREES ? { modeRoot: root, modeScale: scale } : modeAt(root, scale, deg);
 
   return (
     <>
-      {/* THE COLOUR KEY, opened from the bar. It sticks just under the bar so
-          it stays with you while you scroll a long page of positions — the
-          whole point of a key is that it's there when you need to read one. */}
-      {keyOpen && (
-        <div className="keydrawer">
-          {/* The key reads from the SAME centre the neck is coloured from, or
-              it would quietly lie: with GRAVITY on ii the dots are relative to
-              the ii, so the legend has to be too. In Harmony that still lines
-              up — a chord's root, 3rd and 5th are its mode's 1, 3 and 5. */}
-          <DegreeLegend root={legendRoot} scale={legendScale} />
-        </div>
-      )}
-
       {/* Every choice in ONE measure — a labelled block whose rows share a left
           edge and divide the same width (see ui/ControlPanel.tsx). Order is
           priority order: Key → Scale → Degree → View → Labels.
@@ -820,6 +778,7 @@ function StudyArea({
           root={root}
           scale={scale}
           degree={deg}
+          gravity={{ root: gravityRoot, scale: gravityScale }}
           seventh={seventh}
           structure={harmonyStructure}
           inversion={harmonyInversion}
@@ -852,8 +811,6 @@ function ScaleView({
   const { modeRoot, modeScale } = isAll
     ? { modeRoot: root, modeScale: scale }
     : modeAt(root, scale, degree);
-  const tones = realizeScale(modeRoot, modeScale);
-
   // Click a note on the neck -> make it the new tonic. Map the note's pitch class
   // back to which degree of the PARENT scale it is, select that degree, and pass
   // the clicked fret so the mode lands in the position you clicked.
@@ -866,16 +823,8 @@ function ScaleView({
 
   return (
     <>
-      <p className="view-title">
-        <span className="view-title__name">
-          {noteName(modeRoot)} {modeScale.name}
-        </span>
-        <span className="view-title__tones">
-          {tones.map((t) => noteName(t.note)).join(' · ')}
-        </span>
-      </p>
-
-
+      {/* No title here any more: the scale's name and its notes ride on the
+          fretboard itself, where they stay visible while you scroll. */}
       <ScaleExplorer
         root={modeRoot}
         scale={modeScale}
@@ -969,6 +918,7 @@ function HarmonyView({
   root,
   scale,
   degree,
+  gravity,
   seventh,
   structure,
   inversion,
@@ -978,6 +928,8 @@ function HarmonyView({
   root: Note;
   scale: ScaleDefinition;
   degree: number;
+  // Root + scale of whatever GRAVITY is framing, for the neck's colour key.
+  gravity: { root: Note; scale: ScaleDefinition };
   seventh: boolean;
   structure: VoicingStructure;
   inversion: number;
@@ -1007,21 +959,6 @@ function HarmonyView({
 
   return (
     <>
-      <p className="tagline">
-        {isAll && (
-          <>
-            Chord scale of {noteName(root)} {scale.name} — every chord in the key, in
-            one voicing
-          </>
-        )}
-        {!isAll && (
-          <>
-            {selected.name} — every inversion up the neck ({selected.roman} of{' '}
-            {noteName(root)} {scale.name})
-          </>
-        )}
-      </p>
-
       <div className="view-controls">
         {/* Type / Voicing / Inversion all live in the CONTROLS panel now — one
             measure, one place, and both ladders read the same values. */}
@@ -1055,6 +992,7 @@ function HarmonyView({
           root={selected.chordRoot}
           chord={selected.chord}
           structure={structure}
+          gravity={gravity}
           labelMode="note"
         />
       )}

@@ -59,9 +59,11 @@
      they get away with it because a lamp isn't a hue you have to read: it's
      either lit or it isn't, and there are no degree dots in this panel to
      confuse it with. Everything else structural stays ink.
-     On paper it's an amber indicator; at night a cool white one. Both have a
-     hot centre falling off to the rim, and the faintest halo. */
-  --tick-fill: radial-gradient(circle at 50% 38%, #e9a94e 0%, #b46218 62%);
+     On paper it's a flat amber — ink on a page doesn't have a light source, and
+     a gradient there reads as a rendered button rather than a printed mark. It
+     keeps the faint halo, which works as ink bleeding into the paper. The
+     gradient belongs to the night, where the dot really is the light. */
+  --tick-fill: #b46218;
   --tick-ring: #a2570f;
   --tick-glow:
     0 0 3px rgba(180, 98, 24, 0.5),

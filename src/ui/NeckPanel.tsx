@@ -1,37 +1,49 @@
 // ============================================================================
-// ui/NeckPanel.tsx — the fretboard, floating
+// ui/NeckPanel.tsx — the fretboard, floating, with its bearings attached
 // ----------------------------------------------------------------------------
 // The neck used to scroll away the moment you started reading the positions or
 // voicings underneath it, which is the wrong way round: the list is the index
-// and the neck is the thing you're actually looking at.
+// and the neck is the thing you're actually looking at. So it's a panel now, in
+// the same printed-block language as CONTROLS, and it STICKS under the site bar
+// while everything else scrolls past. Its bottom corners are square and it has
+// no bottom border, so the block that follows joins onto it.
 //
-// So it's a panel now, in the same printed-block language as CONTROLS — an
-// eyebrow in the margin, one outlined box — and it STICKS under the site bar
-// while everything else scrolls past. Its bottom corners are square and it
-// carries no bottom border, so the block that follows joins onto it: the neck
-// and the list it belongs to read as one object rather than two.
+// It also carries WHERE YOU ARE. The scale's name and the colour key used to
+// live in two other places — a title in the gap between the controls and the
+// neck, and a drawer behind a button in the bar — and both had the same
+// problem: they weren't there when you needed them. What you forget mid-phrase
+// is exactly which key you're in and which colour the 6th is, and by then
+// you've scrolled the title away and you're not going to go hunting for a
+// drawer. Pinned to the neck, they're simply always true and always visible.
 //
-// What's lit on it comes from whatever you've scrolled to (see useScrollFocus).
+// So the header reads: what you're in, then what's lit on the neck right now,
+// then the seven colours and the notes they've landed on.
 // ============================================================================
 
 import type { ReactNode } from 'react';
 
 export function NeckPanel({
-  title = 'Fretboard',
+  name,
+  legend,
   aside,
   children,
 }: {
-  title?: string;
-  // Optional right-hand note in the header — the name of whatever is currently
-  // lit, so the neck says what it's showing.
+  // What you're in — "C Major", "D Dorian", "Dm7".
+  name?: ReactNode;
+  // The colour key for that same centre.
+  legend?: ReactNode;
+  // What's lit right now, from whatever you've scrolled to.
   aside?: ReactNode;
   children: ReactNode;
 }) {
   return (
-    <section className="neckpanel" aria-label={title}>
+    <section className="neckpanel" aria-label="Fretboard">
       <header className="neckpanel__head">
-        <span className="neckpanel__title">{title}</span>
-        {aside && <span className="neckpanel__aside">{aside}</span>}
+        <div className="neckpanel__titles">
+          {name && <span className="neckpanel__name">{name}</span>}
+          {aside && <span className="neckpanel__aside">{aside}</span>}
+        </div>
+        {legend && <div className="neckpanel__legend">{legend}</div>}
       </header>
       {children}
     </section>

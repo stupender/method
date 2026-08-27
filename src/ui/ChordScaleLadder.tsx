@@ -38,6 +38,7 @@ import { midiOf, noteName } from '../theory/notes';
 import { playChord } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
 import { NeckPanel } from './NeckPanel';
+import { DegreeLegend } from './DegreeLegend';
 import { useScrollFocus } from './useScrollFocus';
 import { TabView } from '../render/TabView';
 import { useStepper } from './ShapeStepper';
@@ -213,9 +214,15 @@ export function ChordScaleLadder({
       ) : (
         <>
           <div className="workbench">
-        <NeckPanel
-            aside={focusedSet !== null && groups[focusedSet] ? `${setLabel(groups[focusedSet].key)} strings` : undefined}
-          >
+            <NeckPanel
+              name={`${noteName(root)} ${scale.name}`}
+              legend={<DegreeLegend root={root} scale={scale} />}
+              aside={
+                focusedSet !== null && groups[focusedSet]
+                  ? `${setLabel(groups[focusedSet].key)} strings`
+                  : undefined
+              }
+            >
             <Fretboard
               instrument={GUITAR}
               tuning={GUITAR_STANDARD}

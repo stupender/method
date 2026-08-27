@@ -25,6 +25,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type {
   Note,
+  ScaleDefinition,
   ChordDefinition,
   PlacedNote,
   VoicingStructure,
@@ -41,6 +42,7 @@ import { midiOf, noteName } from '../theory/notes';
 import { playChord } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
 import { NeckPanel } from './NeckPanel';
+import { DegreeLegend } from './DegreeLegend';
 import { useScrollFocus } from './useScrollFocus';
 import { TabView } from '../render/TabView';
 import { useStepper } from './ShapeStepper';
@@ -57,12 +59,16 @@ export function InversionLadder({
   root,
   chord,
   structure,
+  gravity,
   labelMode = 'degree',
 }: {
   root: Note;
   chord: ChordDefinition;
   // From the CONTROLS panel — see the note in ChordScaleLadder.
   structure: VoicingStructure;
+  // Where gravity is held, for the neck's colour key: the mode this chord is
+  // built on, so its 1, 3 and 5 are the chord's own root, 3rd and 5th.
+  gravity: { root: Note; scale: ScaleDefinition };
   // What the dots say — a global display setting, owned by the view above.
   labelMode?: 'note' | 'degree';
 }) {
@@ -192,9 +198,15 @@ export function InversionLadder({
       ) : (
         <>
           <div className="workbench">
-        <NeckPanel
-            aside={focusedSet !== null && groups[focusedSet] ? `${setLabel(groups[focusedSet].key)} strings` : undefined}
-          >
+            <NeckPanel
+              name={`${noteName(root)}${chord.symbol}`}
+              legend={<DegreeLegend root={gravity.root} scale={gravity.scale} />}
+              aside={
+                focusedSet !== null && groups[focusedSet]
+                  ? `${setLabel(groups[focusedSet].key)} strings`
+                  : undefined
+              }
+            >
             <Fretboard
               instrument={GUITAR}
               tuning={GUITAR_STANDARD}

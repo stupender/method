@@ -19,10 +19,10 @@
    masthead it replaced (56px moon, 44px title, a lede) cost about a third of a
    phone screen every time you opened a tool whose whole point is the neck.
    ========================================================================== */
-/* FLOATING. The bar carries the two things that are true everywhere — the
-   colour key and the light — so it has to still be there at the bottom of a
-   long page of scale positions. It paints its own background because the page
-   scrolls underneath it. */
+/* FLOATING, so the app's name and the light switch are still there at the
+   bottom of a long page. It paints its own background because the page scrolls
+   underneath it. (The colour key used to live here too; it's on the neck now,
+   where you actually need it.) */
 .sitebar {
   position: sticky;
   top: 0;
@@ -34,55 +34,6 @@
   background: var(--bg);
   border-bottom: 1px solid var(--line);
   margin-bottom: 26px;
-}
-
-/* The KEY button: three dots and the word, so the control looks like the thing
-   it opens. */
-.sitebar__key {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: auto;
-  padding: 5px 11px;
-  font: inherit;
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  background: transparent;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  cursor: pointer;
-  transition: color 0.12s ease, border-color 0.12s ease;
-}
-.sitebar__key:hover,
-.sitebar__key--on {
-  color: var(--ink);
-  border-color: var(--ink);
-}
-.sitebar__key-dots {
-  display: inline-flex;
-}
-.sitebar__key-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  margin-right: -3px; /* overlapped, like the mark */
-}
-.sitebar__key-dot--deg1 { background: var(--deg-1); }
-.sitebar__key-dot--deg3 { background: var(--deg-3); }
-.sitebar__key-dot--deg5 { background: var(--deg-5); }
-
-/* The key drawer, riding just under the bar. */
-.keydrawer {
-  position: sticky;
-  top: 55px;
-  z-index: 25;
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 10px 14px;
-  margin-bottom: 18px;
 }
 
 .sitebar__mark {
@@ -129,9 +80,11 @@
   display: block;
 }
 
-/* `flex: none` matters: without it the motto squeezes the switch until Paper
-   and Night stack. (The Key button carries the margin-left: auto now.) */
+/* Holds the far end of the bar. It used to lean on the Key button for that,
+   and when the button left with the colour key, the whole bar collapsed toward
+   the middle. */
 .sitebar__theme {
+  margin-left: auto;
   flex: none;
 }
 
@@ -363,24 +316,13 @@
 .legend {
   display: flex;
   align-items: center;
-  gap: 16px;
   flex-wrap: wrap;
-  margin: 0 0 14px;
-}
-.legend__title {
-  color: var(--muted);
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-.legend__items {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
+  gap: 4px 13px;
   list-style: none;
   margin: 0;
   padding: 0;
+  flex-wrap: wrap;
+  margin: 0 0 14px;
 }
 .legend__item {
   display: flex;
@@ -388,8 +330,8 @@
   gap: 6px;
 }
 .legend__dot {
-  width: 22px;
-  height: 22px;
+  width: 19px;
+  height: 19px;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
@@ -832,27 +774,40 @@
   background: var(--bg);
   overflow: hidden;
 }
+/* WHERE YOU ARE, pinned to the neck: what you're in, what's lit, and what the
+   colours mean. Two lines rather than one — the name is a heading and the key
+   is a caption under it, and squeezing them onto one line made both read as
+   toolbar furniture. */
 .neckpanel__head {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  padding: 9px 14px;
+  padding: 9px 14px 10px;
   border-bottom: 1px solid var(--line);
   background: var(--surface);
 }
-.neckpanel__title {
-  color: var(--muted);
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+.neckpanel__titles {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
 }
-/* What the neck is currently showing — set in the serif, because it's a name
-   rather than a label. */
+/* The scale or chord you're looking at. This is the page's real heading now,
+   so it takes the display serif at heading size. */
+.neckpanel__name {
+  font-family: var(--serif);
+  font-size: 21px;
+  letter-spacing: -0.2px;
+  line-height: 1.15;
+}
+/* What's lit on the neck right now — the position or string set you've
+   scrolled to. Quieter: it changes as you move, the name doesn't. */
 .neckpanel__aside {
   font-family: var(--serif);
-  font-size: 14px;
-  color: var(--ink);
+  font-style: italic;
+  font-weight: 300;
+  font-size: 14.5px;
+  color: var(--muted);
+}
+.neckpanel__legend {
+  margin-top: 7px;
 }
 /* The list joins the neck above it. */
 .neckpanel + .voicing-sets,
