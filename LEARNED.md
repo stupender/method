@@ -1756,3 +1756,16 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   draws at that size, so a staff line is a staff line. The first measurement
   has to be synchronous (a layout effect), because ResizeObserver only delivers
   at the end of a rendered frame and never fires at all in a hidden tab.
+
+
+- **A refactor nobody has to notice is one that can't break what it touches.**
+  Collapsing a dozen `useState`s into one `ModuleState` could have meant
+  rewriting forty-three call sites. Instead the individual names are read back
+  out of the object and the setters put values back in, so every control still
+  calls `setDegree(3)` exactly as before, and the diff is one block at the top
+  of the component rather than scattered through it.
+
+- **Not everything a component remembers belongs in its state object.** Which
+  fret you last clicked is about the current gesture, not about what the panel
+  is SET to — so it stayed a separate `useState`. A preset that restored a
+  half-finished interaction would be restoring the wrong thing.

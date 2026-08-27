@@ -53,6 +53,31 @@ export interface ModuleState {
   scrollY?: number;
 }
 
+/**
+ * What a fresh panel is set to: C major, the whole key, on the fretboard.
+ * `scaleId` and the ear pools are passed in rather than hard-coded here,
+ * because this file is the SHAPE of a module and shouldn't also be the place
+ * that knows which scales exist.
+ */
+export function defaultModuleState(scaleId: string): ModuleState {
+  return {
+    studyMode: 'fretboard',
+    view: 'scale',
+    rootIndex: 0,
+    scaleId,
+    degree: -1, // ALL_DEGREES
+    seventh: false,
+    structureId: null,
+    inversionIndex: 0,
+    earRoots: [0],
+    earScaleIds: [scaleId],
+    earDegrees: [0, 1, 2, 3, 4, 5, 6],
+    earViews: ['harmony'],
+    seventhsInEar: false,
+    quiz: 'quality',
+  };
+}
+
 export interface Bookmark {
   id: string;
   name: string;

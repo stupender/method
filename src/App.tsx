@@ -35,7 +35,11 @@ import { ChordScaleLadder } from './ui/ChordScaleLadder';
 import { InversionLadder } from './ui/InversionLadder';
 import { ControlPanel, ControlRow } from './ui/ControlPanel';
 import { Bookmarks } from './ui/Bookmarks';
-import { describe, type ModuleState } from './ui/moduleState';
+import {
+  defaultModuleState,
+  describe,
+  type ModuleState,
+} from './ui/moduleState';
 import { MultiSelect } from './ui/MultiSelect';
 import { PatternExplorer } from './ui/PatternExplorer';
 import { ScaleExplorer } from './ui/ScaleExplorer';
@@ -336,7 +340,7 @@ function App() {
       {/* Both areas stay mounted (just hidden) so each keeps its own state when
           you switch — the songbook, and Possibility's key/scale/mode choices. */}
       <div hidden={area !== 'study'}>
-        <StudyArea onAddChord={addToSong} songLength={current.chords.length} />
+        <Module onAddChord={addToSong} songLength={current.chords.length} />
       </div>
       {READY.play && (
       <div hidden={area !== 'song'}>
@@ -423,46 +427,74 @@ function SongBook({
   );
 }
 
-// --- Study: explore Scales / Harmony on the neck ---------------------------
-function StudyArea({
+// --- A MODULE: one CONTROLS panel, its neck, and its systems ----------------
+// It owns its settings as a single ModuleState and knows nothing about the page
+// around it, which is what makes putting a second one beside it a matter of
+// rendering it twice rather than of untangling shared state. See BACKLOG's
+// staging for the module idea.
+function Module({
   onAddChord,
   songLength,
 }: {
   onAddChord: (rootIndex: number, chordId: string) => void;
   songLength: number;
 }) {
-  // WHICH INSTRUMENT OF THE APP you're using: the fretboard, or your ears.
-  // It lives here, beside Key/Scale/Gravity, because the CONTROLS panel has to
-  // stay on screen in both — a switch that hides itself can't switch back. The
-  // same key and scale will drive the ear quiz's pools next.
-  const [studyMode, setStudyMode] = useState<'fretboard' | 'ear'>('fretboard');
+  // ONE OBJECT, NOT A DOZEN. Everything this panel is set to lives in a single
+  // ModuleState (see ui/moduleState.ts), which is what makes a module a thing
+  // that can be copied, saved, and eventually put on the page twice.
+  //
+  // Below, the individual names are read back out of it and the setters put
+  // values back in. That looks like ceremony and is the point: every control in
+  // this file goes on calling `setDegree(3)` exactly as it did, while the state
+  // underneath became one value. A refactor nobody has to notice is a refactor
+  // that can't break the thing it's refactoring.
+  const [state, setState] = useState<ModuleState>(() =>
+    defaultModuleState(SCALE_LIST[0].id),
+  );
+  const set = <K extends keyof ModuleState>(key: K, value: ModuleState[K]) =>
+    setState((s) => ({ ...s, [key]: value }));
+
+  const { studyMode, rootIndex, scaleId, degree, seventh, structureId } = state;
+  const { inversionIndex, seventhsInEar, quiz } = state;
+  const mode: Mode = state.view;
+
+  const setStudyMode = (v: 'fretboard' | 'ear') => set('studyMode', v);
+  const setMode = (v: Mode) => set('view', v === 'harmony' ? 'harmony' : 'scale');
+  const setRootIndex = (v: number) => set('rootIndex', v);
+  const setScaleId = (v: string) => set('scaleId', v);
+  const setDegree = (v: number) => set('degree', v);
+  const setSeventh = (v: boolean) => set('seventh', v);
+  const setStructureId = (v: string | null) => set('structureId', v);
+  const setInversionIndex = (v: number) => set('inversionIndex', v);
+  const setSeventhsInEar = (v: boolean) => set('seventhsInEar', v);
+  const setQuiz = (v: 'quality' | 'inversion' | 'function') => set('quiz', v);
 
   // EAR MODE'S SELECTIONS ARE SETS, not single values. On the neck a control
   // answers "what am I looking at", so exactly one; in Ear Training the same
-  // control answers "what might I be played", so any number — each extra
-  // choice widens the pool rather than replacing it. They're kept separately
-  // from the fretboard's choices so switching modes doesn't destroy either.
-  const [earRoots, setEarRoots] = useState<ReadonlySet<number>>(new Set([0]));
-  const [earScaleIds, setEarScaleIds] = useState<ReadonlySet<string>>(
-    new Set([SCALE_LIST[0].id]),
-  );
-  const [earDegrees, setEarDegrees] = useState<ReadonlySet<number>>(
-    new Set([0, 1, 2, 3, 4, 5, 6]),
-  );
-  const [earViews, setEarViews] = useState<ReadonlySet<'scale' | 'harmony'>>(
-    new Set(['harmony']),
-  );
-  // Triads or seventh chords for the ear drills — the harmony equivalent of the
-  // fretboard's own triad/seventh switch.
-  const [seventhsInEar, setSeventhsInEar] = useState(false);
+  // control answers "what might I be played", so any number — each extra choice
+  // widens the pool rather than replacing it. They're kept separately from the
+  // fretboard's choices so switching modes doesn't destroy either.
+  //
+  // Stored as ARRAYS because a Set doesn't survive being written to storage,
+  // and a saved preset has to survive. Sets are rebuilt here for the controls,
+  // which want set semantics.
+  const earRoots: ReadonlySet<number> = new Set(state.earRoots);
+  const earScaleIds: ReadonlySet<string> = new Set(state.earScaleIds);
+  const earDegrees: ReadonlySet<number> = new Set(state.earDegrees);
+  const earViews: ReadonlySet<'scale' | 'harmony'> = new Set(state.earViews);
+  const setEarRoots = (s: ReadonlySet<number>) => set('earRoots', [...s]);
+  const setEarScaleIds = (s: ReadonlySet<string>) => set('earScaleIds', [...s]);
+  const setEarDegrees = (s: ReadonlySet<number>) => set('earDegrees', [...s]);
+  const setEarViews = (s: ReadonlySet<'scale' | 'harmony'>) =>
+    set('earViews', [...s] as ('scale' | 'harmony')[]);
 
   // Toggling never empties a set — with nothing chosen there'd be nothing to
   // quiz, so the last one standing refuses to switch off.
   const toggleIn = <T,>(
-    set: ReadonlySet<T>,
+    set_: ReadonlySet<T>,
     setter: (s: ReadonlySet<T>) => void,
   ) => (value: T) => {
-    const next = new Set(set);
+    const next = new Set(set_);
     if (next.has(value)) {
       if (next.size === 1) return;
       next.delete(value);
@@ -471,19 +503,10 @@ function StudyArea({
     }
     setter(next);
   };
-  const [mode, setMode] = useState<Mode>('scale');
-  const [rootIndex, setRootIndex] = useState(0); // the Key
-  const [scaleId, setScaleId] = useState(SCALE_LIST[0].id); // the Scale type
-  // The scale degree the view is framed by, 0-based — or ALL (-1), meaning the
-  // whole key rather than one slice of it: in Scales that's the parent scale
-  // itself instead of a mode, and in Harmony the chord scale instead of one
-  // degree's voicings.
-  const [degree, setDegree] = useState(ALL_DEGREES);
-  // The dots always print NOTE NAMES now. The degree is carried by colour (see
-  // --deg-1..7 and the legend under the neck), so the two facts arrive at once
-  // and there's no toggle to lose track of.
-  // The fret of the last note clicked on the neck, so the re-rooted mode can land
-  // in that position. `seq` bumps each click so re-clicking the same fret re-pins.
+
+  // NOT part of the module's state: which fret you last clicked is about this
+  // moment, not about what the panel is set to. A preset that restored a
+  // half-finished gesture would be restoring the wrong thing.
   const [focus, setFocus] = useState<{ fret: number; seq: number } | null>(null);
 
   const root = ROOT_CHOICES[rootIndex];
@@ -498,45 +521,11 @@ function StudyArea({
   // The seven Roman numerals of this key — the degree selector's labels. They sit
   // ABOVE Scales/Harmony and PERSIST across them: in Scales a degree picks the
   // mode built on it; in Harmony it picks that degree's chord.
-  // WHAT THIS PANEL IS SET TO, gathered into one object. Read on demand rather
-  // than kept in state: the panel's settings still live as separate pieces
-  // (which is fine while there's one panel), and this is the seam where they
-  // become a MODULE. See ui/moduleState.ts for why the shape matters more than
-  // the bookmarking does.
-  const moduleState = (): ModuleState => ({
-    studyMode,
-    view: mode === 'harmony' ? 'harmony' : 'scale',
-    rootIndex,
-    scaleId,
-    degree,
-    seventh,
-    structureId,
-    inversionIndex,
-    earRoots: [...earRoots],
-    earScaleIds: [...earScaleIds],
-    earDegrees: [...earDegrees],
-    earViews: [...earViews],
-    seventhsInEar,
-    quiz,
-    scrollY: Math.round(window.scrollY),
-  });
-
-  const applyModuleState = (s: ModuleState) => {
-    setStudyMode(s.studyMode);
-    setMode(s.view);
-    setRootIndex(s.rootIndex);
-    setScaleId(s.scaleId);
-    setDegree(s.degree);
-    setSeventh(s.seventh);
-    setStructureId(s.structureId);
-    setInversionIndex(s.inversionIndex);
-    setEarRoots(new Set(s.earRoots));
-    setEarScaleIds(new Set(s.earScaleIds));
-    setEarDegrees(new Set(s.earDegrees));
-    setEarViews(new Set(s.earViews));
-    setSeventhsInEar(s.seventhsInEar);
-    setQuiz(s.quiz);
-  };
+  // Saving and restoring are now the whole of it: the panel's state IS the
+  // thing a bookmark holds, so there's nothing to gather and nothing to apply.
+  // (These were fifteen lines each when the settings lived apart.)
+  const moduleState = (): ModuleState => ({ ...state, scrollY: Math.round(window.scrollY) });
+  const applyModuleState = (s: ModuleState) => setState(s);
 
   const romanLabels = diatonicChords(root, scale, false).map((c) => c.roman);
 
@@ -545,15 +534,11 @@ function StudyArea({
   // controls: the CONTROLS panel, and then some more controls further down. One
   // measure, one place. They're lifted here so both ladders read the same
   // values and neither can drift from the other.
-  const [seventh, setSeventh] = useState(false);
   // Which ear drill. Up here with the rest, so Ear's panel reads the same way
   // the fretboard's does rather than keeping one of its choices downstairs.
-  const [quiz, setQuiz] = useState<'quality' | 'inversion' | 'function'>('quality');
   // null = "whatever suits this chord type" (see harmonyStructure below), held
   // as null rather than an id so switching Triads <-> Sevenths re-picks instead
   // of stranding you on a voicing that barely fits.
-  const [structureId, setStructureId] = useState<string | null>(null);
-  const [inversionIndex, setInversionIndex] = useState(0);
 
 
   // The voicings available for the chord type in play. All seven diatonic
@@ -825,10 +810,17 @@ function StudyArea({
           onPickNote={pickNote}
         />
       )}
-      {studyMode === 'fretboard' && READY.patterns && mode === 'pattern' && (
+      {/* Patterns and the key-less chord explorer are both built and both
+          switched off. A module's view is 'scale' or 'harmony' — those two are
+          reachable from the VIEW row — so these render nothing today; the
+          widened check is what keeps the code compiling next to a narrower
+          type, and marks the seam where they'd come back. */}
+      {studyMode === 'fretboard' && READY.patterns && (mode as Mode) === 'pattern' && (
         <PatternView root={root} scale={scale} degree={deg} />
       )}
-      {studyMode === 'fretboard' && mode === 'chord' && <ChordView root={root} />}
+      {studyMode === 'fretboard' && (mode as Mode) === 'chord' && (
+        <ChordView root={root} />
+      )}
       {studyMode === 'fretboard' && mode === 'harmony' && (
         <HarmonyView
           root={root}

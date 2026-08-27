@@ -76,13 +76,18 @@ Staged so each step is useful on its own and none of it is thrown away:
    and 3 are additions rather than rewrites.
 2. **Bookmarks** (DONE). Save a ModuleState, name it, come back to it. Useful
    today, and it means every preset ever saved already fits a module.
-3. **The panel becomes a component that owns its state.** Today StudyArea holds
-   a dozen `useState`s and `moduleState()` gathers them on demand. This step
-   turns that into one `useState<ModuleState>` inside a `<Module>` component.
-   Invisible, and the whole job.
+3. **The panel becomes a component that owns its state** (DONE). `StudyArea`
+   is now `Module` and holds ONE `useState<ModuleState>`; the individual names
+   are read back out of it and the setters put values back in, so every control
+   in the file still calls `setDegree(3)` exactly as before. Saving and
+   restoring a bookmark became one line each. Two `useState`s remain: the
+   module's state, and which fret you last clicked — that one is about this
+   moment rather than about what the panel is set to, so it stays out.
 4. **Two of them.** Render `<Module>` twice, side by side, with an "add a
-   second" control. Half a day once step 3 is done, because a module by then
-   holds its own state and knows nothing about the page.
+   second" control. The state work is done; what's left is layout (two panels
+   in a row, each with its own neck and systems, stacking on a narrow screen)
+   and deciding what — if anything — the two share. Nothing forces them to
+   share anything, which is the point.
 5. **Presets as modules** — a saved preset can open INTO either side.
 
 The order matters: doing 4 before 3 means two panels fighting over one blob of
