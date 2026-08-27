@@ -30,9 +30,24 @@ const LINE_GAP = STEP * 2;
 const STAFF_HEIGHT = LINE_GAP * 4; // five lines
 const HEAD_RX = STEP * 1.15;
 const HEAD_RY = STEP * 0.92;
-const CLEF_WIDTH = 34;
 const NOTE_GAP = 22; // between successive notes when they're a sequence
-const PAD_X = 8;
+
+// THE STAFF AND THE TAB ARE ONE SYSTEM, so these have to agree with TabView's
+// geometry exactly: the same left column for the clef (where the TAB prints its
+// string letters), the same width of ruled line, and a bar line down the left
+// that continues into the TAB below. That's how notation and tablature are set
+// together on paper, and it's the thing that stops them reading as two
+// unrelated pictures of the same chord.
+const LEFT_COLUMN = 48; // clef sits here; the lines begin after it
+const LINE_WIDTH = 120; // matches .tab-line
+const PAD_RIGHT = 16;
+// The gap between the staff and the TAB — part of the SVG, so the bar line can
+// be drawn through it and meet the TAB's own.
+const SYSTEM_GAP = 12;
+// A fixed window, so every card's staff is the same height and they line up
+// across a row. Generous enough for the voicings the app produces.
+const WINDOW_TOP = 14;
+const WINDOW_BOTTOM = -8;
 
 // C=0 … B=6. A note's DIATONIC index is octave * 7 + this: the thing a staff
 // actually measures, which is why a staff can tell B♭ from A♯ and a piano
@@ -68,25 +83,26 @@ export function Staff({
 
   const notes = [...placed].sort((a, b) => staffStep(a) - staffStep(b));
   const steps = notes.map(staffStep);
-  // The box has to hold the CLEF as well as the notes. A treble clef runs from
-  // below the bottom line to well above the top one — that's what it looks
-  // like — so reserving room only for note heads let it draw straight over the
-  // TAB underneath. These two bounds are the clef's own extent; notes push
-  // them further out when they need to.
-  const lowest = Math.min(...steps, -4);
-  const highest = Math.max(...steps, 12);
-
-  // Room for however many ledger lines these notes actually need.
-  const padTop = Math.max(0, highest - 8) * STEP + STEP * 2;
-  const padBottom = Math.max(0, -lowest) * STEP + STEP * 2;
-  const height = STAFF_HEIGHT + padTop + padBottom;
+  // A FIXED window rather than one sized to these particular notes: every
+  // staff in a row is then the same height and they line up with each other,
+  // which is most of what makes a page of them read as a table instead of a
+  // scatter. It's wide enough for the clef, which runs well above and below the
+  // five lines, and for the ledger lines these voicings need.
+  const lowest = Math.min(...steps, WINDOW_BOTTOM);
+  const highest = Math.max(...steps, WINDOW_TOP);
+  const padTop = (highest - 8) * STEP + STEP * 2;
+  const padBottom = -lowest * STEP + STEP * 2;
+  const height = STAFF_HEIGHT + padTop + padBottom + SYSTEM_GAP;
   const bottomLineY = padTop + STAFF_HEIGHT;
   const y = (step: number) => bottomLineY - step * STEP;
 
-  const firstNoteX = PAD_X + CLEF_WIDTH + 10;
+  const firstNoteX = LEFT_COLUMN + 16;
   const width = chord
-    ? firstNoteX + HEAD_RX * 2 + PAD_X + 10
-    : firstNoteX + Math.max(1, notes.length) * NOTE_GAP + PAD_X;
+    ? LEFT_COLUMN + LINE_WIDTH + PAD_RIGHT
+    : Math.max(
+        LEFT_COLUMN + LINE_WIDTH + PAD_RIGHT,
+        firstNoteX + Math.max(1, notes.length) * NOTE_GAP + PAD_RIGHT,
+      );
 
   // A note off the staff needs a ledger line at every LINE it passes — the
   // even steps beyond 0 (bottom line) and 8 (top line).
@@ -106,23 +122,35 @@ export function Staff({
       role="img"
       aria-label="Staff notation"
     >
-      {/* The five lines. */}
+      {/* The five lines, starting where the TAB's lines start. */}
       {[0, 2, 4, 6, 8].map((step) => (
         <line
           key={step}
           className="notation__line"
-          x1={PAD_X}
-          x2={width - PAD_X}
+          x1={LEFT_COLUMN}
+          x2={width - PAD_RIGHT}
           y1={y(step)}
           y2={y(step)}
         />
       ))}
 
-      {/* Treble clef, with the 8 that says "sounds an octave lower". */}
-      <text className="notation__clef" x={PAD_X + 2} y={y(2)}>
+      {/* THE BAR LINE, down the left of the system — and carried all the way to
+          the bottom of this box, which includes the gap below, so it meets the
+          one the TAB draws from its own top edge. Two halves of one line. */}
+      <line
+        className="notation__bar"
+        x1={LEFT_COLUMN}
+        x2={LEFT_COLUMN}
+        y1={y(8)}
+        y2={height}
+      />
+
+      {/* Treble clef, with the 8 that says "sounds an octave lower". It sits in
+          the left column, where the TAB prints its string names. */}
+      <text className="notation__clef" x={6} y={y(2)}>
         𝄞
       </text>
-      <text className="notation__octave" x={PAD_X + 13} y={y(-3)}>
+      <text className="notation__octave" x={17} y={y(-3)}>
         8
       </text>
 

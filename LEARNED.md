@@ -1698,3 +1698,23 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   150 lines and no dependency. (The clef glyph does need a real music font:
   system fonts don't reliably carry the Musical Symbols block, so Noto Music
   comes from the Google Fonts link that was already there.)
+
+- **A presentation attribute is not a CSS property.** `transform="translate(x y)"`
+  and `style="transform: translate(Xpx, Ypx)"` look identical in the DOM and
+  behave differently: a CSS transition animates the property and ignores the
+  attribute, so setting the attribute just teleports. That one distinction is
+  the whole difference between the pattern sliding along the neck and it
+  jumping.
+
+- **What makes a dot "the same dot" decides which way it moves.** Keyed by
+  string + degree + WHICH occurrence up the neck, a key change maps each note
+  to its nearest cousin automatically — C to A slides the low root three frets
+  down rather than nine frets up, without anyone computing a direction, because
+  both lists are in fret order and matching by position matches by proximity.
+  Notes with no cousin (they were below the nut) fade in where they land.
+
+- **Two staves are one system, or they're two pictures.** The staff and the TAB
+  now share a width, a left column, and a bar line that runs from the staff's
+  top line through the gap to the TAB's last string — which is how notation and
+  tablature are set together on paper. The gap belongs to the staff's own box,
+  so the line can be drawn through it and meet the TAB's half.

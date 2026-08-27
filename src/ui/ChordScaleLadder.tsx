@@ -323,6 +323,7 @@ export function ChordScaleLadder({
                         <Staff placed={r.shape} chord />
                       </div>
                       <TabView
+                        joined
                         instrument={GUITAR}
                         tuning={GUITAR_STANDARD}
                         placed={r.shape}

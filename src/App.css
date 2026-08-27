@@ -601,8 +601,10 @@
   overflow-x: auto;
   padding-bottom: 2px;
 }
+/* No gap: the staff's box already contains the space between the two, so the
+   bar line can be drawn through it. */
 .tab-card__notation {
-  padding-left: 4px;
+  padding-bottom: 0;
 }
 .tab-row-staff {
   margin: 2px 0 6px;
@@ -949,7 +951,10 @@
    size as a seventh's four. */
 .voicing-set .tab-shelf {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  /* Wide enough for a whole system: the staff and the TAB are both 184px, plus
+     the card's own padding. Sized to the content rather than to a guess, so
+     nothing spills over the edge of its card. */
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   margin-top: 0;
   gap: 10px;
 }

@@ -91,6 +91,34 @@ export function Fretboard({
 }: FretboardProps) {
   const { stringCount, fretCount } = instrument;
 
+  // WHAT MAKES A DOT "THE SAME DOT" WHEN THE KEY CHANGES.
+  //
+  // Change key and every note shifts along the neck. For that to read as a
+  // SHIFT rather than a redraw, React has to reuse the same elements, which
+  // means keying them by something that survives the change — and the fret
+  // can't, since the fret is the thing that moved.
+  //
+  // The identity that survives is: which string, which degree of the scale,
+  // and WHICH TIME that degree appears on that string counting up from the
+  // nut. Change C major to A major and "the 1st degree, first occurrence on
+  // the low E" goes from fret 8 to fret 5. It slides three frets down rather
+  // than nine up to the next C, which is what makes the movement read as the
+  // shortest way round without anyone computing a direction: both lists are in
+  // fret order, so matching them up by position matches each note to its
+  // nearest cousin.
+  //
+  // Notes near the nut have no cousin — a degree that had two occurrences on a
+  // string may have three after the shift. Those appear rather than slide,
+  // which is honest: they came from below the nut, where there is no fret to
+  // slide from.
+  const occurrences = new Map<string, number>();
+  const identityOf = (h: PlacedNote) => {
+    const stem = `${h.position.stringIndex}:${h.intervalName}`;
+    const nth = occurrences.get(stem) ?? 0;
+    occurrences.set(stem, nth + 1);
+    return `${stem}:${nth}`;
+  };
+
   // WHAT'S LIT. One shape or a group of them, normalised to a single set so
   // everything downstream asks the same question: is this shape in it?
   const activeSet =
@@ -300,16 +328,28 @@ export function Fretboard({
                   circle, no stroke, no shadow, the letter straight through the
                   middle. Recoverable at the `ink-stamp-dots` tag if we ever
                   want it back. */}
-              <circle className={dotClass} cx={x} cy={y} r={DOT_RADIUS} />
-              <text
-                className={dim ? 'note-label note-label--dim' : 'note-label'}
-                x={x}
-                y={y}
-                textAnchor="middle"
-                dominantBaseline="central"
-              >
-                {label}
-              </text>
+              {/* Drawn at the ORIGIN and moved by a transform, rather than
+                  drawn at its coordinates. That's what makes the dot able to
+                  slide when the key changes: a transform is animatable, cx and
+                  x are not (reliably), and the dot and its letter have to move
+                  as one thing. */}
+              {/* style, NOT the transform attribute. A presentation attribute
+                  and a CSS property look identical in the DOM and behave
+                  differently: a transition animates the property, and setting
+                  the attribute just jumps. This is the whole difference between
+                  the pattern sliding along the neck and it teleporting. */}
+              <g className="note__at" style={{ transform: `translate(${x}px, ${y}px)` }}>
+                <circle className={dotClass} cx={0} cy={0} r={DOT_RADIUS} />
+                <text
+                  className={dim ? 'note-label note-label--dim' : 'note-label'}
+                  x={0}
+                  y={0}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                >
+                  {label}
+                </text>
+              </g>
             </g>
           );
         };
@@ -337,12 +377,12 @@ export function Fretboard({
                     ),
                   ),
                 );
-          const base = highlights.map((h, i) => {
+          const base = highlights.map((h) => {
             const key = `${h.position.stringIndex}:${h.position.fret}`;
             // Dim anything outside the box you're looking at (unless we're
             // showing every box at once, where nothing is singled out).
             const dim = !showAllShapes && inActive !== null && !inActive.has(key);
-            return renderNote(h, `neck-${i}`, dim);
+            return renderNote(h, identityOf(h), dim);
           });
 
           // LINES FIRST, DOTS OVER THEM. SVG paints in document order, so the
@@ -416,9 +456,7 @@ export function Fretboard({
         }
 
         // FLAT MODE: a simple list of notes (e.g. a scale).
-        return highlights.map((h) =>
-          renderNote(h, `hl-${h.position.stringIndex}-${h.position.fret}`, false),
-        );
+        return highlights.map((h) => renderNote(h, identityOf(h), false));
       })()}
       </g>
     </svg>

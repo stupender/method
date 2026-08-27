@@ -106,6 +106,34 @@
 /* The root takes no ring — its colour is the signal. (A stroke around it read
    as an outline bug rather than emphasis.) */
 
+/* THE SHIFT. Change key and the whole pattern slides along the neck; this is
+   what lets you watch it happen instead of seeing a new picture appear. The
+   dot and its letter move together because they're one group (see the note in
+   Fretboard.tsx on why it's a transform).
+
+   Notes with nowhere to slide from — the ones that were below the nut a moment
+   ago — fade in where they land. That's the honest version: there was no fret
+   they came from. */
+.fretboard .note__at {
+  transition: transform 320ms cubic-bezier(0.34, 0.05, 0.2, 1);
+}
+.fretboard .note {
+  animation: note-arrives 320ms ease both;
+}
+@keyframes note-arrives {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fretboard .note__at {
+    transition: none;
+  }
+  .fretboard .note {
+    animation: none;
+  }
+}
+
 /* Faded when another shape is the active constellation. The fade is ANIMATED
    because the neck floats now and the page scrolling past it is what changes
    the selection: a hard cut every time a block passes under the neck reads as

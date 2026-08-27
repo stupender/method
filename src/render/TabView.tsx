@@ -17,9 +17,18 @@ interface TabViewProps {
   tuning: Tuning;
   placed: PlacedNote[];
   caption?: string; // optional label, e.g. the fret the shape sits at
+  // True when a staff sits directly above this TAB: draws the bar line down the
+  // left that meets the staff's own, so the two read as one system.
+  joined?: boolean;
 }
 
-export function TabView({ instrument, tuning, placed, caption }: TabViewProps) {
+export function TabView({
+  instrument,
+  tuning,
+  placed,
+  caption,
+  joined = false,
+}: TabViewProps) {
   // Lookup: string index -> the frets played on it, low to high. A chord has one
   // per string; a scale position (3 notes per string) has several.
   const fretsByString = new Map<number, number[]>();
@@ -34,7 +43,11 @@ export function TabView({ instrument, tuning, placed, caption }: TabViewProps) {
   for (let s = instrument.stringCount - 1; s >= 0; s--) rows.push(s);
 
   return (
-    <div className="tab" role="img" aria-label="Tablature">
+    <div
+      className={joined ? 'tab tab--joined' : 'tab'}
+      role="img"
+      aria-label="Tablature"
+    >
       {rows.map((stringIndex) => {
         const frets = (fretsByString.get(stringIndex) ?? []).sort((a, b) => a - b);
         return (

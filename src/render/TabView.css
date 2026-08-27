@@ -2,11 +2,20 @@
    TabView.css — the look of the TAB diagram
    ========================================================================== */
 
+/* THE OTHER HALF OF THE SYSTEM. When a staff sits above (the chord cards),
+   its bar line runs down to the bottom of its box and this one carries on from
+   the top of ours, so the two read as a single rule down the left of both —
+   the way notation and tablature are set together on paper.
+
+   The numbers here are the same ones the staff is built from: the lines start
+   48px in (16 of padding, a 22px column of string names, a 10px gap) and run
+   120px. If one moves, the other has to. */
 .tab {
+  position: relative;
   display: inline-flex;
   flex-direction: column;
   gap: 0;
-  padding: 12px 16px;
+  padding: 0 16px 12px;
   background: transparent;
   border-radius: var(--radius);
   font-family: var(--sans);
@@ -16,6 +25,19 @@
   display: flex;
   align-items: center;
   height: 30px;
+}
+
+/* The bar line: from the top of this box down to the LAST string line. A row
+   is 30px with its rule 20px tall and centred, so the last rule sits
+   5 * 30 + 5 + 20 = 175px down. */
+.tab--joined::before {
+  content: '';
+  position: absolute;
+  left: 48px;
+  top: 0;
+  height: 175px;
+  width: 1.2px;
+  background: var(--ink);
 }
 
 /* The open-string name printed at the left, e.g. e B G D A E. */

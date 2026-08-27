@@ -26,6 +26,14 @@
   stroke: var(--line);
   stroke-width: 1;
 }
+/* The bar line joining the staff to the TAB below it. Drawn in ink, at the
+   weight of a printed rule — this is the mark that says "these two staves are
+   one system", which is exactly what it means on paper. */
+.notation__bar {
+  stroke: var(--ink);
+  stroke-width: 1.2;
+}
+
 /* A ledger line belongs to its note, so it's drawn in the note's ink rather
    than the staff's — it's part of reading the pitch, not part of the staff. */
 .notation__ledger {
