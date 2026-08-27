@@ -13,7 +13,7 @@
   <circle cx="50" cy="37.5" r="29" fill="#ab4436"/>
   <circle cx="35.3" cy="63" r="29" fill="#d9ac3c"/>
   <circle cx="64.7" cy="63" r="29" fill="#3a7a9c"/>
-  <circle cx="50" cy="37.5" r="29" fill="#b46218" clip-path="url(#b)"/>
+  <circle cx="50" cy="37.5" r="29" fill="#9d530e" clip-path="url(#b)"/>
   <circle cx="35.3" cy="63" r="29" fill="#4a7337" clip-path="url(#c)"/>
   <circle cx="50" cy="37.5" r="29" fill="#6a4b76" clip-path="url(#c)"/>
   <circle cx="50" cy="37.5" r="29" fill="#444a6e" clip-path="url(#bc)"/>
