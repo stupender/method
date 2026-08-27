@@ -92,51 +92,6 @@ export function Fretboard({
 }: FretboardProps) {
   const { stringCount, fretCount } = instrument;
 
-  // WHAT MAKES A DOT "THE SAME DOT" WHEN THE KEY CHANGES.
-  //
-  // Change key and every note shifts along the neck. For that to read as a
-  // SHIFT rather than a redraw, React has to reuse the same elements, which
-  // means keying them by something that survives the change — and the fret
-  // can't, since the fret is the thing that moved.
-  //
-  // The identity that survives is: which string, which degree of the scale,
-  // and WHICH TIME that degree appears on that string counting up from the
-  // nut. Change C major to A major and "the 1st degree, first occurrence on
-  // the low E" goes from fret 8 to fret 5. It slides three frets down rather
-  // than nine up to the next C, which is what makes the movement read as the
-  // shortest way round without anyone computing a direction: both lists are in
-  // fret order, so matching them up by position matches each note to its
-  // nearest cousin.
-  //
-  // Notes near the nut have no cousin — a degree that had two occurrences on a
-  // string may have three after the shift. Those appear rather than slide,
-  // which is honest: they came from below the nut, where there is no fret to
-  // slide from.
-  const occurrences = new Map<string, number>();
-  const identityOf = (h: PlacedNote) => {
-    const stem = `${h.position.stringIndex}:${h.intervalName}`;
-    const nth = occurrences.get(stem) ?? 0;
-    occurrences.set(stem, nth + 1);
-    return `${stem}:${nth}`;
-  };
-
-  // ...AND WHEN NOT TO SLIDE AT ALL.
-  //
-  // Matching by occurrence keeps almost every note moving a fret or two, but
-  // it can't help the notes at the ends. When a degree drops below the nut,
-  // everything above it shuffles down a place: the element that was the FIRST
-  // occurrence — sitting at the open string — is now matched to what used to be
-  // the second, eleven frets up the neck. It then slides that whole way, in the
-  // opposite direction to every other note on screen, which is the one movement
-  // the eye actually follows.
-  //
-  // So a note that would travel further than about five frets doesn't travel:
-  // it appears where it lands. There was no fret it came from, and pretending
-  // otherwise draws a line across the choreography of everything else.
-  const previousX = useRef(new Map<string, number>());
-  const nextX = new Map<string, number>();
-  const JUMP = FRET_SPACING * 5;
-
   // WHAT'S LIT. One shape or a group of them, normalised to a single set so
   // everything downstream asks the same question: is this shape in it?
   const activeSet =
@@ -164,6 +119,102 @@ export function Fretboard({
   // flip the index: higher pitch = higher on screen.
   const stringY = (stringIndex: number) =>
     PAD_TOP + (stringCount - 1 - stringIndex) * STRING_SPACING;
+
+  // WHAT MAKES A DOT "THE SAME DOT" WHEN THE KEY CHANGES.
+  //
+  // Change key and every note shifts along the neck. For that to read as a
+  // SHIFT rather than a redraw, React has to reuse the same elements, which
+  // means keying them by something that survives the change — and the fret
+  // can't, since the fret is the thing that moved.
+  //
+  // The first attempt keyed them by "which occurrence of this degree on this
+  // string, counting up from the nut", which is right until a note falls off
+  // the bottom. Then every occurrence above it shuffles down a place, so ALL of
+  // them get paired with their neighbour twelve frets away and slide the length
+  // of the neck — several notes at once, against the direction of everything
+  // else.
+  //
+  // So notes are matched by WHERE THEY WERE instead. Both lists are in fret
+  // order, so the question is only how they line up: try sliding one list a
+  // couple of places against the other and keep whichever alignment moves the
+  // least. A note that left below the nut takes its element with it, a note
+  // that arrived gets a new one, and everything else — including a note going
+  // from the 1st fret to the 2nd — slides, because it was there a moment ago.
+  //
+  // A dot only appears when nothing on this string was near enough to be it.
+  const prevGroups = useRef(new Map<string, { id: string; x: number }[]>());
+  const freshId = useRef(0);
+  const identityOf = new Map<PlacedNote, string>();
+  const arrivals = new Set<PlacedNote>();
+  const nextGroups = new Map<string, { id: string; x: number }[]>();
+
+  {
+    // One group per string + degree: the notes that could plausibly BE each
+    // other from one key to the next.
+    const groups = new Map<string, PlacedNote[]>();
+    for (const h of highlights ?? []) {
+      const key = `${h.position.stringIndex}:${h.intervalName}`;
+      const list = groups.get(key);
+      if (list) list.push(h);
+      else groups.set(key, [h]);
+    }
+
+    for (const [key, notes] of groups) {
+      notes.sort((a, b) => a.position.fret - b.position.fret);
+      const previous = prevGroups.current.get(key) ?? [];
+
+      // How far to slide one list against the other. Zero means "nothing
+      // entered or left"; ±1 covers a note appearing at or vanishing past an
+      // end, which is the only thing that actually happens between two keys.
+      // Matching EVERYTHING beats matching some of it neatly, always. Scored
+      // the other way round — average distance with a small penalty per note
+      // abandoned — the search happily dropped a note to save a few frets of
+      // travel on the rest, and a quarter of the neck ended up appearing
+      // instead of sliding. So: fewest notes left over first, and only then
+      // the least movement.
+      let bestShift = 0;
+      let bestLeftOver = Infinity;
+      let bestMoved = Infinity;
+      for (let shift = -2; shift <= 2; shift++) {
+        let moved = 0;
+        let matched = 0;
+        notes.forEach((h, i) => {
+          const was = previous[i + shift];
+          if (was) {
+            moved += Math.abs(was.x - noteX(h.position.fret));
+            matched += 1;
+          }
+        });
+        if (matched === 0) continue;
+        const leftOver = notes.length - matched;
+        const average = moved / matched;
+        if (leftOver < bestLeftOver || (leftOver === bestLeftOver && average < bestMoved)) {
+          bestLeftOver = leftOver;
+          bestMoved = average;
+          bestShift = shift;
+        }
+      }
+
+      const assigned: { id: string; x: number }[] = [];
+      notes.forEach((h, i) => {
+        const was = previous[i + bestShift];
+        const x = noteX(h.position.fret);
+        // A pairing further apart than an octave isn't the same note moving,
+        // it's the same note an octave away — the neck repeats every twelve
+        // frets, so its true partner left past the end. Sliding across that
+        // gap is the one movement that reads as wrong, so it doesn't: the note
+        // appears where it is and carries on from there.
+        const tooFar = was !== undefined && Math.abs(was.x - x) > FRET_SPACING * 11;
+        const keep = was && !tooFar ? was : undefined;
+        const id = keep ? keep.id : `${key}:new${freshId.current++}`;
+        identityOf.set(h, id);
+        if (!keep) arrivals.add(h);
+        assigned.push({ id, x });
+      });
+      nextGroups.set(key, assigned);
+    }
+  }
+
   // Thicker line for lower (bass) strings, like real string gauges. Index 0 is
   // the lowest string AND the bottom row, so the gauge has to count DOWN from
   // it — the neck read thin-at-the-bottom before, which is backwards from a
@@ -176,7 +227,7 @@ export function Fretboard({
   // render can be thrown away and re-run and this has to describe what was
   // actually painted.
   useEffect(() => {
-    previousX.current = nextX;
+    prevGroups.current = nextGroups;
   });
 
   return (
@@ -315,10 +366,9 @@ export function Fretboard({
         const renderNote = (h: PlacedNote, key: string, dim: boolean) => {
           const x = noteX(h.position.fret);
           const y = stringY(h.position.stringIndex);
-          // Where this same note sat on the previous render, if it was there.
-          const was = previousX.current.get(key);
-          const jumped = was !== undefined && Math.abs(was - x) > JUMP;
-          nextX.set(key, x);
+          // Set when nothing on this string was near enough to have been this
+          // note — it arrives rather than travelling.
+          const jumped = arrivals.has(h);
           // Use the spelling carried on the PlacedNote (e.g. "Bb"), not a
           // re-derived sharp one, so scale/chord spelling stays correct.
           const label = labelMode === 'degree' ? h.intervalName : noteName(h.note);
@@ -414,7 +464,7 @@ export function Fretboard({
             // Dim anything outside the box you're looking at (unless we're
             // showing every box at once, where nothing is singled out).
             const dim = !showAllShapes && inActive !== null && !inActive.has(key);
-            return renderNote(h, identityOf(h), dim);
+            return renderNote(h, identityOf.get(h) ?? `neck-${h.position.stringIndex}-${h.position.fret}`, dim);
           });
 
           // LINES FIRST, DOTS OVER THEM. SVG paints in document order, so the
@@ -488,7 +538,13 @@ export function Fretboard({
         }
 
         // FLAT MODE: a simple list of notes (e.g. a scale).
-        return highlights.map((h) => renderNote(h, identityOf(h), false));
+        return highlights.map((h) =>
+          renderNote(
+            h,
+            identityOf.get(h) ?? `hl-${h.position.stringIndex}-${h.position.fret}`,
+            false,
+          ),
+        );
       })()}
       </g>
     </svg>

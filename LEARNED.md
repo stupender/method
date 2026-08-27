@@ -1798,3 +1798,18 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   hears the page. `addEventListener('scroll', fn, { capture: true })` on the
   window catches scrolls from any element — one listener, no walking up the
   tree looking for whichever ancestor happens to be scrollable.
+
+
+- **Matching everything beats matching some of it neatly.** The note-matching
+  scored alignments by average distance with a small penalty per note left
+  over, so it would happily abandon a note to save a few frets of travel on the
+  rest — and a quarter of the neck appeared instead of sliding. Scored
+  lexicographically (fewest left over first, THEN least movement) it drops to
+  one note per string, all of them at the nut where new material genuinely
+  enters. When a cost function trades off two things, check it isn't selling
+  the important one cheaply.
+
+- **Watch WHERE, not how many.** "Six notes appeared" sounds wrong until you
+  see all six are at fret 0. Moving up a key, every string gains a note at the
+  nut and there is nothing for it to slide from; moving down, the same thing
+  happens at the far end. The count was never the measure — the position was.
