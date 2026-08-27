@@ -19,6 +19,7 @@ import { midiOf, noteName } from '../theory/notes';
 import { playSequence, type Sequence } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
 import { NeckPanel } from './NeckPanel';
+import { SHOW_PLAY_BUTTONS } from './flags';
 import { DegreeLegend } from './DegreeLegend';
 import { useScrollFocus } from './useScrollFocus';
 import { TabSequence } from '../render/TabSequence';
@@ -246,17 +247,19 @@ export function ScaleExplorer({
             onClick={() => setPinnedShape(i)}
           >
             <div className="tab-row-head">
-              <button
-                className="tab-play"
-                aria-label={`${playing === i ? 'Stop' : 'Play'} ${pos.name}`}
-                onClick={(e) => {
-                  e.stopPropagation(); // playing shouldn't double as selecting
-                  setPinnedShape(i);
-                  togglePlay(i);
-                }}
-              >
-                {playing === i ? '❙❙' : '▶'}
-              </button>
+              {SHOW_PLAY_BUTTONS && (
+                <button
+                  className="tab-play"
+                  aria-label={`${playing === i ? 'Stop' : 'Play'} ${pos.name}`}
+                  onClick={(e) => {
+                    e.stopPropagation(); // playing shouldn't double as selecting
+                    setPinnedShape(i);
+                    togglePlay(i);
+                  }}
+                >
+                  {playing === i ? '❙❙' : '▶'}
+                </button>
+              )}
               <span className="tab-row-title">{pos.name}</span>
             </div>
             <TabSequence

@@ -42,6 +42,7 @@ import { midiOf, noteName } from '../theory/notes';
 import { playChord } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
 import { NeckPanel } from './NeckPanel';
+import { SHOW_PLAY_BUTTONS } from './flags';
 import { DegreeLegend } from './DegreeLegend';
 import { useScrollFocus } from './useScrollFocus';
 import { TabView } from '../render/TabView';
@@ -224,13 +225,15 @@ export function InversionLadder({
             {groups.map((g, gi) => (
               <section className="voicing-set" key={g.key} ref={focusRef(gi)}>
                 <header className="voicing-set__head">
-                  <button
-                    className="tab-play"
-                    aria-label={`${playingSet === g.key ? 'Stop' : 'Play'} the ${setLabel(g.key)} strings`}
-                    onClick={() => toggleSet(g)}
-                  >
-                    {playingSet === g.key ? '❙❙' : '▶'}
-                  </button>
+                  {SHOW_PLAY_BUTTONS && (
+                    <button
+                      className="tab-play"
+                      aria-label={`${playingSet === g.key ? 'Stop' : 'Play'} the ${setLabel(g.key)} strings`}
+                      onClick={() => toggleSet(g)}
+                    >
+                      {playingSet === g.key ? '❙❙' : '▶'}
+                    </button>
+                  )}
                   <span className="voicing-set__name">{setLabel(g.key)}</span>
                   <span className="voicing-set__note">
                     {g.rows.length === voiceCount
@@ -249,16 +252,18 @@ export function InversionLadder({
                       onClick={() => selectRow(r.index)}
                     >
                       <div className="tab-row-head">
-                        <button
-                          className="tab-play"
-                          aria-label={`Play ${voicingName(chord, structure, r.inv)}`}
-                          onClick={(e) => {
-                            e.stopPropagation(); // selecting is the row's own job
-                            playRow(r.index);
-                          }}
-                        >
-                          ▶
-                        </button>
+                        {SHOW_PLAY_BUTTONS && (
+                          <button
+                            className="tab-play"
+                            aria-label={`Play ${voicingName(chord, structure, r.inv)}`}
+                            onClick={(e) => {
+                              e.stopPropagation(); // selecting is the row's own job
+                              playRow(r.index);
+                            }}
+                          >
+                            ▶
+                          </button>
+                        )}
                         <span className="tab-row-title">
                           {voicingName(chord, structure, r.inv)}
                         </span>

@@ -38,6 +38,7 @@ import { midiOf, noteName } from '../theory/notes';
 import { playChord } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
 import { NeckPanel } from './NeckPanel';
+import { SHOW_PLAY_BUTTONS } from './flags';
 import { DegreeLegend } from './DegreeLegend';
 import { useScrollFocus } from './useScrollFocus';
 import { TabView } from '../render/TabView';
@@ -239,13 +240,15 @@ export function ChordScaleLadder({
             {groups.map((g, gi) => (
               <section className="voicing-set" key={g.key} ref={focusRef(gi)}>
                 <header className="voicing-set__head">
-                  <button
-                    className="tab-play"
-                    aria-label={`${playingSet === g.key ? 'Stop' : 'Play'} the chord scale on the ${setLabel(g.key)} strings`}
-                    onClick={() => toggleSet(g)}
-                  >
-                    {playingSet === g.key ? '❙❙' : '▶'}
-                  </button>
+                  {SHOW_PLAY_BUTTONS && (
+                    <button
+                      className="tab-play"
+                      aria-label={`${playingSet === g.key ? 'Stop' : 'Play'} the chord scale on the ${setLabel(g.key)} strings`}
+                      onClick={() => toggleSet(g)}
+                    >
+                      {playingSet === g.key ? '❙❙' : '▶'}
+                    </button>
+                  )}
                   <span className="voicing-set__name">{setLabel(g.key)}</span>
                   <span className="voicing-set__note">strings</span>
                 </header>
@@ -262,16 +265,18 @@ export function ChordScaleLadder({
                       {/* Both of the chord's names: what it IS, then what it's
                           DOING in the key. */}
                       <div className="tab-row-head">
-                        <button
-                          className="tab-play"
-                          aria-label={`Play ${r.degree.name}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            playRow(r.index);
-                          }}
-                        >
-                          ▶
-                        </button>
+                        {SHOW_PLAY_BUTTONS && (
+                          <button
+                            className="tab-play"
+                            aria-label={`Play ${r.degree.name}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playRow(r.index);
+                            }}
+                          >
+                            ▶
+                          </button>
+                        )}
                         <span className="tab-row-title tab-row-title--chord">
                           {noteName(r.degree.chordRoot)}
                           {r.degree.chord.symbol}
