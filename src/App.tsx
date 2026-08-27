@@ -34,6 +34,8 @@ import { ChordExplorer } from './ui/ChordExplorer';
 import { ChordScaleLadder } from './ui/ChordScaleLadder';
 import { InversionLadder } from './ui/InversionLadder';
 import { ControlPanel, ControlRow } from './ui/ControlPanel';
+import { Bookmarks } from './ui/Bookmarks';
+import { describe, type ModuleState } from './ui/moduleState';
 import { MultiSelect } from './ui/MultiSelect';
 import { PatternExplorer } from './ui/PatternExplorer';
 import { ScaleExplorer } from './ui/ScaleExplorer';
@@ -496,6 +498,46 @@ function StudyArea({
   // The seven Roman numerals of this key — the degree selector's labels. They sit
   // ABOVE Scales/Harmony and PERSIST across them: in Scales a degree picks the
   // mode built on it; in Harmony it picks that degree's chord.
+  // WHAT THIS PANEL IS SET TO, gathered into one object. Read on demand rather
+  // than kept in state: the panel's settings still live as separate pieces
+  // (which is fine while there's one panel), and this is the seam where they
+  // become a MODULE. See ui/moduleState.ts for why the shape matters more than
+  // the bookmarking does.
+  const moduleState = (): ModuleState => ({
+    studyMode,
+    view: mode === 'harmony' ? 'harmony' : 'scale',
+    rootIndex,
+    scaleId,
+    degree,
+    seventh,
+    structureId,
+    inversionIndex,
+    earRoots: [...earRoots],
+    earScaleIds: [...earScaleIds],
+    earDegrees: [...earDegrees],
+    earViews: [...earViews],
+    seventhsInEar,
+    quiz,
+    scrollY: Math.round(window.scrollY),
+  });
+
+  const applyModuleState = (s: ModuleState) => {
+    setStudyMode(s.studyMode);
+    setMode(s.view);
+    setRootIndex(s.rootIndex);
+    setScaleId(s.scaleId);
+    setDegree(s.degree);
+    setSeventh(s.seventh);
+    setStructureId(s.structureId);
+    setInversionIndex(s.inversionIndex);
+    setEarRoots(new Set(s.earRoots));
+    setEarScaleIds(new Set(s.earScaleIds));
+    setEarDegrees(new Set(s.earDegrees));
+    setEarViews(new Set(s.earViews));
+    setSeventhsInEar(s.seventhsInEar);
+    setQuiz(s.quiz);
+  };
+
   const romanLabels = diatonicChords(root, scale, false).map((c) => c.roman);
 
   // HARMONY'S OWN THREE CHOICES. They used to live inside the ladders, under
@@ -560,7 +602,20 @@ function StudyArea({
           offered in the View list — it isn't useful on this key-oriented page
           yet. The view + ChordExplorer are kept below for a future, less
           key-centric section; re-add 'chord' to the list to show it.) */}
-      <ControlPanel title="Controls">
+      <ControlPanel
+        title="Controls"
+        action={
+          <Bookmarks
+            current={moduleState}
+            label={describe(moduleState(), {
+              root: noteName(root),
+              scale: scale.name,
+              roman: deg === ALL_DEGREES ? null : romanLabels[deg],
+            })}
+            onRestore={applyModuleState}
+          />
+        }
+      >
         {READY.earTraining && (
           <ControlRow label="Mode">
             <Segmented

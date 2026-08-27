@@ -61,6 +61,33 @@ function layer — build once, reuse everywhere.
 
 ---
 
+## The module idea (Stu, 2026-08-27) — and how it's being staged
+
+A CONTROLS panel, its fretboard and its systems are ONE MODULE. You could have
+two side by side, each set to something different, so that practising the move
+from one set of triads to another is a single picture rather than two states
+you flip between. A module's settings save as a preset. Far out, this is the
+building block Play should have been made of.
+
+Staged so each step is useful on its own and none of it is thrown away:
+
+1. **The shape** — `ui/moduleState.ts` (DONE). One type describing everything a
+   panel is set to. Nothing renders differently; this exists so that steps 2
+   and 3 are additions rather than rewrites.
+2. **Bookmarks** (DONE). Save a ModuleState, name it, come back to it. Useful
+   today, and it means every preset ever saved already fits a module.
+3. **The panel becomes a component that owns its state.** Today StudyArea holds
+   a dozen `useState`s and `moduleState()` gathers them on demand. This step
+   turns that into one `useState<ModuleState>` inside a `<Module>` component.
+   Invisible, and the whole job.
+4. **Two of them.** Render `<Module>` twice, side by side, with an "add a
+   second" control. Half a day once step 3 is done, because a module by then
+   holds its own state and knows nothing about the page.
+5. **Presets as modules** — a saved preset can open INTO either side.
+
+The order matters: doing 4 before 3 means two panels fighting over one blob of
+state, which is exactly the mess this staging avoids.
+
 ## Held for later — decided but deliberately not built yet
 
 - **The bundle got big, and here's what can be done about it.** Adding VexFlow

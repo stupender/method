@@ -20,14 +20,24 @@ import type { ReactNode } from 'react';
 // The outlined block. `title` is the eyebrow printed at its top left.
 export function ControlPanel({
   title = 'Controls',
+  action,
   children,
 }: {
   title?: string;
+  // Anything belonging to the panel AS A WHOLE, printed at the right of its
+  // title strip. Today that's the bookmark; the reason it lives here rather
+  // than in the site bar is that a panel is a MODULE, and the plan is for
+  // there to be more than one of them side by side. A module's own controls
+  // travel with it.
+  action?: ReactNode;
   children: ReactNode;
 }) {
   return (
     <section className="panel" aria-label={title}>
-      <p className="panel__title">{title}</p>
+      <div className="panel__head">
+        <p className="panel__title">{title}</p>
+        {action}
+      </div>
       <div className="panel__rows">{children}</div>
     </section>
   );
