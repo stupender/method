@@ -42,8 +42,7 @@ import { NeckPanel } from './NeckPanel';
 import { SHOW_PLAY_BUTTONS } from './flags';
 import { DegreeLegend } from './DegreeLegend';
 import { useScrollFocus } from './useScrollFocus';
-import { TabView } from '../render/TabView';
-import { Staff } from '../render/Staff';
+import { ChordSystem } from '../render/ChordSystem';
 import { useStepper } from './ShapeStepper';
 
 // A stable key for a shape's string set, e.g. "0-1-2-3".
@@ -317,22 +316,17 @@ export function ChordScaleLadder({
                         </span>
                         <span className="tab-row-roman">{r.degree.roman}</span>
                       </div>
-                      {/* The same chord twice: where it sits in pitch, then
-                          where your hand goes. */}
-                      <div className="tab-card__notation">
-                        <Staff placed={r.shape} chord />
-                      </div>
-                      <TabView
-                        joined
-                        instrument={GUITAR}
-                        tuning={GUITAR_STANDARD}
-                        placed={r.shape}
-                        caption={
-                          isStretch(r.shape)
-                            ? `fr. ${loFret(r.shape)} · a stretch`
-                            : `fr. ${loFret(r.shape)}`
-                        }
-                      />
+                      {/* Notation over tablature, joined down the left —
+                          one system, the way guitar music is set. */}
+                      <ChordSystem placed={r.shape} />
+                      {/* Where on the neck, and whether it's a reach. The TAB
+                          shows the frets; this says which end of the neck they
+                          are, which the numbers alone don't. */}
+                      <span className="tab-card__caption">
+                        {isStretch(r.shape)
+                          ? `fr. ${loFret(r.shape)} · a stretch`
+                          : `fr. ${loFret(r.shape)}`}
+                      </span>
                     </div>
                   ))}
                 </div>

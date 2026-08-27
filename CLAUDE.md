@@ -66,7 +66,8 @@ data  →  theory logic  →  rendering  →  audio  →  UI / state
 
 ## Tech stack
 
-TypeScript + React + Vite + Web Audio. VexFlow for notation (added later). Plain
+TypeScript + React + Vite + Web Audio. VexFlow for notation (added 2026-08-27:
+the chord voicings are drawn as a staff + TAB system by `render/ChordSystem.tsx`). Plain
 CSS with a small palette of CSS variables in `src/index.css`. Deploy: GitHub
 Pages via `npm run deploy` (the `gh-pages` package). `vite.config.ts` `base`
 must match the repo name (`/method/`).

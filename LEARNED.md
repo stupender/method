@@ -1718,3 +1718,21 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   top line through the gap to the TAB's last string — which is how notation and
   tablature are set together on paper. The gap belongs to the staff's own box,
   so the line can be drawn through it and meet the TAB's half.
+
+
+- **Know what the hard part actually is.** Drawing note heads on five lines is
+  easy, and the hand-rolled staff did it fine. What isn't easy is everything
+  around them: a TAB staff ruled at the right spacing with T A B in the margin,
+  a connector spanning both staves, accidentals placed so they don't collide.
+  That's engraving convention, and VexFlow has all of it — including `TabStave`
+  and `StaveConnector`, which are exactly the two things the hand-rolled
+  version was faking. The right question wasn't "can I draw this" but "how much
+  of a discipline am I about to re-derive by eye".
+
+- **Recolouring a drawing library means knowing how it draws.** Forcing
+  everything in VexFlow's SVG to `currentColor` broke it twice: the little
+  rectangles BEHIND fret numbers are meant to be the page (filling them with
+  ink turned every number into a black block), and the staff lines are stroked
+  paths with `fill="none"` (filling them does nothing, and removing their
+  stroke erased both staves). Fill for shapes, stroke for rules, page colour
+  for the gaps things are punched out of.

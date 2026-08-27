@@ -601,10 +601,12 @@
   overflow-x: auto;
   padding-bottom: 2px;
 }
-/* No gap: the staff's box already contains the space between the two, so the
-   bar line can be drawn through it. */
-.tab-card__notation {
-  padding-bottom: 0;
+/* Where the grip sits, under its system. */
+.tab-card__caption {
+  display: block;
+  padding: 2px 0 0 10px;
+  color: var(--muted);
+  font-size: 11px;
 }
 .tab-row-staff {
   margin: 2px 0 6px;

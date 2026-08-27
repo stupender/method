@@ -1,0 +1,50 @@
+/* ==========================================================================
+   ChordSystem.css — making VexFlow's output belong to this page
+   --------------------------------------------------------------------------
+   VexFlow draws in black. Rather than telling it a colour (which would mean
+   redrawing every system whenever the theme changes), everything it produces
+   is forced to `currentColor` and the container carries the page's ink. The
+   theme switch then costs nothing at all — the SVG simply inherits.
+   ========================================================================== */
+
+.system {
+  color: var(--ink);
+  line-height: 0; /* no phantom descender space under the SVG */
+}
+
+.system svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Note heads, clefs, stems, the T A B letters — solid shapes, so they take the
+   ink as a FILL. */
+.system svg path,
+.system svg rect {
+  fill: currentColor;
+  stroke: none;
+}
+
+/* The ruled lines of both staves are the exception: they are stroked paths
+   with `fill="none"`, so filling them does nothing and removing their stroke
+   erases the staff entirely. Ink goes on the stroke here. */
+.system svg .vf-stave path {
+  fill: none;
+  stroke: currentColor;
+}
+
+/* ...except the little rectangles BEHIND a fret number and a note head. Those
+   are there to break the line so the number reads, so they have to be the
+   PAGE, not the ink. Filling them with ink — which "everything is
+   currentColor" did — turned every fret number into a black block. */
+.system svg .vf-tabnote rect,
+.system svg .vf-stavenote rect {
+  fill: var(--bg);
+}
+
+/* The engraving text — T A B down the margin, the fret numbers, the 8 under
+   the clef. */
+.system svg text {
+  fill: currentColor;
+}
