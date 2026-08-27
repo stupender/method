@@ -22,7 +22,7 @@ import { NeckPanel } from './NeckPanel';
 import { SHOW_PLAY_BUTTONS } from './flags';
 import { DegreeLegend } from './DegreeLegend';
 import { useScrollFocus } from './useScrollFocus';
-import { TabSequence } from '../render/TabSequence';
+import { System } from '../render/System';
 import { Segmented } from './Segmented';
 import { useStepper } from './ShapeStepper';
 import type { PlacedNote } from '../theory/types';
@@ -277,11 +277,11 @@ export function ScaleExplorer({
               )}
               <span className="tab-row-title">{pos.name}</span>
             </div>
-            <TabSequence
-              instrument={GUITAR}
-              tuning={GUITAR_STANDARD}
-              placed={upAndDown(pos.notes)}
-              ordered /* the up-then-down order IS the run; don't re-sort it */
+            {/* The run as notation over tablature — one note per moment, in
+                the order it's played. */}
+            <System
+              events={upAndDown(pos.notes).map((n) => [n])}
+              width={860}
             />
           </div>
         ))}

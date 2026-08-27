@@ -1736,3 +1736,15 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   paths with `fill="none"` (filling them does nothing, and removing their
   stroke erased both staves). Fill for shapes, stroke for rules, page colour
   for the gaps things are punched out of.
+
+- **A chord and a scale are the same object.** `render/System.tsx` takes
+  EVENTS — a list of moments, each holding the notes sounding at it. A voicing
+  is one moment of four notes; a scale run is thirty-five moments of one. The
+  drawing is identical; only what you hand it differs. Splitting them into two
+  components would have duplicated the stave, the connector and the string
+  numbering for no gain.
+
+- **Format the two staves together or they drift.** VexFlow aligns a note with
+  its fret number only if the notation voice and the tab voice go through one
+  Formatter. Formatting them separately looks fine for a chord (one column) and
+  falls apart across a run.

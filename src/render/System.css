@@ -12,12 +12,10 @@
   line-height: 0; /* no phantom descender space under the SVG */
 }
 
-/* Shrinks to fit its column, never grows past the size it was drawn at —
-   scaling a 210px engraving up to fill a wide column just makes a fat staff. */
+/* Fills whatever it's given and keeps its proportions. */
 .system svg {
   display: block;
   width: 100%;
-  max-width: 210px;
   height: auto;
 }
 

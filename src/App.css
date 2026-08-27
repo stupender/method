@@ -629,14 +629,14 @@
   color: var(--ink);
 }
 
-/* A row's header — a track listing: its own play button, then its name, sitting
-   ABOVE the staff it describes. The button is a circle because that's the
+/* A row's header — a track listing: its name sitting ABOVE the staff it
+   describes, close to it, because a label that drifts belongs to nothing. The button is a circle because that's the
    boards' shape language; everything rectangular here is a printed block. */
 .tab-row-head {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 0 3px;
+  padding: 9px 0 0;
 }
 .tab-play {
   flex: none;
@@ -1003,8 +1003,17 @@
 .voicing-set .tab-row-head {
   align-items: baseline;
   gap: 7px;
-  min-height: 38px;
-  padding: 6px 0 2px;
+  min-height: 30px;
+  padding: 2px 0 0;
+}
+
+/* A CHORD's system never grows past the size it was engraved at: stretching a
+   210px drawing across a wide column just makes a fat staff. A SCALE's system
+   has no such cap — a run of thirty notes wants every pixel of the row, and
+   capping it was squeezing a full line of music into a chord's worth of
+   space. */
+.voicing-set .system svg {
+  max-width: 210px;
 }
 
 /* The title starts where the STAFF starts. The lamp sits in the margin to the

@@ -1,8 +1,14 @@
 // ============================================================================
-// render/ChordSystem.tsx — one voicing, as notation over tablature
+// render/System.tsx — notation over tablature, joined as one system
 // ----------------------------------------------------------------------------
 // A staff and a TAB staff joined down the left by a connector: a SYSTEM, the
 // way guitar music is set on paper.
+//
+// It takes EVENTS — a list of moments, each holding the notes sounding at that
+// moment. A chord voicing is one event of four notes; a scale run is thirty
+// events of one note each. Same drawing either way, which is the whole reason
+// this isn't two components: the difference between a chord and a scale is
+// what you hand it, not how it's drawn.
 //
 // This is VexFlow, and the switch is worth explaining because the previous
 // version wasn't. Hand-drawing note heads on five lines is easy and I did it;
@@ -37,9 +43,11 @@ import {
   StaveNote,
   TabNote,
   TabStave,
+  Voice,
 } from 'vexflow';
 import type { PlacedNote } from '../theory/types';
-import './ChordSystem.css';
+import { Beam } from 'vexflow';
+import './System.css';
 
 const STAFF_TOP = 0;
 const TAB_TOP = 76;
@@ -63,11 +71,12 @@ function vexKey(p: PlacedNote): string {
   return `${p.note.letter.toLowerCase()}${ACCIDENTAL_CODE[p.note.accidental]}/${octave}`;
 }
 
-export function ChordSystem({
-  placed,
+export function System({
+  events,
   width = 210,
 }: {
-  placed: PlacedNote[];
+  // Each entry is one moment: the notes sounding together at it.
+  events: PlacedNote[][];
   width?: number;
 }) {
   const host = useRef<HTMLDivElement>(null);
@@ -76,7 +85,12 @@ export function ChordSystem({
     const el = host.current;
     if (!el) return;
     el.innerHTML = ''; // effects can run twice in development
-    if (placed.length === 0) return;
+    const moments = events.filter((e) => e.length > 0);
+    if (moments.length === 0) return;
+    // A single moment is a chord and gets a whole note; a run of them is read
+    // as a line, and eighths beamed in fours are how a scale exercise is
+    // written.
+    const duration = moments.length === 1 ? 'w' : '8';
 
     const renderer = new Renderer(el, Renderer.Backends.SVG);
     renderer.resize(width, HEIGHT);
@@ -103,34 +117,62 @@ export function ChordSystem({
       .setContext(ctx)
       .draw();
 
-    const low = [...placed].sort(
-      (a, b) => a.position.stringIndex - b.position.stringIndex,
-    );
+    const staveNotes: StaveNote[] = [];
+    const tabNotes: TabNote[] = [];
+    for (const moment of moments) {
+      const low = [...moment].sort(
+        (a, b) => a.position.stringIndex - b.position.stringIndex,
+      );
+      const note = new StaveNote({
+        keys: low.map(vexKey),
+        duration,
+        clef: 'treble',
+      });
+      low.forEach((p, i) => {
+        if (p.note.accidental !== 0) {
+          note.addModifier(new Accidental(ACCIDENTAL_CODE[p.note.accidental]), i);
+        }
+      });
+      staveNotes.push(note);
+      tabNotes.push(
+        new TabNote({
+          positions: low.map((p) => ({
+            // VexFlow strings count 1..6 down from the high e; ours count 0..5
+            // up from the low E.
+            str: 6 - p.position.stringIndex,
+            fret: p.position.fret,
+          })),
+          duration,
+        }),
+      );
+    }
 
-    // One whole note holding every pitch — a voicing, not a rhythm.
-    const chord = new StaveNote({
-      keys: low.map(vexKey),
-      duration: 'w',
-      clef: 'treble',
-    });
-    low.forEach((p, i) => {
-      if (p.note.accidental !== 0) {
-        chord.addModifier(new Accidental(ACCIDENTAL_CODE[p.note.accidental]), i);
-      }
-    });
+    // The two staves are formatted TOGETHER so a note and its fret number line
+    // up in the same column. Formatting them separately is what makes notation
+    // and tab drift apart across a long run.
+    const voice = new Voice({ numBeats: moments.length, beatValue: 4 })
+      .setStrict(false)
+      .addTickables(staveNotes);
+    const tabVoice = new Voice({ numBeats: moments.length, beatValue: 4 })
+      .setStrict(false)
+      .addTickables(tabNotes);
 
-    const tabChord = new TabNote({
-      positions: low.map((p) => ({
-        // VexFlow strings count 1..6 down from the high e; ours count 0..5 up
-        // from the low E.
-        str: 6 - p.position.stringIndex,
-        fret: p.position.fret,
-      })),
-      duration: 'w',
-    });
+    const startX = Math.max(stave.getNoteStartX(), tab.getNoteStartX());
+    stave.setNoteStartX(startX);
+    tab.setNoteStartX(startX);
 
-    Formatter.FormatAndDraw(ctx, stave, [chord]);
-    Formatter.FormatAndDraw(ctx, tab, [tabChord]);
+    new Formatter()
+      .joinVoices([voice])
+      .joinVoices([tabVoice])
+      .format([voice, tabVoice], staveWidth - startX - 10);
+
+    voice.draw(ctx, stave);
+    tabVoice.draw(ctx, tab);
+
+    // Beams, but only for a run — a single chord has nothing to beam.
+    if (moments.length > 1) {
+      Beam.generateBeams(staveNotes).forEach((b) => b.setContext(ctx).draw());
+    }
 
     // LET IT SCALE. VexFlow sizes the SVG in fixed pixels, which means four
     // seventh-chord systems can't share a row that would hold them at 90% —
@@ -148,7 +190,7 @@ export function ChordSystem({
     return () => {
       el.innerHTML = '';
     };
-  }, [placed, width]);
+  }, [events, width]);
 
   return <div className="system" ref={host} aria-label="Notation and tablature" />;
 }

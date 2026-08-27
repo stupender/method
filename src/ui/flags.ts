@@ -17,3 +17,14 @@
 //
 // Set to true to bring them all back; nothing else changes.
 export const SHOW_PLAY_BUTTONS = false;
+
+// THE "+ ADD TO PLAY" BUTTON in Harmony.
+//
+// Off because Play itself is in question. What this app turned out to be good
+// at — laying the whole neck out and letting you scroll through it — arrived
+// after Play was designed, and Stu wants to USE this before deciding what a
+// progression workbench should be. Sending chords to a view nobody has settled
+// on is a promise the app can't keep yet.
+//
+// The songbook underneath it is untouched; this is only the doorway.
+export const SHOW_ADD_TO_PLAY = false;

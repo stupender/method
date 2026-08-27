@@ -38,6 +38,7 @@ import { MultiSelect } from './ui/MultiSelect';
 import { PatternExplorer } from './ui/PatternExplorer';
 import { ScaleExplorer } from './ui/ScaleExplorer';
 import { Segmented } from './ui/Segmented';
+import { SHOW_ADD_TO_PLAY } from './ui/flags';
 import { ThemeToggle } from './ui/ThemeToggle';
 import { SongView, type ChartChord } from './ui/SongView';
 import { PracticeCards, type PracticeCard } from './ui/PracticeCards';
@@ -965,7 +966,7 @@ function HarmonyView({
 
         {/* Send the selected chord over to the Play song. Only when a single
             degree is in play — "All" isn't one chord to add. */}
-        {!isAll && (
+        {SHOW_ADD_TO_PLAY && !isAll && (
           <div className="controls-row">
             <button className="chart-add" onClick={addThisChord}>
               + Add {noteName(selected.chordRoot)}
