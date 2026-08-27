@@ -318,11 +318,13 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 4px 13px;
+  line-height: 1;
   list-style: none;
-  margin: 0;
   padding: 0;
-  flex-wrap: wrap;
-  margin: 0 0 14px;
+  /* No trailing margin: it used to sit below the neck as a block and needed
+     one. It rides IN the neck's header now, where 14px of phantom space under
+     it pushed the dots off centre against the name beside them. */
+  margin: 0;
 }
 .legend__item {
   display: flex;
@@ -775,10 +777,15 @@
   overflow: hidden;
 }
 /* WHERE YOU ARE, pinned to the neck: what you're in, what's lit, and what the
-   colours mean. Two lines rather than one — the name is a heading and the key
-   is a caption under it, and squeezing them onto one line made both read as
-   toolbar furniture. */
+   colours mean — on ONE line when the width allows, using the space beside the
+   name rather than stacking under it and pushing the fretboard down. It wraps
+   to two lines on its own when the colour key stops fitting, which is the
+   right rule for a phone without hard-coding a phone. */
 .neckpanel__head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 22px;
   padding: 9px 14px 10px;
   border-bottom: 1px solid var(--line);
   background: var(--surface);
@@ -788,14 +795,18 @@
   align-items: baseline;
   flex-wrap: wrap;
   gap: 10px;
+  flex: none;
 }
 /* The scale or chord you're looking at. This is the page's real heading now,
    so it takes the display serif at heading size. */
+/* line-height 1 so the box hugs the letters: with the default leading the name
+   sits optically high against the row of dots beside it, because the extra
+   space is all above the cap line. */
 .neckpanel__name {
   font-family: var(--serif);
   font-size: 21px;
   letter-spacing: -0.2px;
-  line-height: 1.15;
+  line-height: 1;
 }
 /* What's lit on the neck right now — the position or string set you've
    scrolled to. Quieter: it changes as you move, the name doesn't. */
@@ -806,8 +817,21 @@
   font-size: 14.5px;
   color: var(--muted);
 }
+/* Takes the rest of the line, and is the thing that wraps when it can't. It
+   has to CENTRE its contents, not just hold them: the wrapper is taller than
+   the row of dots inside it (a block's line box, not the dots' 19px), so
+   without this the dots sat against its top edge and read as riding high
+   against the name beside them. */
 .neckpanel__legend {
-  margin-top: 7px;
+  display: flex;
+  align-items: center;
+  /* `align-self` and not just the parent's `align-items`: the head wraps, and a
+     single wrapped flex line stretches to the container's height, which was
+     making this wrapper 33px tall with its 19px of dots sitting against the
+     top. Stating it on the item itself is the part that actually holds. */
+  align-self: center;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 /* The list joins the neck above it. */
 .neckpanel + .voicing-sets,

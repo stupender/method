@@ -152,10 +152,15 @@
 .fretboard .constellation-glow--all {
   opacity: 0.1;
 }
+/* MATCHED TO THE LEGEND ABOVE IT. The colour key's dots print their number at
+   11px on a 19px disc and read cleanly; the neck was printing 13px on a 30px
+   dot, which is proportionally much smaller type and looked it — the key was
+   easier to read than the instrument it explains. Same ratio here (about 0.58
+   of the dot), same weight. */
 .fretboard .note-label {
   fill: var(--note-label);
   font-family: var(--sans);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   pointer-events: none;
 }

@@ -38,6 +38,10 @@ export function NeckPanel({
 }) {
   return (
     <section className="neckpanel" aria-label="Fretboard">
+      {/* One line where there's room — the name at the left, the colour key
+          filling the width beside it — and two when there isn't. The header is
+          a flex row that wraps, so the break happens when the key stops fitting
+          rather than at a width someone guessed. */}
       <header className="neckpanel__head">
         <div className="neckpanel__titles">
           {name && <span className="neckpanel__name">{name}</span>}

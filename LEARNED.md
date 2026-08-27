@@ -1635,3 +1635,14 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Deleting CSS by scanning to the next comment deletes more than you meant.**
   Pruning the retired Key button took `.sitebar__mark` and `.sitebar__name` with
   it — the mark blew up to 425px and the bar collapsed. Delete rules by name.
+
+- **A rule can lose to itself.** The dots wouldn't centre against the scale
+  name, and the cause was `margin: 0` and `margin: 0 0 14px` in the SAME
+  `.legend` block — an old declaration left below my new one, so the later
+  won. Half of that 14px was exactly the 7px the dots were riding high by. When
+  a change appears to do nothing, read the whole rule, not the line you edited.
+
+- **Match the type to what it sits next to.** The colour key prints its numbers
+  at 11px on a 19px disc; the neck was printing 13px on a 30px dot, which is
+  proportionally much smaller. The key was easier to read than the instrument
+  it explains. Same ratio (~0.58 of the dot) and same weight fixes it.
