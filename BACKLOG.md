@@ -89,10 +89,13 @@ Staged so each step is useful on its own and none of it is thrown away:
    selections. Below 1100px they stack, because two fretboards side by side
    stop being readable. Held as a LIST, so three, or a saved arrangement, is a
    change of data rather than of shape.
-5. **Presets as modules** — a saved preset can open INTO either side, and an
-   arrangement of two can be saved as one bookmark. The data already supports
-   it (a Bookmark holds a ModuleState; a pair is two of them); what's missing
-   is deciding what the UI for "restore into which side" should be.
+5. **Presets as modules** — FLAGGED, waiting on Stu playing with two-up first.
+   A saved preset should be able to open INTO either side, and an arrangement
+   of two should be savable as one bookmark. The data already supports both (a
+   Bookmark holds a ModuleState; a pair is two of them) — what's undecided is
+   the UI, and it isn't decidable from a chair: whether you reach for "put this
+   preset on the right" or for "save this pair as one thing" depends on how the
+   two-up view actually gets used. Deliberately not guessed.
 
 The order matters: doing 4 before 3 means two panels fighting over one blob of
 state, which is exactly the mess this staging avoids.

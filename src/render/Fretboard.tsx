@@ -11,6 +11,7 @@
 // Everything is positioned with a few geometry helpers below.
 // ============================================================================
 
+import { useEffect, useRef } from 'react';
 import type { Instrument, Tuning, PlacedNote } from '../theory/types';
 import { noteName } from '../theory/notes';
 import './Fretboard.css';
@@ -119,6 +120,23 @@ export function Fretboard({
     return `${stem}:${nth}`;
   };
 
+  // ...AND WHEN NOT TO SLIDE AT ALL.
+  //
+  // Matching by occurrence keeps almost every note moving a fret or two, but
+  // it can't help the notes at the ends. When a degree drops below the nut,
+  // everything above it shuffles down a place: the element that was the FIRST
+  // occurrence — sitting at the open string — is now matched to what used to be
+  // the second, eleven frets up the neck. It then slides that whole way, in the
+  // opposite direction to every other note on screen, which is the one movement
+  // the eye actually follows.
+  //
+  // So a note that would travel further than about five frets doesn't travel:
+  // it appears where it lands. There was no fret it came from, and pretending
+  // otherwise draws a line across the choreography of everything else.
+  const previousX = useRef(new Map<string, number>());
+  const nextX = new Map<string, number>();
+  const JUMP = FRET_SPACING * 5;
+
   // WHAT'S LIT. One shape or a group of them, normalised to a single set so
   // everything downstream asks the same question: is this shape in it?
   const activeSet =
@@ -152,6 +170,14 @@ export function Fretboard({
   // real instrument.
   const stringWidth = (stringIndex: number) =>
     1.3 + (stringCount - 1 - stringIndex) * 0.32;
+
+  // Remember where everything ended up, so the next render can tell a shift
+  // from a jump. Written in an effect rather than during render, because a
+  // render can be thrown away and re-run and this has to describe what was
+  // actually painted.
+  useEffect(() => {
+    previousX.current = nextX;
+  });
 
   return (
     <svg
@@ -289,6 +315,10 @@ export function Fretboard({
         const renderNote = (h: PlacedNote, key: string, dim: boolean) => {
           const x = noteX(h.position.fret);
           const y = stringY(h.position.stringIndex);
+          // Where this same note sat on the previous render, if it was there.
+          const was = previousX.current.get(key);
+          const jumped = was !== undefined && Math.abs(was - x) > JUMP;
+          nextX.set(key, x);
           // Use the spelling carried on the PlacedNote (e.g. "Bb"), not a
           // re-derived sharp one, so scale/chord spelling stays correct.
           const label = labelMode === 'degree' ? h.intervalName : noteName(h.note);
@@ -307,7 +337,9 @@ export function Fretboard({
             <g
               key={key}
               className={
-                (onNoteTap ? 'note tappable' : 'note') + (deg ? ` note--deg${deg}` : '')
+                (onNoteTap ? 'note tappable' : 'note') +
+                (deg ? ` note--deg${deg}` : '') +
+                (jumped ? ' note--jumped' : '')
               }
               onClick={
                 onNoteTap

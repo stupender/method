@@ -85,10 +85,15 @@ export function useScrollFocus(
     };
 
     measure();
-    window.addEventListener('scroll', measure, { passive: true });
+    // CAPTURE, not bubble. When two modules are on screen each one scrolls
+    // inside its own box, and a scroll event on an element doesn't bubble — a
+    // plain window listener would only ever hear the page move. Listening in
+    // the capture phase catches scrolls from anywhere, page or panel, with one
+    // listener and no hunting for which ancestor happens to be scrollable.
+    window.addEventListener('scroll', measure, { passive: true, capture: true });
     window.addEventListener('resize', measure);
     return () => {
-      window.removeEventListener('scroll', measure);
+      window.removeEventListener('scroll', measure, { capture: true });
       window.removeEventListener('resize', measure);
     };
     // `count` re-runs it when the list changes length (a new key, scale or

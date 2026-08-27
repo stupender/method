@@ -125,11 +125,29 @@
     opacity: 0;
   }
 }
+/* A note with nowhere to slide from doesn't slide: it arrives. Without this
+   the note that was on the open string is matched to one eleven frets up and
+   travels the whole way against the flow of everything else — see the note in
+   Fretboard.tsx. Its own fade is a separate animation name so that ADDING the
+   class starts it; re-using the mount animation wouldn't re-run. */
+.fretboard .note--jumped .note__at {
+  transition: none;
+}
+.fretboard .note--jumped {
+  animation: note-lands 260ms ease both;
+}
+@keyframes note-lands {
+  from {
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .fretboard .note__at {
     transition: none;
   }
-  .fretboard .note {
+  .fretboard .note,
+  .fretboard .note--jumped {
     animation: none;
   }
 }

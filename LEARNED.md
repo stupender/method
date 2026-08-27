@@ -1791,3 +1791,10 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   comment to the next one took `.page--wide` with it, and the whole app had
   been rendering at 760px instead of 1040 — every "this feels cramped" since
   then was that. It ate `.sitebar__mark` the first time. Delete rules by name.
+
+
+- **Scroll events don't bubble, but they can be captured.** With two modules
+  each scrolling in its own box, a plain `window` scroll listener only ever
+  hears the page. `addEventListener('scroll', fn, { capture: true })` on the
+  window catches scrolls from any element — one listener, no walking up the
+  tree looking for whichever ancestor happens to be scrollable.
