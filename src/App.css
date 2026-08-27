@@ -865,11 +865,28 @@
   border-radius: 4px;
   padding: 0 14px 14px;
 }
+/* The set's own heading, and its own selectable thing: pressing it lights the
+   whole set on the neck. */
 .voicing-set__head {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 11px 0 4px;
+  cursor: pointer;
+}
+.voicing-set__head:hover .voicing-set__name {
+  color: var(--ink);
+}
+/* Lit when the whole set is what's showing — the same lamp as everywhere
+   else, so "this set" and "this chord" are visibly the same kind of choice at
+   two different sizes. */
+.voicing-set__head--on .tab-row-mark {
+  background: var(--tick-fill);
+  border-color: var(--tick-ring);
+  box-shadow: var(--tick-glow);
+}
+.voicing-set__head--on .voicing-set__name {
+  color: var(--ink);
 }
 .voicing-set__name {
   font-size: 11px;

@@ -239,12 +239,33 @@ export function ChordScaleLadder({
           <div className="voicing-sets">
             {groups.map((g, gi) => (
               <section className="voicing-set" key={g.key} ref={focusRef(gi)}>
-                <header className="voicing-set__head">
+                {/* TWO LEVELS OF SELECTION. Click the header and the WHOLE set
+                    lights on the neck — every chord it holds, all the way up.
+                    Click a chord and just that one lights. Clicking the header
+                    is therefore also how you get back out of a single chord,
+                    which is why it clears the pin. It sets the focused block
+                    too, so it works on a set you can see but haven't scrolled
+                    to; the next scroll takes over again, as it should. */}
+                <header
+                  className={
+                    'voicing-set__head' +
+                    (pinned === null && focusedSet === gi ? ' voicing-set__head--on' : '')
+                  }
+                  onClick={() => {
+                    stopAll();
+                    setPinned(null);
+                    setFocusedSet(gi);
+                  }}
+                >
+                  <span className="tab-row-mark" aria-hidden="true" />
                   {SHOW_PLAY_BUTTONS && (
                     <button
                       className="tab-play"
                       aria-label={`${playingSet === g.key ? 'Stop' : 'Play'} the chord scale on the ${setLabel(g.key)} strings`}
-                      onClick={() => toggleSet(g)}
+                      onClick={(e) => {
+                        e.stopPropagation(); // selecting the set is the header's job
+                        toggleSet(g);
+                      }}
                     >
                       {playingSet === g.key ? '❙❙' : '▶'}
                     </button>
