@@ -1769,3 +1769,12 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   fret you last clicked is about the current gesture, not about what the panel
   is SET to — so it stayed a separate `useState`. A preset that restored a
   half-finished interaction would be restoring the wrong thing.
+
+
+- **A global `querySelector` is a bug waiting for a second instance.** The
+  scroll-focus hook found the floating neck with
+  `document.querySelector('.neckpanel')`, which was correct exactly as long as
+  there was one module. With two, the right-hand list measured the left-hand
+  neck. It walks up from a card to its own `.module` now — which also meant the
+  module needed to be a real element rather than a fragment, so there was
+  something to walk up to.

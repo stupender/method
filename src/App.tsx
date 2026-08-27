@@ -262,6 +262,12 @@ function App() {
 
   // --- Theme --------------------------------------------------------------
   const [theme, setTheme] = useState<Theme>(loadTheme);
+  // The modules on the page. One to begin with; a second can be added beside
+  // it. Held as a list rather than a boolean so that three, or a saved
+  // arrangement of them, is a change of data rather than of shape.
+  const [panels, setPanels] = useState<{ id: string; initial?: ModuleState }[]>([
+    { id: 'panel-1' },
+  ]);
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     try {
@@ -307,7 +313,11 @@ function App() {
   const removeCard = (id: string) => setCards((cs) => cs.filter((c) => c.id !== id));
 
   return (
-    <main className="page page--wide">
+    <main
+      className={
+        panels.length > 1 ? 'page page--wide page--split' : 'page page--wide'
+      }
+    >
       {/* THE SITE BAR. This used to be a full-height centred masthead — a big
           moon, a 44px title, a lede — which looked handsome on a landing page
           and wasted a third of a phone screen on a tool you open to look at a
@@ -340,7 +350,36 @@ function App() {
       {/* Both areas stay mounted (just hidden) so each keeps its own state when
           you switch — the songbook, and Possibility's key/scale/mode choices. */}
       <div hidden={area !== 'study'}>
-        <Module onAddChord={addToSong} songLength={current.chords.length} />
+        {/* ONE MODULE, OR TWO SIDE BY SIDE. Each owns its own settings and
+            knows nothing about the other, so this is a list rather than a
+            special case — the second one is not a "compare mode", it's another
+            of the same thing. It opens as a COPY of the one that spawned it,
+            because the move worth practising is "here, then there", and you
+            get there by setting one up and changing one control. */}
+        <div className={panels.length > 1 ? 'modules modules--two' : 'modules'}>
+          {panels.map((panel, i) => (
+            <Module
+              key={panel.id}
+              initial={panel.initial}
+              onAddChord={addToSong}
+              songLength={current.chords.length}
+              onAdd={
+                panels.length === 1
+                  ? (seed) =>
+                      setPanels((list) => [
+                        ...list,
+                        { id: `panel-${Date.now()}`, initial: seed },
+                      ])
+                  : undefined
+              }
+              onClose={
+                panels.length > 1
+                  ? () => setPanels((list) => list.filter((_, n) => n !== i))
+                  : undefined
+              }
+            />
+          ))}
+        </div>
       </div>
       {READY.play && (
       <div hidden={area !== 'song'}>
@@ -435,9 +474,20 @@ function SongBook({
 function Module({
   onAddChord,
   songLength,
+  initial,
+  onAdd,
+  onClose,
 }: {
   onAddChord: (rootIndex: number, chordId: string) => void;
   songLength: number;
+  /** What this module opens set to. A second module starts as a copy of the
+   *  first, because the useful move is "set one up, then change one thing". */
+  initial?: ModuleState;
+  /** Given when a second module can still be added. It's handed this module's
+   *  current settings to start the new one from. */
+  onAdd?: (seed: ModuleState) => void;
+  /** Given when this module can be closed. */
+  onClose?: () => void;
 }) {
   // ONE OBJECT, NOT A DOZEN. Everything this panel is set to lives in a single
   // ModuleState (see ui/moduleState.ts), which is what makes a module a thing
@@ -448,8 +498,8 @@ function Module({
   // this file goes on calling `setDegree(3)` exactly as it did, while the state
   // underneath became one value. A refactor nobody has to notice is a refactor
   // that can't break the thing it's refactoring.
-  const [state, setState] = useState<ModuleState>(() =>
-    defaultModuleState(SCALE_LIST[0].id),
+  const [state, setState] = useState<ModuleState>(
+    () => initial ?? defaultModuleState(SCALE_LIST[0].id),
   );
   const set = <K extends keyof ModuleState>(key: K, value: ModuleState[K]) =>
     setState((s) => ({ ...s, [key]: value }));
@@ -579,7 +629,11 @@ function Module({
     deg === ALL_DEGREES ? { modeRoot: root, modeScale: scale } : modeAt(root, scale, deg);
 
   return (
-    <>
+    // A real element, not a fragment: a module has to be findable from inside
+    // itself. The scroll-focus hook walks up from a card to `.module` to find
+    // WHICH floating neck it belongs to, which only works if there's something
+    // to walk up to.
+    <section className="module">
       {/* Every choice in ONE measure — a labelled block whose rows share a left
           edge and divide the same width (see ui/ControlPanel.tsx). Order is
           priority order: Key → Scale → Degree → View → Labels.
@@ -590,15 +644,37 @@ function Module({
       <ControlPanel
         title="Controls"
         action={
-          <Bookmarks
-            current={moduleState}
-            label={describe(moduleState(), {
-              root: noteName(root),
-              scale: scale.name,
-              roman: deg === ALL_DEGREES ? null : romanLabels[deg],
-            })}
-            onRestore={applyModuleState}
-          />
+          <div className="panel__actions">
+            <Bookmarks
+              current={moduleState}
+              label={describe(moduleState(), {
+                root: noteName(root),
+                scale: scale.name,
+                roman: deg === ALL_DEGREES ? null : romanLabels[deg],
+              })}
+              onRestore={applyModuleState}
+            />
+            {onAdd && (
+              <button
+                className="panel__act"
+                onClick={() => onAdd(state)}
+                aria-label="Add a second panel beside this one"
+                title="Add a second panel"
+              >
+                ⧉
+              </button>
+            )}
+            {onClose && (
+              <button
+                className="panel__act"
+                onClick={onClose}
+                aria-label="Close this panel"
+                title="Close this panel"
+              >
+                ×
+              </button>
+            )}
+          </div>
         }
       >
         {READY.earTraining && (
@@ -834,7 +910,7 @@ function Module({
           songLength={songLength}
         />
       )}
-    </>
+    </section>
   );
 }
 

@@ -14,7 +14,8 @@
 // The FOCUS LINE is just below the floating neck: the card nearest to it wins.
 // We measure the neck's own box rather than hard-coding a height, so the line
 // stays right when the bar grows (the colour key opening under it, say) or the
-// layout reflows on a narrow screen.
+// layout reflows on a narrow screen — and we find OUR neck by walking up from
+// a card, since there can be more than one module on the page.
 //
 // It measures straight off the scroll event rather than deferring to
 // requestAnimationFrame. rAF looks like the careful choice and is the wrong one
@@ -47,7 +48,15 @@ export function useScrollFocus(
     let last: number | null = -1;
 
     const measure = () => {
-      const neck = document.querySelector('.neckpanel');
+      // THE NECK THIS LIST BELONGS TO, not the first one on the page. With two
+      // modules side by side there are two floating necks, and a global lookup
+      // would measure the left one's while scrolling the right one's list —
+      // so the focus line would be in the wrong place for half the page.
+      // Walking up from a card finds the right one however many there are.
+      const anchor = items.current.find(Boolean);
+      const neck =
+        anchor?.closest('.module')?.querySelector('.neckpanel') ??
+        document.querySelector('.neckpanel');
       // A little below the neck, not right against it — the card you're
       // *reading* sits a bit down the page from where it first appears.
       const line = (neck ? neck.getBoundingClientRect().bottom : 0) + 90;

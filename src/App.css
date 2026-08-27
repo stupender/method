@@ -1829,3 +1829,62 @@
 .bookmarks__remove:hover {
   color: var(--ink);
 }
+
+/* ==========================================================================
+   MODULES — one panel and its neck, or two side by side
+   --------------------------------------------------------------------------
+   Each module is self-contained: its own CONTROLS, its own floating neck, its
+   own systems. Two of them is a grid of two, not a special "compare" mode —
+   which is why this is barely any CSS. The work that made it cheap was
+   moving a panel's settings into one object it owns (see ui/moduleState.ts).
+   ========================================================================== */
+.modules {
+  display: grid;
+  gap: 26px;
+}
+.modules--two {
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+}
+
+/* Below this, two necks side by side are too cramped to read — a fretboard is
+   a wide thing — so they stack and you scroll between them instead. */
+@media (max-width: 1100px) {
+  .modules--two {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* The page opens out when there are two, since the default measure is set for
+   reading one column of text and two fretboards need more than that. */
+.page--split {
+  max-width: min(96vw, 1760px);
+}
+
+/* A panel's own controls: bookmark, add a second, close. */
+.panel__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+}
+.panel__act {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.panel__act:hover {
+  color: var(--ink);
+  border-color: var(--line);
+}

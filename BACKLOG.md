@@ -83,12 +83,16 @@ Staged so each step is useful on its own and none of it is thrown away:
    restoring a bookmark became one line each. Two `useState`s remain: the
    module's state, and which fret you last clicked — that one is about this
    moment rather than about what the panel is set to, so it stays out.
-4. **Two of them.** Render `<Module>` twice, side by side, with an "add a
-   second" control. The state work is done; what's left is layout (two panels
-   in a row, each with its own neck and systems, stacking on a narrow screen)
-   and deciding what — if anything — the two share. Nothing forces them to
-   share anything, which is the point.
-5. **Presets as modules** — a saved preset can open INTO either side.
+4. **Two of them** (DONE). The ⧉ in a panel's header adds a second beside it,
+   opening as a COPY of the first — the useful move is "set one up, change one
+   control". They share nothing: separate settings, separate necks, separate
+   selections. Below 1100px they stack, because two fretboards side by side
+   stop being readable. Held as a LIST, so three, or a saved arrangement, is a
+   change of data rather than of shape.
+5. **Presets as modules** — a saved preset can open INTO either side, and an
+   arrangement of two can be saved as one bookmark. The data already supports
+   it (a Bookmark holds a ModuleState; a pair is two of them); what's missing
+   is deciding what the UI for "restore into which side" should be.
 
 The order matters: doing 4 before 3 means two panels fighting over one blob of
 state, which is exactly the mess this staging avoids.
