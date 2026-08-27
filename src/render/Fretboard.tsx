@@ -161,7 +161,17 @@ export function Fretboard({
   // dot keeps its element, stays exactly where it is, and simply takes its new
   // colour and letter. Which is the truth of it: nothing moved, because
   // nothing moved.
-  const places = (highlights ?? []).map(
+  // EVERY NOTE THAT GETS DRAWN, whichever way it arrived. In Scales the neck
+  // is `highlights` and the shapes only contribute their lines; in Harmony
+  // there are no highlights and each shape draws its own notes. Only the first
+  // was being matched, so the chord views dissolved and rebuilt on every
+  // change while the scale views slid — and with a set focused you could watch
+  // the two behaviours side by side, the dimmed dots doing one thing and the
+  // lit ones another.
+  const drawn: PlacedNote[] =
+    highlights && highlights.length > 0 ? highlights : (shapes ?? []).flat();
+
+  const places = drawn.map(
     (h) => `${h.position.stringIndex}:${h.position.fret}`,
   );
   const sameNeck =
@@ -172,7 +182,7 @@ export function Fretboard({
   const nextByPlace = new Map<string, string>();
 
   if (sameNeck) {
-    (highlights ?? []).forEach((h, i) => {
+    drawn.forEach((h, i) => {
       const place = places[i];
       const id = prevByPlace.current.get(place)!;
       identityOf.set(h, id);
@@ -182,7 +192,7 @@ export function Fretboard({
     // One group per string + degree: the notes that could plausibly BE each
     // other from one key to the next.
     const groups = new Map<string, PlacedNote[]>();
-    for (const h of highlights ?? []) {
+    for (const h of drawn) {
       // Grouped by the degree's NUMBER, not its full name: going from major to
       // harmonic minor, the 3 becomes a ♭3 and the 6 a ♭6, and those are the
       // same finger moving a fret — which is the most worth watching of all
@@ -256,7 +266,7 @@ export function Fretboard({
   // carrying the old groups forward left the next key change matching against
   // degrees that no longer existed — so the whole neck appeared at once,
   // scattered, exactly the fault this was meant to fix.
-  for (const h of highlights ?? []) {
+  for (const h of drawn) {
     const key = `${h.position.stringIndex}:${degreeOf(h.intervalName) ?? h.intervalName}`;
     const entry = { id: identityOf.get(h)!, x: noteX(h.position.fret) };
     const list = nextGroups.get(key);
@@ -529,16 +539,43 @@ export function Fretboard({
             // and the rest dim.
             const dim = showAllShapes ? false : activeSet !== null && !isActive;
             const drawLine = showAllShapes ? shape.length > 1 : isActive && shape.length > 1;
-            // The connecting "constellation" line, drawn through the shape's
-            // notes in string order, only when the shape is active.
-            const points = [...shape]
+            // The connecting line, as SEGMENTS rather than one polyline, so it
+            // can travel with the dots it joins.
+            //
+            // A polyline's `points` can't be animated — and SVG line geometry
+            // isn't a CSS property in browsers, so x1/y1 can't be transitioned
+            // either. What CAN be animated everywhere is a transform. So each
+            // segment is a one-unit line placed by translate + rotate + scale:
+            // its start rides its own dot, its angle swings, its length
+            // stretches, and the whole thing interpolates as one property.
+            //
+            // Each segment is keyed by the two notes it joins, so as long as
+            // those two are still connected it keeps its element and moves.
+            // (`vector-effect` keeps the stroke an even weight despite the
+            // sideways scale, which would otherwise thin it out.)
+            const ordered = [...shape]
               .sort(
                 (a, b) =>
                   a.position.stringIndex - b.position.stringIndex ||
                   a.position.fret - b.position.fret,
               )
-              .map((h) => `${noteX(h.position.fret)},${stringY(h.position.stringIndex)}`)
-              .join(' ');
+              .map((h) => ({
+                h,
+                x: noteX(h.position.fret),
+                y: stringY(h.position.stringIndex),
+              }));
+            const segments = ordered.slice(1).map((to, n) => {
+              const from = ordered[n];
+              const dx = to.x - from.x;
+              const dy = to.y - from.y;
+              return {
+                key: `${identityOf.get(from.h) ?? n}~${identityOf.get(to.h) ?? n + 1}`,
+                x: from.x,
+                y: from.y,
+                angle: (Math.atan2(dy, dx) * 180) / Math.PI,
+                length: Math.hypot(dx, dy),
+              };
+            });
             return (
               <g
                 key={`shape-${si}`}
@@ -555,30 +592,33 @@ export function Fretboard({
                     : undefined
                 }
               >
-                {/* Two passes: a blurred glow, then the fine drawn line on top
-                    — a star-chart line rather than a UI connector. */}
-                {drawLine && (
-                  <>
-                    <polyline
-                      className={
-                        showAllShapes
-                          ? 'constellation-glow constellation-glow--all'
-                          : 'constellation-glow'
-                      }
-                      points={points}
-                    />
-                    <polyline
+                {drawLine &&
+                  segments.map((seg) => (
+                    <line
+                      key={seg.key}
                       className={
                         showAllShapes ? 'constellation constellation--all' : 'constellation'
                       }
-                      points={points}
+                      x1={0}
+                      y1={0}
+                      x2={1}
+                      y2={0}
+                      vectorEffect="non-scaling-stroke"
+                      style={{
+                        transform: `translate(${seg.x}px, ${seg.y}px) rotate(${seg.angle}deg) scale(${seg.length}, 1)`,
+                      }}
                     />
-                  </>
-                )}
+                  ))}
                 {/* The notes themselves are drawn once by the base layer
                     above; this group only carries the lines and the hit area. */}
                 {highlights.length === 0 &&
-                  shape.map((h, ni) => renderNote(h, `shape-${si}-note-${ni}`, dim))}
+                  shape.map((h, ni) =>
+                    renderNote(
+                      h,
+                      identityOf.get(h) ?? `shape-${si}-note-${ni}`,
+                      dim,
+                    ),
+                  )}
               </g>
             );
           });

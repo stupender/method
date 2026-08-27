@@ -158,14 +158,12 @@
    a flicker, while a short fade reads as the neck following you. Short enough
    (0.26s) that it never feels like waiting. */
 .fretboard .note-dot,
-.fretboard .note-label,
-.fretboard .constellation {
+.fretboard .note-label {
   transition: opacity 0.26s ease;
 }
 @media (prefers-reduced-motion: reduce) {
   .fretboard .note-dot,
-  .fretboard .note-label,
-  .fretboard .constellation {
+  .fretboard .note-label {
     transition: none;
   }
 }
@@ -177,18 +175,26 @@
   opacity: 0.2;
 }
 
-/* THE CONSTELLATION — the line joining a shape's notes. One clean drawn line;
-   the blurred companion stroke is gone with the rest of the glow. */
-.fretboard .constellation-glow {
-  display: none;
-}
+/* THE CONSTELLATION — the line joining a shape's notes, drawn as one segment
+   per pair so it can TRAVEL with them. Each is a one-unit line placed by a
+   transform, which is the only part of an SVG line a browser will animate; the
+   segment's start rides its dot, its angle swings and its length stretches, so
+   a chord shifting gravity looks like a shape moving rather than one picture
+   replaced by another. */
 .fretboard .constellation {
   fill: none;
   stroke: var(--accent);
   stroke-width: 1.5;
   stroke-linecap: round;
-  stroke-linejoin: round;
   opacity: 0.85;
+  transition:
+    transform 0.32s cubic-bezier(0.34, 0.05, 0.2, 1),
+    opacity 0.26s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fretboard .constellation {
+    transition: none;
+  }
 }
 /* When showing every box at once, the lines are quieter so they don't tangle. */
 .fretboard .constellation--all {

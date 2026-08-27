@@ -1832,3 +1832,18 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   different notes and the neck dissolves; keyed by the number they're the same
   finger moving one fret, which is the single most worth-watching movement the
   thing does.
+
+- **Only some of an SVG can be animated, and geometry isn't it.** A polyline's
+  `points` can't be transitioned, and SVG line geometry (`x1`, `y1`…) isn't a
+  CSS property in browsers either — `getComputedStyle(line).x1` comes back
+  empty. What IS animatable everywhere is `transform`. So the constellation is
+  one line per pair, each a single unit long, placed by
+  `translate + rotate + scale`: start on its dot, angle swings, length
+  stretches, all interpolating as one property. `vector-effect:
+  non-scaling-stroke` keeps the sideways scale from thinning the stroke.
+
+- **Everything drawn has to go through the same matcher.** Scales draw their
+  notes from `highlights`, Harmony draws them from `shapes` — and only the
+  first was being matched, so chord views dissolved while scale views slid.
+  With a set focused you could watch both behaviours at once, which is exactly
+  what "the faded dots do one thing and the non-faded dots do another" was.
