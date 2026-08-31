@@ -34,6 +34,8 @@ import { ChordExplorer } from './ui/ChordExplorer';
 import { ChordScaleLadder } from './ui/ChordScaleLadder';
 import { InversionLadder } from './ui/InversionLadder';
 import { ControlPanel, ControlRow } from './ui/ControlPanel';
+import { Subscribe } from './ui/Subscribe';
+import { alreadyAsked, markDismissed } from './ui/asked';
 import { BookmarksMenu, SaveBookmark } from './ui/Bookmarks';
 import {
   defaultModuleState,
@@ -275,7 +277,16 @@ function App() {
   // THE SAVED SETTINGS live here rather than in a panel, because the list is
   // the app's and a panel is only one of the things that can be in it.
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => loadBookmarks());
+  // THE ONE TIME THIS APP ASKS FOR ANYTHING. Saving your first setting is the
+  // moment the offer is true — what you just saved lives in this browser and
+  // nowhere else — so that's when the invitation appears, and only then. Not
+  // on arrival: the first ten seconds are the point of the whole thing and
+  // shouldn't be spent on a form. See Subscribe.tsx.
+  const [invite, setInvite] = useState(false);
   const writeBookmarks = (next: Bookmark[]) => {
+    if (bookmarks.length === 0 && next.length === 1 && !alreadyAsked()) {
+      setInvite(true);
+    }
     setBookmarks(next);
     saveBookmarks(next);
   };
@@ -470,6 +481,37 @@ function App() {
       </div>
       )}
 
+      {/* WHO MADE THIS, and the quiet permanent way to hear about it — for
+          everyone who never saves a setting and so never sees the invitation.
+          A line about Stu rather than an advert for the teaching: the course
+          it's all heading towards doesn't exist yet, and saying so would be
+          selling something that isn't there. */}
+      <footer className="sitefoot">
+        <div className="sitefoot__about">
+          <p>
+            Built by{' '}
+            <a href="https://beingsound.com" target="_blank" rel="noreferrer">
+              Stu Pender
+            </a>
+            {' '}— guitarist, composer and teacher.
+          </p>
+          <p>
+            A living textbook for the fretboard: see the shape, hear the sound,
+            play with it.
+          </p>
+        </div>
+        <Subscribe variant="footer" />
+      </footer>
+
+      {invite && (
+        <Subscribe
+          variant="invitation"
+          onClose={() => {
+            markDismissed();
+            setInvite(false);
+          }}
+        />
+      )}
     </main>
   );
 }

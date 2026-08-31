@@ -1881,3 +1881,14 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   fingering choice out of the scale view and into the module's state put it in
   the CONTROLS panel AND made bookmarks remember it, because a bookmark is that
   state. Where a value lives decides what can be done with it.
+- **`Accept: application/json` on a form POST.** Kit's subscribe endpoint
+  answers a browser with an HTML page unless you ask for JSON, so parsing the
+  reply throws and the form tells someone their signup failed when it actually
+  worked. Stu had already paid for this lesson on the Being Sound site; it's
+  written into Subscribe.tsx so it can't be rediscovered.
+- **`noValidate` on a form you validate yourself.** The browser's own checking
+  blocks the submit event before any handler runs, so custom error copy silently
+  becomes dead code and the browser shows its own wording instead. Turn one off.
+- **Some endpoints are public on purpose.** Kit's form subscription URL takes no
+  API key — which is what makes it safe in a page that ships its own source.
+  Not every missing secret is a mistake.

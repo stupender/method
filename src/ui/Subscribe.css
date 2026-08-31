@@ -1,0 +1,200 @@
+/* ==========================================================================
+   Subscribe.css — the invitation, and the line in the footer
+   --------------------------------------------------------------------------
+   Two dresses on one form. The INVITATION is a card that arrives once, in the
+   bottom corner, where it can be read without covering the neck or the music.
+   The FOOTER is the same fields laid flat and quiet at the end of the page.
+
+   Both take their colours from the page's tokens and nothing else, so night
+   mode needs no rules of its own here.
+   ========================================================================== */
+
+.subscribe {
+  position: relative;
+  font-family: var(--sans);
+}
+
+/* ---- The once-only card ------------------------------------------------- */
+/* Bottom-right on a desktop, and the full width of a phone. Fixed rather than
+   in the flow because it's triggered by an action that could have happened
+   anywhere on a long page — you save a setting from a panel header you may
+   have scrolled a long way past. */
+.subscribe--invitation {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 40;
+  width: min(360px, calc(100vw - 40px));
+  padding: 18px 20px 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 28px var(--shadow);
+}
+
+@media (max-width: 640px) {
+  .subscribe--invitation {
+    right: 12px;
+    left: 12px;
+    bottom: 12px;
+    width: auto;
+  }
+}
+
+/* It arrives rather than appearing — but only for people who haven't asked the
+   system to stop things moving. */
+@media (prefers-reduced-motion: no-preference) {
+  .subscribe--invitation {
+    animation: subscribe-in 260ms ease-out both;
+  }
+}
+
+@keyframes subscribe-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.subscribe__title {
+  margin: 0 0 6px;
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.subscribe__blurb {
+  margin: 0 0 12px;
+  max-width: 46ch;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ---- The fields --------------------------------------------------------- */
+.subscribe__form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* The label is for screen readers; the placeholder carries it on screen. */
+.subscribe__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.subscribe__input {
+  flex: 1 1 180px;
+  min-width: 0;
+  padding: 8px 10px;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 15px;
+}
+
+.subscribe__input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* The honeypot. Taken out of the layout entirely rather than hidden with
+   `display: none`, which some bots know to skip. */
+.subscribe__trap {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.subscribe__error {
+  margin: 8px 0 0;
+  color: var(--wrong);
+  font-size: 13px;
+}
+
+.subscribe__thanks {
+  margin: 0;
+  padding-right: 18px; /* clear of the × */
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.subscribe__close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  padding: 2px 6px;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  border-radius: var(--radius);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.subscribe__close:hover {
+  color: var(--ink);
+  background: var(--tint-soft);
+}
+
+/* ---- The footer version ------------------------------------------------- */
+/* No card, no shadow: it's the end of the page, not an interruption. */
+.subscribe--footer .subscribe__blurb {
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.subscribe--footer .subscribe__form {
+  max-width: 380px;
+}
+
+.subscribe--footer .subscribe__input {
+  font-size: 14px;
+}
+
+/* ==========================================================================
+   The page footer that holds it — who made this, and what it is.
+   ========================================================================== */
+.sitefoot {
+  display: flex;
+  gap: 28px 48px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-top: 56px;
+  padding: 26px 0 40px;
+  border-top: 1px solid var(--line);
+}
+
+.sitefoot__about {
+  max-width: 42ch;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.sitefoot__about p {
+  margin: 0 0 6px;
+}
+
+.sitefoot__about a {
+  color: var(--ink);
+  text-underline-offset: 2px;
+}
