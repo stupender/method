@@ -23,19 +23,25 @@ import { SHOW_PLAY_BUTTONS } from './flags';
 import { DegreeLegend } from './DegreeLegend';
 import { useScrollFocus } from './useScrollFocus';
 import { System } from '../render/System';
-import { Segmented } from './Segmented';
 import { useStepper } from './ShapeStepper';
 import type { PlacedNote } from '../theory/types';
 
 export function ScaleExplorer({
   root,
   scale,
+  fingering,
   onPickRoot,
   focus,
   labelMode = 'degree',
 }: {
   root: Note;
   scale: ScaleDefinition;
+  /** Which fingering system the position boxes are cut by: 3-notes-per-string,
+   *  in-position (Positional), or the hybrid (2 on the low E, then 3 per
+   *  string). Chosen in the CONTROLS panel, alongside key and scale, because
+   *  it's that same kind of setting — and because a saved preset has to
+   *  remember it. */
+  fingering: '3nps' | 'box' | 'hybrid';
   // Click a note on the neck to make it the new root (re-root the mode).
   onPickRoot?: (placed: PlacedNote) => void;
   // After a re-root, the fret the user clicked — pin the position covering it, so
@@ -45,9 +51,6 @@ export function ScaleExplorer({
   // What the dots say — a global display setting, owned by the view above.
   labelMode?: 'note' | 'degree';
 }) {
-  // Which fingering system: 3-notes-per-string, in-position (Positional), or the
-  // hybrid (2 on the low E, then 3 per string).
-  const [fingering, setFingering] = useState<'3nps' | 'box' | 'hybrid'>('3nps');
   // Show every position's box outlined at once (see the whole mode tile the neck).
   const [showAll, setShowAll] = useState(false);
   // A scale run goes UP AND BACK DOWN — that's how anyone actually practises
@@ -180,23 +183,12 @@ export function ScaleExplorer({
 
   return (
     <>
-      <div className="view-controls" ref={viewRef}>
-        {/* Row 1 — the primary choice (which fingering system) + the play action. */}
-        <div className="controls-row">
-          <Segmented
-            ariaLabel="Fingering"
-            options={[
-              { value: '3nps' as const, label: '3 per string' },
-              { value: 'box' as const, label: 'Positional' },
-              { value: 'hybrid' as const, label: 'Hybrid' },
-            ]}
-            value={fingering}
-            onChange={setFingering}
-          />
-        </div>
-      </div>
-
-      <div className="workbench">
+      {/* Nothing sits between the panel and the neck any more: the fingering
+          row moved up into CONTROLS, where it reads as the setting it is. The
+          ← → stepper's ref moved onto the workbench, which is the element that
+          IS this view — the hook only uses it to ask "am I on screen?", and the
+          row it used to ask is gone. */}
+      <div className="workbench" ref={viewRef}>
         <NeckPanel
           name={`${noteName(root)} ${scale.name}`}
           legend={<DegreeLegend root={root} scale={scale} />}

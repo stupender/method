@@ -26,6 +26,12 @@ export interface ModuleState {
   /** Scales or Harmony — the fretboard's two views. */
   view: 'scale' | 'harmony';
 
+  /** Scales' own choice: which fingering system the position boxes are cut by.
+   *  It lives here rather than inside the scale view because it's a SETTING —
+   *  as much a part of "what this panel is showing" as the key is — and a
+   *  preset that didn't remember it came back in the wrong fingering. */
+  fingering: '3nps' | 'box' | 'hybrid';
+
   /** Index into ROOT_CHOICES. */
   rootIndex: number;
   scaleId: string;
@@ -63,6 +69,7 @@ export function defaultModuleState(scaleId: string): ModuleState {
   return {
     studyMode: 'fretboard',
     view: 'scale',
+    fingering: '3nps',
     rootIndex: 0,
     scaleId,
     degree: -1, // ALL_DEGREES
@@ -112,7 +119,22 @@ export function loadBookmarks(): Bookmark[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as Bookmark[]) : [];
+    if (!Array.isArray(parsed)) return [];
+    // FILL IN WHAT A NEWER FIELD ADDED. A bookmark saved before a setting
+    // existed has no value for it, and `sameSetting` compares every field — so
+    // without this an old bookmark could never match the panel it restored,
+    // and its mark stayed hollow right after you'd used it. Any future field
+    // gets a line here rather than a migration.
+    //
+    // What comes out of storage is typed loosely on purpose: it was written by
+    // an OLDER version of this app, so it doesn't necessarily have every field
+    // a ModuleState has today. Saying `Bookmark[]` here would be a promise the
+    // data can't keep.
+    type Stored = Omit<Bookmark, 'state'> & { state: Partial<ModuleState> };
+    return (parsed as Stored[]).map((b) => ({
+      ...b,
+      state: { fingering: '3nps' as const, ...b.state } as ModuleState,
+    }));
   } catch {
     return [];
   }

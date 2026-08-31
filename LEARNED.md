@@ -1867,3 +1867,17 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   is — so it answers "is this one of mine?" before you press it. Which needed a
   comparison that ignores scrollY: a setting you've saved is still that setting
   after you scroll.
+- **A library's defaults can be a table you edit.** VexFlow 5 keeps every font
+  it draws with in `MetricsDefaults`, looked up through a cache — so restyling
+  its fret numbers is two assignments and a `Metrics.clear()`, not a fork. The
+  reason to do it there rather than in CSS: the width of each number is
+  MEASURED when it's built, and used to size the gap punched in the string line
+  behind it. Style it later and the number grows while its gap doesn't.
+- **Scaling by viewBox.** An SVG drawn at 435 units wide and displayed at 566px
+  is simply 1.3x bigger, with nothing softened — so "make the notation larger"
+  is "engrave it into a narrower page", one constant, rather than re-tuning
+  every size in the drawing.
+- **Lifting state upward can be a feature, not just tidying.** Moving the
+  fingering choice out of the scale view and into the module's state put it in
+  the CONTROLS panel AND made bookmarks remember it, because a bookmark is that
+  state. Where a value lives decides what can be done with it.

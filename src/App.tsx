@@ -571,7 +571,7 @@ function Module({
     setState((s) => ({ ...s, [key]: value }));
 
   const { studyMode, rootIndex, scaleId, degree, seventh, structureId } = state;
-  const { inversionIndex, seventhsInEar, quiz } = state;
+  const { inversionIndex, seventhsInEar, quiz, fingering } = state;
   const mode: Mode = state.view;
 
   const setStudyMode = (v: 'fretboard' | 'ear') => set('studyMode', v);
@@ -584,6 +584,7 @@ function Module({
   const setInversionIndex = (v: number) => set('inversionIndex', v);
   const setSeventhsInEar = (v: boolean) => set('seventhsInEar', v);
   const setQuiz = (v: 'quality' | 'inversion' | 'function') => set('quiz', v);
+  const setFingering = (v: '3nps' | 'box' | 'hybrid') => set('fingering', v);
 
   // EAR MODE'S SELECTIONS ARE SETS, not single values. On the neck a control
   // answers "what am I looking at", so exactly one; in Ear Training the same
@@ -849,6 +850,27 @@ function Module({
             />
           )}
         </ControlRow>
+        {/* SCALES' ONE, in the same place Harmony's three sit: at the end of
+            the panel, under the View row that summons it. It used to float in
+            the gap between the panel and the neck, which made it read as a
+            control belonging to neither — and it's the same kind of choice as
+            Voicing, so it belongs in the same kind of row. */}
+        {studyMode === 'fretboard' && mode === 'scale' && (
+          <ControlRow label="Fingering">
+            <Segmented
+              fill
+              ariaLabel="Fingering"
+              options={[
+                { value: '3nps' as const, label: '3 per string' },
+                { value: 'box' as const, label: 'Positional' },
+                { value: 'hybrid' as const, label: 'Hybrid' },
+              ]}
+              value={fingering}
+              onChange={setFingering}
+            />
+          </ControlRow>
+        )}
+
         {/* TYPE, in the same place and under the same name as the fretboard's
             — Ear is the same instrument listened to rather than looked at, so
             its panel should read down in the same order. It was called Chords
@@ -950,6 +972,7 @@ function Module({
           root={root}
           scale={scale}
           degree={deg}
+          fingering={fingering}
           focus={focus}
           onPickNote={pickNote}
         />
@@ -989,12 +1012,15 @@ function ScaleView({
   root,
   scale,
   degree,
+  fingering,
   focus,
   onPickNote,
 }: {
   root: Note;
   scale: ScaleDefinition;
   degree: number;
+  /** Chosen in the CONTROLS panel now, so it just passes through. */
+  fingering: '3nps' | 'box' | 'hybrid';
   focus: { fret: number; seq: number } | null;
   onPickNote: (degree: number, fret: number) => void;
 }) {
@@ -1020,6 +1046,7 @@ function ScaleView({
       <ScaleExplorer
         root={modeRoot}
         scale={modeScale}
+        fingering={fingering}
         onPickRoot={pickRoot}
         focus={focus ?? undefined}
         labelMode="note"

@@ -131,6 +131,34 @@ state, which is exactly the mess this staging avoids.
   the floating panel would eat the screen. So: phone widths only, and last.
   Decided 2026-08-26.
 
+- **CONTROLS as a fixed, collapsible sidebar.** Stu's note, 2026-08-31: while
+  you're down in the music actually playing, the panel is off the top of the
+  screen and every adjustment costs a scroll. A sidebar keeps it to hand. Held
+  rather than built because it's a layout the whole app has to agree with —
+  the floating neck already claims the top, two side-by-side modules already
+  claim the width, and a phone has neither to spare. Likely lands as a
+  SETTING (panel on top / panel at the side) rather than a replacement.
+
+- **Whiteboard mode — for teaching, live.** Draw on the fingerboard; or select
+  notes in an order and have the connecting line follow that order; save the
+  result; translate it into TAB. This is the demonstration tool, and it's the
+  first feature whose primary user is the STUDENT watching rather than Stu
+  choosing. Big: it needs an input layer over the neck, a saved drawing
+  format, and a drawing → notes → TAB path.
+
+- **Share a preset with a student.** A bookmark is already a `ModuleState`, and
+  a `ModuleState` is small — so the honest version of this is to encode one
+  into the URL (`?m=…`), which needs no accounts, no server and no database:
+  open the link, the panel is set to what the sender was looking at. Do this
+  before anything that needs a login. Raised 2026-08-31.
+
+- **More instruments.** Ukulele (tenor, baritone) and alternate guitar tunings
+  are pure data — the engine has been instrument/tuning-agnostic since day one,
+  so these cost a data file each. **Piano is not**: Stu's framing is the good
+  one (a guitar is six keyboard layouts each starting somewhere different), but
+  a keyboard needs its own renderer, since `Position` means string + fret. Take
+  the tunings first; treat piano as its own arc.
+
 - **Inversion colouring.** When an inversion is selected, colour it in shades
   rather than flat degree colours. Two readings, and Stu hasn't picked:
   (a) shades of the chord's GRAVITY degree, so all of ii's inversions are
@@ -273,6 +301,29 @@ instead of generated ones.
 - ~~**Flexible time signature** in Song~~ (done — typed numerator + `/` dropdown).
 - ~~**Unify the TAB look** between Study and Song~~ (done — plain numbers on light
   string lines in both).
+- ~~**TAB numbers on the wrong white**~~ (already fixed — the patch behind a fret
+  number takes `var(--bg)`, so it's the exact page colour in both themes).
+- ~~**TAB and notation too small to read**~~ (done — session 11: fret numbers set
+  in Karla rather than VexFlow's music font, and the whole system engraved at
+  1.3× via a narrower viewBox. See `ZOOM` in `render/System.tsx`.)
+- ~~**"3 per string / Positional / Hybrid" was floating**~~ (done — session 11: it
+  moved into CONTROLS as a **Fingering** row below View, where Harmony's own
+  three rows sit. Now part of `ModuleState`, so bookmarks remember it.)
+
+### Still open, from Stu's development notes (2026-08-31)
+
+- **A drone / soundscape player keyed to the current key.** Hold a drone on the
+  tonic (or the mode's root) to practise against; field recordings as an
+  alternative bed. Reuse the Archive / Soundscape audio code — ask Stu for it
+  rather than writing fresh playback (see CLAUDE.md).
+- **Fretboard dot labels** may want the same readability pass the TAB just got.
+- **An animated gradient in the Ear box**, to say "what you're hearing is still
+  hidden" — the one place in the app where not-knowing is the point.
+- **Shuffle**, and with it **back / forward.** Together with bookmarks these make
+  the app read like a browser: somewhere to go, a way back, and a way to be
+  surprised. Shuffle already exists in the v1.x generators section; the back
+  stack is the new part, and it wants a history of `ModuleState`s — which is
+  exactly what a module's state being one object makes cheap.
 
 ---
 
@@ -573,10 +624,73 @@ beside the Western defaults.
 
 ---
 
-## Business / launch (non-engineering)
+## Business / launch
 
-- **Protect the IP** before any public offering.
-- Define the **distribution strategy**.
+Written up 2026-08-31, when Stu asked about accounts, payments and
+subscriptions ahead of sharing this with the Julian Lage masterclass group and
+his own students. Gemini had proposed Clerk + Stripe Checkout with a $25
+lifetime pass gating alternate tunings and AI features. Those are good tools;
+the disagreement is about ORDER and about what's actually being sold.
+
+### Two facts that decide most of this
+
+1. **There is no server.** The app is a static bundle on GitHub Pages: every
+   scale, chord, tuning and rule is downloaded to the browser before anything
+   is drawn. A feature gate is therefore an `if` statement in code the visitor
+   already has. It's a request, not a lock.
+2. **The repo is public** (`github.com/stupender/method`). It has to be, for
+   Pages on a free plan. So the source is readable by anyone who looks.
+
+Neither is a reason not to charge. Both are reasons not to spend a week
+building enforcement. And (2) is the concrete form of the old "protect the IP"
+line: the choice is to go GitHub Pro / move hosts and make the repo private, or
+to decide the openness is fine. Decide it deliberately, before sharing widely.
+
+### The staging
+
+**Stage 0 — before anything is sold.** Cheap, and each part is worth doing
+even if nothing is ever charged for.
+- **A domain.** `stupender.github.io/method/` is already a live URL and already
+  works, so nothing is BLOCKED on this — but a name is worth ~£10/yr before it
+  goes to a room full of guitarists. Pages takes a custom domain and issues
+  HTTPS itself; it's a `CNAME` file and a DNS record.
+- **Shareable preset links** (see the note above). This is the growth
+  mechanism, and a better one than any referral scheme: someone sends "look at
+  this" and it opens on exactly what they meant.
+- **A way to collect email.** More valuable right now than payments, because
+  the thing this funnels into is the cohort course, and the list is the asset
+  that makes that launchable. A hosted form needs no backend.
+- **One quiet line about who made it**, linking to Being Sound. Not an advert
+  for a course that doesn't exist yet.
+
+**Stage 1 — charge, without building an auth system.** At this scale a Stripe
+**Payment Link** plus an unlock **code** does ~90% of what Clerk + Checkout
+does for ~5% of the work and no server: buy → receive a code → paste it into
+an "I have a code" box → it's kept in this browser. Free student codes, early
+member codes and lifetime codes are then all the same one feature. Yes, a code
+can be passed around; at this size that costs less than the infrastructure to
+prevent it, and the people being sold to are his students, not adversaries.
+
+**Stage 2 — real accounts, only when something must live on a server.**
+Songbooks that follow you between devices, a cohort roster, progress history
+for the weakness-detection idea. That's when a login pays for itself. It also
+means leaving Pages (static only) for Vercel / Netlify / Cloudflare — half a
+day, not a rewrite. At that point prefer **Supabase** over Clerk: by then the
+need is auth AND a database, and Clerk is only the first half.
+
+### Two changes to the proposal itself
+
+- **Don't sell "lifetime" yet.** It caps the income exactly when the backlog
+  says years of building are still coming. Sell the same $25 as an **early
+  supporter / founding price**, honoured permanently for those buyers, with
+  later pricing free to change. Same money now, same reward for being early,
+  no promise that gets in the way later.
+- **Gate the workbench, not the data.** Alternate tunings are a data file, and
+  putting them behind the wall makes the free version feel deliberately
+  crippled. The things worth paying for are the ones with ongoing value and
+  ongoing cost: **Play**, saved songbooks, whiteboard/teaching mode, and later
+  anything AI. Free = the whole instrument (fretboard, scales, harmony, ear
+  training). Paid = the bench you build and teach from.
 
 ---
 

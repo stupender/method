@@ -37,6 +37,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   Accidental,
   Formatter,
+  Metrics,
+  MetricsDefaults,
   Renderer,
   Stave,
   StaveConnector,
@@ -48,6 +50,24 @@ import {
 import type { PlacedNote } from '../theory/types';
 import { Beam, Fraction } from 'vexflow';
 import './System.css';
+
+// THE FRET NUMBERS ARE TEXT, SO SET THEM IN A TEXT FACE. VexFlow's default for
+// every string it draws is Bravura — the music font — because most of what it
+// writes is a musical symbol. Fret numbers aren't: Bravura's digits are the
+// heavy, wide ones meant for a time signature, and at VexFlow's default size
+// they came out smaller and fainter than the note heads above them, which is
+// backwards for a guitarist reading TAB.
+//
+// This is VexFlow 5's own theming table rather than CSS, and it has to be,
+// because the width of each number is MEASURED at construction and used both to
+// centre it and to size the little patch of page that breaks the string line
+// behind it. Restyle it in CSS afterwards and the number grows while its gap
+// stays the old size. `Metrics.clear()` drops the cache the table is read
+// through; without it the change is written but never seen.
+MetricsDefaults.TabNote.text.fontFamily = "'Karla', system-ui, sans-serif";
+MetricsDefaults.TabNote.text.fontSize = 11;
+MetricsDefaults.TabNote.text.fontWeight = '600';
+Metrics.clear();
 
 const STAFF_TOP = 0;
 const TAB_TOP = 76;
@@ -64,6 +84,17 @@ const MIN_NOTE_SPACING = 26;
 // and the breathing room left at the right end.
 const CLEF_COLUMN = 56;
 const TAIL = 14;
+// HOW BIG THE ENGRAVING READS. VexFlow draws at a fixed size — a staff line is
+// 10 units apart and that's that — so the way to make everything larger is to
+// engrave into a NARROWER page and let the SVG scale up to fill its container.
+// At 1.3 a system is drawn as if the column were a third narrower, then
+// stretched back out: staff lines, note heads, fret numbers and clef all grow
+// together, and because it's a viewBox and not a bitmap nothing softens.
+//
+// It also means fewer notes fit on a line, so a long run wraps sooner. That's
+// the point rather than a side effect — the old setting fitted a whole
+// two-octave scale across one line at a size you had to lean in to read.
+const ZOOM = 1.3;
 
 // VexFlow wants "c#/4" — letter, accidental, slash, octave. Written pitch, so
 // an octave above where the guitar sounds.
@@ -137,7 +168,12 @@ export function System({
     // written.
     const duration = moments.length === 1 ? 'w' : '8';
 
-    const drawWidth = width ?? measured;
+    // A given width is a fixed engraving that CSS already fits to its column, so
+    // zooming it would change nothing you could see. A MEASURED width is the
+    // room actually available, and that's where engraving smaller and scaling up
+    // buys legibility.
+    const drawWidth =
+      width !== undefined ? width : measured ? Math.round(measured / ZOOM) : null;
     if (!drawWidth) return; // nothing drawn until we know how much room there is
 
     // HOW MANY LINES. Music that doesn't fit runs onto the next line; it
