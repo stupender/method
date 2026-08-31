@@ -671,6 +671,31 @@ member codes and lifetime codes are then all the same one feature. Yes, a code
 can be passed around; at this size that costs less than the infrastructure to
 prevent it, and the people being sold to are his students, not adversaries.
 
+**The one rule that makes Stage 1 → Stage 2 painless: the browser is a CACHE,
+never the record.** Whatever unlocks the app, the list of who is entitled has
+to live somewhere Stu can export — Stripe for buyers, a spreadsheet for the
+free ones. Every Payment Link sale creates a Stripe Customer with an email
+address, so that list already builds itself; the free codes are the half that
+has to be written down by hand. Get this wrong and a buyer who clears their
+browser is someone Stu can't verify and can't help.
+
+**Prefer the email over a random code.** Same box, same one-field UX, but the
+thing typed in is the identifier an account will later be keyed by — so the
+migration stops being a migration. Sketch: keep a list of SHA-256 hashes of
+lowercased buyer emails as a small JSON file next to the app; the unlock box
+hashes what's typed and looks for it. Hashes rather than addresses so the
+bundle isn't a mailing list anyone can lift (a guessed address can still be
+checked against it, but the list can't be enumerated). `crypto.subtle` needs a
+secure context, which Pages provides. Updating it is committing a file, which
+also means unlocking someone is a thirty-second job with no server involved.
+
+Then Stage 2's transfer is: export Stripe customers → seed the new table with
+those emails plus the free-access ones → anyone signing up with an email on
+the list is a paid account the moment they arrive. Nobody re-enters anything,
+nobody is asked to prove they bought it. The only manual case is someone who
+signs up under a different address than they paid with, which at this scale is
+a "bought with another email?" link that reaches Stu directly.
+
 **Stage 2 — real accounts, only when something must live on a server.**
 Songbooks that follow you between devices, a cohort roster, progress history
 for the weakness-detection idea. That's when a login pays for itself. It also
