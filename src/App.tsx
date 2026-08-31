@@ -1220,13 +1220,19 @@ function HarmonyView({
 
   return (
     <>
-      <div className="view-controls">
-        {/* Type / Voicing / Inversion all live in the CONTROLS panel now — one
-            measure, one place, and both ladders read the same values. */}
+      {/* Type / Voicing / Inversion all live in the CONTROLS panel now — one
+          measure, one place, and both ladders read the same values. So the only
+          thing left that could go here is the Add-to-Play row, and that's
+          switched off.
 
-        {/* Send the selected chord over to the Play song. Only when a single
-            degree is in play — "All" isn't one chord to add. */}
-        {SHOW_ADD_TO_PLAY && !isAll && (
+          The wrapper is therefore CONDITIONAL rather than always-present: an
+          empty `.view-controls` still spends its 28px margin, and three of them
+          between them were pushing Harmony's neck 54px below where Scales put
+          it. A control row's container should exist when there's a control. */}
+      {SHOW_ADD_TO_PLAY && !isAll && (
+        <div className="view-controls">
+          {/* Send the selected chord over to the Play song. Only when a single
+              degree is in play — "All" isn't one chord to add. */}
           <div className="controls-row">
             <button className="chart-add" onClick={addThisChord}>
               + Add {noteName(selected.chordRoot)}
@@ -1236,8 +1242,8 @@ function HarmonyView({
               {songLength} chord{songLength === 1 ? '' : 's'} in Play
             </span>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {isAll ? (
         <ChordScaleLadder

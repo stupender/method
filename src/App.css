@@ -301,7 +301,6 @@
 .panel {
   border: 1px solid var(--line);
   border-radius: 4px;
-  margin-bottom: 26px;
   overflow: hidden;
 }
 /* The title strip, with room for whatever belongs to the panel as a whole. */
@@ -413,12 +412,48 @@
 .legend__dot--deg6 { background: var(--deg-6); color: var(--deg-6-ink); }
 .legend__dot--deg7 { background: var(--deg-7); color: var(--deg-7-ink); }
 
-/* Wraps a view's control rows and puts breathing room before the fretboard. */
+/* Wraps a view's control rows and puts breathing room before the fretboard.
+   Only for views that actually HAVE rows of their own — an empty one still
+   spends its margin, which is how Harmony ended up sitting 56px lower than
+   Scales. If a view has no controls, it should have no element here. */
 .view-controls {
   display: flex;
   flex-direction: column;
   gap: 12px;
   margin-bottom: 28px;
+}
+
+/* --- A MODULE'S VERTICAL RHYTHM ------------------------------------------- */
+/* ONE OWNER FOR THE SPACING, and it's the container.
+   This used to be two margins facing each other — the panel's bottom and the
+   workbench's top — which gave the right answer only because adjacent margins
+   collapse to the larger of the two. That's a rule working by luck: put
+   anything at all between them and they stop collapsing and the gap silently
+   grows. Which is what happened. Three EMPTY control wrappers, left behind
+   when their controls moved into the panel, were each spending a 28px margin
+   they had nothing to space — so Harmony's neck sat 54px lower than Scales'.
+   `gap` can't be defeated that way, and it's the honest description of the
+   thing: how far apart a module's parts sit is a fact about the module, not
+   something each part should assert about its neighbours. Which is why the
+   panel, the workbench and the quiz panel no longer carry margins of their
+   own — look above and you'll find those declarations gone rather than
+   overridden here. */
+.module {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+/* KEEP YOUR HEIGHT. With two panels a module becomes its own scroll box (see
+   `.modules--two .module`), and a flex child inside a box with a max-height
+   will happily SHRINK to fit rather than let the box scroll — squashing the
+   fretboard instead of giving it a scrollbar. */
+.module > * {
+  flex: none;
+}
+/* The closing note sits further off than the gap, as it did before — it's an
+   aside after the work, not another part of it. */
+.module > .footnote {
+  margin-top: 22px;
 }
 
 /* --- Segmented control: the either/or choice ------------------------------ */
@@ -794,7 +829,6 @@
   border: 1px solid var(--line);
   border-radius: 4px;
   background: var(--bg);
-  margin-top: 22px;
 }
 /* Inside the workbench the neck loses its own frame and becomes the top
    section: darker ground, ruled off from what follows. */
@@ -832,7 +866,6 @@
 .quizpanel {
   border: 1px solid var(--line);
   border-radius: 4px;
-  margin-top: 22px;
 }
 .quizpanel__head {
   padding: 9px 14px;

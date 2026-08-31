@@ -208,10 +208,11 @@ export function ChordScaleLadder({
   return (
     <>
       {/* No controls of its own any more: Type, Voicing and Inversion are all
-          in the CONTROLS panel above. This div stays because the ← → keys are
-          bound to it. */}
-      <div className="view-controls" ref={viewRef} />
-
+          in the CONTROLS panel above. The empty div that used to sit here — a
+          holder for the ← → keys' ref — is gone: it had no content but it did
+          have a margin, so it was silently pushing the neck 28px further down
+          than in Scales. The ref moved onto the workbench, which is the
+          element that IS this view. */}
       {groups.length === 0 ? (
         <p className="control-hint control-hint--warn">
           These close-voiced seventh chords don't lay out as a chord scale on any
@@ -219,7 +220,7 @@ export function ChordScaleLadder({
         </p>
       ) : (
         <>
-          <div className="workbench">
+          <div className="workbench" ref={viewRef}>
             <NeckPanel
               name={`${noteName(root)} ${scale.name}`}
               legend={<DegreeLegend root={root} scale={scale} />}

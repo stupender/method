@@ -219,10 +219,10 @@ export function InversionLadder({
     <>
       {/* No controls of its own: Type and Voicing live in the CONTROLS panel.
           (There's no Inversion control here on purpose — this page already
-          shows every inversion, so there'd be nothing to choose.) The div
-          stays because the ← → keys are bound to it. */}
-      <div className="view-controls" ref={viewRef} />
-
+          shows every inversion, so there'd be nothing to choose.) The empty
+          ref-holder div that used to sit here is gone — see the note in
+          ChordScaleLadder; between them the two were adding 56px of space
+          Scales didn't have. */}
       {groups.length === 0 ? (
         <p className="control-hint control-hint--warn">
           This voicing doesn't fit anywhere on the neck — try Close, or a drop
@@ -230,7 +230,7 @@ export function InversionLadder({
         </p>
       ) : (
         <>
-          <div className="workbench">
+          <div className="workbench" ref={viewRef}>
             <NeckPanel
               /* The FULL name here — "D Diminished Triad", not "D°". This is
                  the one place on the page with room to say what a thing is,
