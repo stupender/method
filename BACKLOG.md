@@ -646,6 +646,67 @@ building enforcement. And (2) is the concrete form of the old "protect the IP"
 line: the choice is to go GitHub Pro / move hosts and make the repo private, or
 to decide the openness is fine. Decide it deliberately, before sharing widely.
 
+### The beta plan (Stu, 2026-08-31: "reach as many people as possible, track
+### who is using it clearly, and have a plan to launch and grow")
+
+Those three pull against each other, and the order they're taken in is what
+resolves them. **In beta: no gate, no charge, email + measurement.** Charging
+comes after there's evidence of what people value, because you can't price or
+gate a thing until you know which parts of it get used.
+
+**Do NOT put the email form in front of the app.** The strongest thing this
+app has is its first ten seconds — a fretboard lighting up. That moment is the
+marketing, and it's what makes someone send the link on. A signup wall spends
+that moment on a form, and most of a WhatsApp group tapping a link on a phone
+will simply leave. Reach and email capture are only in tension if the form
+comes first.
+
+**Ask at the moment of demonstrated interest instead**, where the ask is also
+honest:
+- **When someone saves their first bookmark.** Saved settings live in that
+  browser and nowhere else, which is true and is a real limitation — so "want
+  these to follow you, and to hear when new things land?" is an offer, not a
+  bribe.
+- A quiet, permanent link in the site bar for everyone else.
+- Tag these subscribers in Kit (`fretboard-beta` or similar) so they stay
+  distinguishable from the existing Being Sound list. That tag is what makes
+  this a funnel rather than a bigger pile: later there's a group who can be
+  written to as people who actually used the tool.
+
+**An email list is not usage tracking**, and the two questions need different
+tools:
+- **Are people coming back, and what do they touch?** A privacy-first
+  analytics script — Plausible or Fathom, ~$9/mo — chosen over Google
+  Analytics specifically because it needs no cookie banner, and a consent
+  popup would land on exactly the first-run moment being protected above.
+  Cloudflare Web Analytics is the free floor if the cost isn't wanted, but it
+  has no custom events, and custom events are the entire point here: fire one
+  on *opened Harmony*, *changed fingering*, *saved a bookmark*, *opened two
+  panels*. That's the real feedback — which of the built features anyone
+  reaches for.
+- **Why?** Ten conversations beat a thousand pageviews at this stage. A "tell
+  Stu what's confusing" link that opens an email is worth more than any
+  dashboard right now.
+- **The number that decides everything: do they come back within a week?**
+  Not signups, not visits. Retention is the only beta metric that says whether
+  there's a product here.
+
+**Money in beta, without a gate.** A Stripe **Payment Link** is just a URL —
+no integration, no entitlement code, nothing locked. A "founding supporter"
+link in the app, with everything still free, tests willingness to pay at zero
+engineering cost and without spending any reach. Whoever pays becomes the
+founding cohort whose early price is honoured permanently. If nobody pays,
+that's worth knowing before building a paywall for them.
+
+**What moves this out of beta:** the workbench (Play / songbooks) actually
+finished, a list worth launching to, and demonstrated weekly return. Then
+Stage 1 below, launched TO the list rather than to a WhatsApp group.
+
+**Housekeeping that comes with collecting email:** Kit handles opt-in and
+unsubscribe compliance; privacy-first analytics avoids the cookie banner; a
+one-paragraph privacy note covers the rest. Cheap, but only if the tools are
+picked with it in mind — which is the other argument against GA.
+
 ### The staging
 
 **Stage 0 — before anything is sold.** Cheap, and each part is worth doing
