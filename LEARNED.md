@@ -1847,3 +1847,23 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   first was being matched, so chord views dissolved while scale views slid.
   With a set focused you could watch both behaviours at once, which is exactly
   what "the faded dots do one thing and the non-faded dots do another" was.
+
+- **VexFlow marks every stroked path with `fill="none"`.** Staff lines, ledger
+  lines and note STEMS all share that one attribute, so a single rule colours
+  them correctly and there's no need to know which class each belongs to. The
+  blanket `stroke: none` that made shapes work had erased the staves first and
+  then the stems — a page of eighth notes with beams and note heads and nothing
+  joining them.
+
+- **Music that doesn't fit goes onto another line.** A single stave with a long
+  run doesn't squeeze, it runs off the end and stops, and the last third of the
+  scale simply isn't drawn. Work out how many notes the width holds at a
+  readable spacing, then draw that many systems stacked — each a full system,
+  clef and TAB and connector, because someone reading the third line shouldn't
+  have to look back at the first to find the clef.
+
+- **A mark can say where you stand, not just what it does.** The panel's
+  bookmark is an outline until this exact setting is saved and filled once it
+  is — so it answers "is this one of mine?" before you press it. Which needed a
+  comparison that ignores scrollY: a setting you've saved is still that setting
+  after you scroll.

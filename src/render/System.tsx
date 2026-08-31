@@ -55,6 +55,15 @@ const TAB_TOP = 76;
 // them. At 190 the bottom string's line fell outside the SVG and was clipped —
 // a five-string guitar, which is a hard thing to un-see once you've seen it.
 const HEIGHT = 212;
+// Vertical distance from one system to the next when the music wraps.
+const LINE_HEIGHT = 236;
+// The narrowest a note may sit from its neighbour before the music goes onto
+// another line instead. Below about this the fret numbers start colliding.
+const MIN_NOTE_SPACING = 26;
+// Roughly what the clef, the 8 and the T A B take at the left of every system,
+// and the breathing room left at the right end.
+const CLEF_COLUMN = 56;
+const TAIL = 14;
 
 // VexFlow wants "c#/4" — letter, accidental, slash, octave. Written pitch, so
 // an octave above where the guitar sounds.
@@ -131,98 +140,120 @@ export function System({
     const drawWidth = width ?? measured;
     if (!drawWidth) return; // nothing drawn until we know how much room there is
 
-    const renderer = new Renderer(el, Renderer.Backends.SVG);
-    renderer.resize(drawWidth, HEIGHT);
-    const ctx = renderer.getContext();
-
-    const staveWidth = drawWidth - 2;
-    const stave = new Stave(0, STAFF_TOP, staveWidth);
-    // "8vb" is the little 8 under the clef: sounds an octave lower than
-    // written, which is what guitar notation means.
-    stave.addClef('treble', 'default', '8vb');
-    stave.setContext(ctx).draw();
-
-    const tab = new TabStave(0, TAB_TOP, staveWidth);
-    tab.addClef('tab');
-    // The T A B letters are drawn tall and the formatter doesn't leave much
-    // after them, so the first fret number lands against the A and the B. A few
-    // pixels of air is all it needs.
-    tab.setNoteStartX(tab.getNoteStartX() + 10);
-    tab.setContext(ctx).draw();
-
-    // The line down the left that makes these two staves one system.
-    new StaveConnector(stave, tab)
-      .setType(StaveConnector.type.SINGLE_LEFT)
-      .setContext(ctx)
-      .draw();
-
-    const staveNotes: StaveNote[] = [];
-    const tabNotes: TabNote[] = [];
-    for (const moment of moments) {
-      const low = [...moment].sort(
-        (a, b) => a.position.stringIndex - b.position.stringIndex,
-      );
-      const note = new StaveNote({
-        keys: low.map(vexKey),
-        duration,
-        clef: 'treble',
-      });
-      low.forEach((p, i) => {
-        if (p.note.accidental !== 0) {
-          note.addModifier(new Accidental(ACCIDENTAL_CODE[p.note.accidental]), i);
-        }
-      });
-      staveNotes.push(note);
-      tabNotes.push(
-        new TabNote({
-          positions: low.map((p) => ({
-            // VexFlow strings count 1..6 down from the high e; ours count 0..5
-            // up from the low E.
-            str: 6 - p.position.stringIndex,
-            fret: p.position.fret,
-          })),
-          duration,
-        }),
-      );
+    // HOW MANY LINES. Music that doesn't fit runs onto the next line; it
+    // doesn't get squeezed until the notes touch, and it certainly doesn't run
+    // off the edge and stop, which is what a single stave did with a long run
+    // in a narrow column — the last third of the scale simply wasn't there.
+    //
+    // So: work out how many notes this width can hold at a readable spacing,
+    // then draw that many staves, stacked. Every line is a full system, clef
+    // and TAB and connector, because a guitarist reading the third line should
+    // not have to look back up at the first to find out what clef it's in.
+    // Room for notes: the width less the clef column and a little air at the
+    // end. Both staves reserve about the same, so one figure serves.
+    const room = Math.max(1, drawWidth - CLEF_COLUMN - TAIL);
+    const perLine =
+      moments.length === 1 ? 1 : Math.max(4, Math.floor(room / MIN_NOTE_SPACING));
+    const lines: PlacedNote[][][] = [];
+    for (let i = 0; i < moments.length; i += perLine) {
+      lines.push(moments.slice(i, i + perLine));
     }
 
-    // The two staves are formatted TOGETHER so a note and its fret number line
-    // up in the same column. Formatting them separately is what makes notation
-    // and tab drift apart across a long run.
-    const voice = new Voice({ numBeats: moments.length, beatValue: 4 })
-      .setStrict(false)
-      .addTickables(staveNotes);
-    const tabVoice = new Voice({ numBeats: moments.length, beatValue: 4 })
-      .setStrict(false)
-      .addTickables(tabNotes);
+    const renderer = new Renderer(el, Renderer.Backends.SVG);
+    renderer.resize(drawWidth, HEIGHT + (lines.length - 1) * LINE_HEIGHT);
+    const ctx = renderer.getContext();
+    const staveWidth = drawWidth - 2;
 
-    const startX = Math.max(stave.getNoteStartX(), tab.getNoteStartX());
-    stave.setNoteStartX(startX);
-    tab.setNoteStartX(startX);
+    lines.forEach((line, lineIndex) => {
+      const top = lineIndex * LINE_HEIGHT;
 
-    // BEAMS BEFORE DRAWING. Generating them afterwards leaves every note
-    // already drawn with its own flag, so a beamed run came out with beams AND
-    // thirty-five flags on top of them, and the flags — which point whichever
-    // way an unbeamed note's stem goes — disagreed with the beams above them.
-    // `generateBeams` tells each note it belongs to a beam, and a note that
-    // knows that draws no flag and takes its stem direction from the group.
-    // Beamed in FOURS. Left to itself VexFlow groups eighths in twos, which
-    // for a scale run draws thirty-five notes joined in pairs — a row of
-    // dashes rather than a line of music. Fours is how a scale exercise is
-    // written and how it's counted.
-    const beams =
-      moments.length > 1
-        ? Beam.generateBeams(staveNotes, { groups: [new Fraction(4, 8)] })
-        : [];
+      const stave = new Stave(0, STAFF_TOP + top, staveWidth);
+      // "8vb" is the little 8 under the clef: sounds an octave lower than
+      // written, which is what guitar notation means.
+      stave.addClef('treble', 'default', '8vb');
+      stave.setContext(ctx).draw();
 
-    new Formatter()
-      .joinVoices([voice])
-      .joinVoices([tabVoice])
-      .format([voice, tabVoice], staveWidth - startX - 10);
+      const tab = new TabStave(0, TAB_TOP + top, staveWidth);
+      tab.addClef('tab');
+      // The T A B letters are drawn tall and the formatter doesn't leave much
+      // after them, so the first fret number lands against the A and the B. A
+      // few pixels of air is all it needs.
+      tab.setNoteStartX(tab.getNoteStartX() + 10);
+      tab.setContext(ctx).draw();
 
-    voice.draw(ctx, stave);
-    tabVoice.draw(ctx, tab);
-    beams.forEach((b) => b.setContext(ctx).draw());
+      // The line down the left that makes these two staves one system.
+      new StaveConnector(stave, tab)
+        .setType(StaveConnector.type.SINGLE_LEFT)
+        .setContext(ctx)
+        .draw();
+
+      const staveNotes: StaveNote[] = [];
+      const tabNotes: TabNote[] = [];
+      for (const moment of line) {
+        const low = [...moment].sort(
+          (a, b) => a.position.stringIndex - b.position.stringIndex,
+        );
+        const note = new StaveNote({
+          keys: low.map(vexKey),
+          duration,
+          clef: 'treble',
+        });
+        low.forEach((p, i) => {
+          if (p.note.accidental !== 0) {
+            note.addModifier(new Accidental(ACCIDENTAL_CODE[p.note.accidental]), i);
+          }
+        });
+        staveNotes.push(note);
+        tabNotes.push(
+          new TabNote({
+            positions: low.map((p) => ({
+              // VexFlow strings count 1..6 down from the high e; ours count
+              // 0..5 up from the low E.
+              str: 6 - p.position.stringIndex,
+              fret: p.position.fret,
+            })),
+            duration,
+          }),
+        );
+      }
+
+      // BEAMS BEFORE DRAWING. Generating them afterwards leaves every note
+      // already drawn with its own flag, so a beamed run came out with beams
+      // AND a flag on every note, and the flags — which point whichever way an
+      // unbeamed note's stem goes — disagreed with the beams above them.
+      // `generateBeams` tells each note it belongs to a beam, and a note that
+      // knows that draws no flag and takes its stem direction from the group.
+      //
+      // Beamed in FOURS: left to itself VexFlow groups eighths in twos, which
+      // for a scale run draws a row of dashes rather than a line of music.
+      const beams =
+        moments.length > 1
+          ? Beam.generateBeams(staveNotes, { groups: [new Fraction(4, 8)] })
+          : [];
+
+      // The two staves are formatted TOGETHER so a note and its fret number
+      // line up in the same column. Formatting them separately is what makes
+      // notation and tab drift apart across a long run.
+      const voice = new Voice({ numBeats: line.length, beatValue: 4 })
+        .setStrict(false)
+        .addTickables(staveNotes);
+      const tabVoice = new Voice({ numBeats: line.length, beatValue: 4 })
+        .setStrict(false)
+        .addTickables(tabNotes);
+
+      const startX = Math.max(stave.getNoteStartX(), tab.getNoteStartX());
+      stave.setNoteStartX(startX);
+      tab.setNoteStartX(startX);
+
+      new Formatter()
+        .joinVoices([voice])
+        .joinVoices([tabVoice])
+        .format([voice, tabVoice], staveWidth - startX - 10);
+
+      voice.draw(ctx, stave);
+      tabVoice.draw(ctx, tab);
+      beams.forEach((b) => b.setContext(ctx).draw());
+    });
 
     // LET IT SCALE. VexFlow sizes the SVG in fixed pixels, which means four
     // seventh-chord systems can't share a row that would hold them at 90% —

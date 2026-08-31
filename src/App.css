@@ -60,6 +60,40 @@
   white-space: nowrap;
 }
 
+/* THE BAR'S OWN CONTROLS — saved settings, one panel or two. Same shape as the
+   theme switch beside them, since they're the same kind of thing: something
+   true of the whole app rather than of what's on the page. */
+.sitebar__act {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  padding: 5px 7px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.sitebar__act:hover,
+.sitebar__act--on {
+  color: var(--ink);
+  border-color: var(--line);
+}
+.sitebar__act svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+/* A saved panel's mark is FILLED. Outline means "this could be saved"; filled
+   means "this is". The button says where you stand, not just what it does. */
+.panel__act--on {
+  color: var(--tick-ring);
+}
+
 /* One icon, no frame — it sits in the bar as a mark rather than a control,
    and grows a ring only when you're about to press it. */
 .themetoggle {
@@ -1724,32 +1758,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 2px;
   flex: none;
-}
-.bookmarks__save,
-.bookmarks__open {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 6px;
-  color: var(--muted);
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: color 0.12s ease, border-color 0.12s ease;
-}
-.bookmarks__save:hover,
-.bookmarks__open:hover,
-.bookmarks__open--on {
-  color: var(--ink);
-  border-color: var(--line);
-}
-.bookmarks svg {
-  width: 14px;
-  height: 14px;
-  display: block;
 }
 .bookmarks__count {
   font-size: 10.5px;
@@ -1760,7 +1769,7 @@
 /* The list, hanging under the panel's corner. */
 .bookmarks__list {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 10px);
   right: 0;
   z-index: 40;
   width: 264px;

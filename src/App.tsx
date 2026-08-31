@@ -8,7 +8,7 @@
 // for using them. Within Study, a Mode picks Scales vs Harmony.
 // ============================================================================
 
-import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import type {
   Note,
   ScaleDefinition,
@@ -34,10 +34,14 @@ import { ChordExplorer } from './ui/ChordExplorer';
 import { ChordScaleLadder } from './ui/ChordScaleLadder';
 import { InversionLadder } from './ui/InversionLadder';
 import { ControlPanel, ControlRow } from './ui/ControlPanel';
-import { Bookmarks } from './ui/Bookmarks';
+import { BookmarksMenu, SaveBookmark } from './ui/Bookmarks';
 import {
   defaultModuleState,
   describe,
+  loadBookmarks,
+  saveBookmarks,
+  sameSetting,
+  type Bookmark,
   type ModuleState,
 } from './ui/moduleState';
 import { MultiSelect } from './ui/MultiSelect';
@@ -268,6 +272,19 @@ function App() {
   const [panels, setPanels] = useState<{ id: string; initial?: ModuleState }[]>([
     { id: 'panel-1' },
   ]);
+  // THE SAVED SETTINGS live here rather than in a panel, because the list is
+  // the app's and a panel is only one of the things that can be in it.
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => loadBookmarks());
+  const writeBookmarks = (next: Bookmark[]) => {
+    setBookmarks(next);
+    saveBookmarks(next);
+  };
+  // Restoring has to push a setting INTO a panel, which owns its own state. A
+  // bumped counter rather than a plain value, so restoring the same bookmark
+  // twice still counts as something happening.
+  const [restore, setRestore] = useState<{ state: ModuleState; seq: number } | null>(
+    null,
+  );
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     try {
@@ -342,6 +359,42 @@ function App() {
         )}
         {/* Paper or Night — the two worlds of the design direction (DESIGN.md).
             Parked at the far end: it's a room setting, not a music choice. */}
+        {/* The app's own controls, in the order they're reached for: what
+            you've saved, then whether you're working in one panel or two, then
+            the light — which is a room setting and belongs at the end. */}
+        <BookmarksMenu
+          list={bookmarks}
+          onRestore={(state) =>
+            setRestore((r) => ({ state, seq: (r?.seq ?? 0) + 1 }))
+          }
+          onRemove={(id) => writeBookmarks(bookmarks.filter((b) => b.id !== id))}
+          onRename={(id, name) =>
+            writeBookmarks(bookmarks.map((b) => (b.id === id ? { ...b, name } : b)))
+          }
+        />
+        {panels.length === 1 && (
+          <button
+            className="sitebar__act"
+            onClick={() =>
+              setPanels((list) => [
+                ...list,
+                { id: `panel-${Date.now()}`, initial: list[0]?.initial },
+              ])
+            }
+            aria-label="Work in two panels"
+            title="Two panels"
+          >
+            {/* Two overlapping circles — the app's own mark cut down to two.
+                Overlapping SQUARES is the operating system's word for
+                duplicating a window; circles that meet is this app's word for
+                two things sharing something. */}
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="9.5" cy="12" r="5.6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="14.5" cy="12" r="5.6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
+          </button>
+        )}
+
         <div className="sitebar__theme">
           <ThemeToggle theme={theme} onChange={setTheme} />
         </div>
@@ -363,15 +416,23 @@ function App() {
               initial={panel.initial}
               onAddChord={addToSong}
               songLength={current.chords.length}
-              onAdd={
-                panels.length === 1
-                  ? (seed) =>
-                      setPanels((list) => [
-                        ...list,
-                        { id: `panel-${Date.now()}`, initial: seed },
-                      ])
-                  : undefined
+              bookmarks={bookmarks}
+              onSaveBookmark={(state, label) =>
+                writeBookmarks([
+                  ...bookmarks,
+                  {
+                    id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                    name: label,
+                    state,
+                    savedAt: Date.now(),
+                  },
+                ])
               }
+              // Only the FIRST panel takes a restore for now. Which side a
+              // preset should open into is a real question and Stu flagged it
+              // to answer after using two-up; guessing an answer here would
+              // bake it in.
+              restore={i === 0 ? restore : null}
               onClose={
                 panels.length > 1
                   ? () => setPanels((list) => list.filter((_, n) => n !== i))
@@ -475,19 +536,24 @@ function Module({
   onAddChord,
   songLength,
   initial,
-  onAdd,
   onClose,
+  bookmarks,
+  onSaveBookmark,
+  restore,
 }: {
   onAddChord: (rootIndex: number, chordId: string) => void;
   songLength: number;
   /** What this module opens set to. A second module starts as a copy of the
    *  first, because the useful move is "set one up, then change one thing". */
   initial?: ModuleState;
-  /** Given when a second module can still be added. It's handed this module's
-   *  current settings to start the new one from. */
-  onAdd?: (seed: ModuleState) => void;
   /** Given when this module can be closed. */
   onClose?: () => void;
+  /** Everything saved, so this panel can tell whether IT is one of them. */
+  bookmarks: Bookmark[];
+  onSaveBookmark: (state: ModuleState, label: string) => void;
+  /** A setting pushed in from the bookmarks menu; the counter is what makes
+   *  restoring the same one twice count as an event. */
+  restore?: { state: ModuleState; seq: number } | null;
 }) {
   // ONE OBJECT, NOT A DOZEN. Everything this panel is set to lives in a single
   // ModuleState (see ui/moduleState.ts), which is what makes a module a thing
@@ -554,6 +620,15 @@ function Module({
     setter(next);
   };
 
+  // A setting arriving from the bookmarks menu.
+  const lastRestore = useRef(0);
+  useEffect(() => {
+    if (restore && restore.seq !== lastRestore.current) {
+      lastRestore.current = restore.seq;
+      setState(restore.state);
+    }
+  }, [restore]);
+
   // NOT part of the module's state: which fret you last clicked is about this
   // moment, not about what the panel is set to. A preset that restored a
   // half-finished gesture would be restoring the wrong thing.
@@ -571,11 +646,10 @@ function Module({
   // The seven Roman numerals of this key — the degree selector's labels. They sit
   // ABOVE Scales/Harmony and PERSIST across them: in Scales a degree picks the
   // mode built on it; in Harmony it picks that degree's chord.
-  // Saving and restoring are now the whole of it: the panel's state IS the
-  // thing a bookmark holds, so there's nothing to gather and nothing to apply.
-  // (These were fifteen lines each when the settings lived apart.)
+  // Saving is now the whole of it: the panel's state IS the thing a bookmark
+  // holds, so there's nothing to gather. (This was fifteen lines when the
+  // settings lived apart.)
   const moduleState = (): ModuleState => ({ ...state, scrollY: Math.round(window.scrollY) });
-  const applyModuleState = (s: ModuleState) => setState(s);
 
   const romanLabels = diatonicChords(root, scale, false).map((c) => c.roman);
 
@@ -645,47 +719,19 @@ function Module({
         title="Controls"
         action={
           <div className="panel__actions">
-            <Bookmarks
-              current={moduleState}
-              label={describe(moduleState(), {
-                root: noteName(root),
-                scale: scale.name,
-                roman: deg === ALL_DEGREES ? null : romanLabels[deg],
-              })}
-              onRestore={applyModuleState}
+            <SaveBookmark
+              saved={bookmarks.some((b) => sameSetting(b.state, state))}
+              onSave={() =>
+                onSaveBookmark(
+                  moduleState(),
+                  describe(moduleState(), {
+                    root: noteName(root),
+                    scale: scale.name,
+                    roman: deg === ALL_DEGREES ? null : romanLabels[deg],
+                  }),
+                )
+              }
             />
-            {onAdd && (
-              <button
-                className="panel__act"
-                onClick={() => onAdd(state)}
-                aria-label="Add a second panel beside this one"
-                title="Add a second panel"
-              >
-                {/* Two overlapping circles — the app's own mark, cut down to
-                    two. Overlapping SQUARES is the operating system's word for
-                    "duplicate a window"; circles that meet is this app's word
-                    for two things sharing something, which is exactly what two
-                    panels side by side are for. */}
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <circle
-                    cx="9"
-                    cy="12"
-                    r="5.6"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  />
-                  <circle
-                    cx="15"
-                    cy="12"
-                    r="5.6"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  />
-                </svg>
-              </button>
-            )}
             {onClose && (
               <button
                 className="panel__act"

@@ -78,6 +78,25 @@ export function defaultModuleState(scaleId: string): ModuleState {
   };
 }
 
+/**
+ * Are these two panels set to the same thing? Ignores scrollY, which records
+ * where you happened to be looking rather than what the panel is set TO — a
+ * setting you've already saved is still that setting after you scroll.
+ */
+export function sameSetting(a: ModuleState, b: ModuleState): boolean {
+  const strip = ({ scrollY: _ignored, ...rest }: ModuleState) => rest;
+  const x = strip(a) as Record<string, unknown>;
+  const y = strip(b) as Record<string, unknown>;
+  return Object.keys(x).every((k) => {
+    const l = x[k];
+    const r = y[k];
+    if (Array.isArray(l) && Array.isArray(r)) {
+      return l.length === r.length && [...l].sort().join() === [...r].sort().join();
+    }
+    return l === r;
+  });
+}
+
 export interface Bookmark {
   id: string;
   name: string;

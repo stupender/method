@@ -27,10 +27,17 @@
   stroke: none;
 }
 
-/* The ruled lines of both staves are the exception: they are stroked paths
-   with `fill="none"`, so filling them does nothing and removing their stroke
-   erases the staff entirely. Ink goes on the stroke here. */
-.system svg .vf-stave path {
+/* ...and everything DRAWN AS A LINE is the other half. VexFlow marks each of
+   those with fill="none" — staff lines, ledger lines, and note STEMS all — so
+   that one attribute is the whole distinction, and there's no need to know
+   which class each belongs to. Filling them does nothing and stripping their
+   stroke erases them: the staves went first, and then the stems, which is how
+   a page of eighth notes ended up with beams and note heads and nothing
+   joining them.
+
+   It also recolours the ledger lines, which VexFlow hard-codes to #444 and
+   which had been sitting slightly off the page's ink. */
+.system svg path[fill='none'] {
   fill: none;
   stroke: currentColor;
 }
