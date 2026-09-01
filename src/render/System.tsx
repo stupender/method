@@ -49,7 +49,8 @@ import {
   Voice,
 } from 'vexflow';
 import type { PlacedNote } from '../theory/types';
-import { Beam, Fraction } from 'vexflow';
+import { midiOf } from '../theory/notes';
+import { Beam } from 'vexflow';
 import './System.css';
 
 // THE FRET NUMBERS ARE TEXT, SO SET THEM IN A TEXT FACE. VexFlow's default for
@@ -70,6 +71,13 @@ MetricsDefaults.TabNote.text.fontSize = 11;
 MetricsDefaults.TabNote.text.fontWeight = '600';
 Metrics.clear();
 
+// The direction label above each line of a run.
+// Eighths are beamed in fours — one beat of 4/4 twice over.
+const BEAM_GROUP = 4;
+
+const LABEL_FONT = "'Karla', system-ui, sans-serif";
+const LABEL_SIZE = 11;
+
 const STAFF_TOP = 0;
 const TAB_TOP = 76;
 // VexFlow's default gap between two TAB lines.
@@ -87,8 +95,11 @@ const TAB_MARGIN = 70;
  * and a fixed height would have left the difference as dead space under every
  * uke system on the page.
  */
+// Room above the first staff line for the Ascending / Descending label.
+const LABEL_ROOM = 16;
+
 const heightFor = (strings: number) =>
-  TAB_TOP + (strings - 1) * TAB_LINE + TAB_MARGIN;
+  LABEL_ROOM + TAB_TOP + (strings - 1) * TAB_LINE + TAB_MARGIN;
 /** Distance from one system to the next when the music wraps. */
 const lineHeightFor = (strings: number) => heightFor(strings) + 24;
 // The narrowest a note may sit from its neighbour before the music goes onto
@@ -193,7 +204,18 @@ export function System({
     // A single moment is a chord and gets a whole note; a run of them is read
     // as a line, and eighths beamed in fours are how a scale exercise is
     // written.
-    const duration = moments.length === 1 ? 'w' : '8';
+    // HOW LONG EACH NOTE IS. A chord is a whole note; a run is eighths — with
+    // the LAST note of every line a quarter.
+    //
+    // That last part is what makes the bars come out even. A two-octave
+    // pattern is fifteen notes: fourteen eighths and a quarter is exactly two
+    // bars of four, so the ascent fills its bars and the descent fills its
+    // own. All eighths would leave each line half a beat short and every line
+    // would start mid-bar. It also reads the way the phrase is played — you
+    // arrive on the top note and sit on it before turning round.
+    const isRun = moments.length > 1;
+    const durationAt = (indexInLine: number, lineLength: number) =>
+      !isRun ? 'w' : indexInLine === lineLength - 1 ? 'q' : '8';
 
     // A given width is a fixed engraving that CSS already fits to its column, so
     // zooming it would change nothing you could see. A MEASURED width is the
@@ -251,7 +273,24 @@ export function System({
     const staveWidth = drawWidth - 2;
 
     lines.forEach((line, lineIndex) => {
-      const top = lineIndex * LINE_HEIGHT;
+      const top = LABEL_ROOM + lineIndex * LINE_HEIGHT;
+
+      // WHICH WAY THIS LINE GOES, written above it. The run breaks at the
+      // turn, so a line is entirely one direction or the other and the label
+      // is simply true — read off the notes rather than assumed, so it stays
+      // right when a long run halves twice and gives two lines each way.
+      if (isRun && lines.length > 1) {
+        const lowestOf = (moment: PlacedNote[]) =>
+          Math.min(...moment.map((p) => midiOf(p.note)));
+        const first = lowestOf(line[0]);
+        const last = lowestOf(line[line.length - 1]);
+        if (first !== last) {
+          ctx.save();
+          ctx.setFont(LABEL_FONT, LABEL_SIZE, '600');
+          ctx.fillText(last > first ? 'Ascending' : 'Descending', 1, STAFF_TOP + top - 6);
+          ctx.restore();
+        }
+      }
 
       const stave = new Stave(0, STAFF_TOP + top, staveWidth);
       // "8vb" is the little 8 under the clef: sounds an octave lower than
@@ -296,13 +335,14 @@ export function System({
 
       const staveNotes: StaveNote[] = [];
       const tabNotes: TabNote[] = [];
+      let momentIndex = 0;
       for (const moment of line) {
         const low = [...moment].sort(
           (a, b) => a.position.stringIndex - b.position.stringIndex,
         );
         const note = new StaveNote({
           keys: low.map(vexKey),
-          duration,
+          duration: durationAt(momentIndex, line.length),
           clef: 'treble',
         });
         low.forEach((p, i) => {
@@ -321,9 +361,10 @@ export function System({
               str: strings - p.position.stringIndex,
               fret: p.position.fret,
             })),
-            duration,
+            duration: durationAt(momentIndex, line.length),
           }),
         );
+        momentIndex++;
       }
 
       // BEAMS BEFORE DRAWING. Generating them afterwards leaves every note
@@ -333,12 +374,35 @@ export function System({
       // `generateBeams` tells each note it belongs to a beam, and a note that
       // knows that draws no flag and takes its stem direction from the group.
       //
-      // Beamed in FOURS: left to itself VexFlow groups eighths in twos, which
-      // for a scale run draws a row of dashes rather than a line of music.
-      const beams =
-        moments.length > 1
-          ? Beam.generateBeams(staveNotes, { groups: [new Fraction(4, 8)] })
-          : [];
+      // BEAMED IN FOURS, AND WHATEVER'S LEFT IS BEAMED TOO.
+      //
+      // `generateBeams` with a group of 4/8 does the fours correctly and then
+      // abandons the remainder: fourteen eighths came out as three beamed
+      // groups and TWO LOOSE FLAGGED NOTES at the end of every line. Two
+      // eighths in a row are beamed together — they don't stand as singles —
+      // so the grouping is done here instead, where the rule can be stated
+      // plainly: take up to four, beam anything that isn't alone, and let a
+      // genuinely lone eighth keep its flag.
+      //
+      // (Left entirely to itself VexFlow groups in twos, which for a scale run
+      // draws a row of dashes rather than a line of music — hence fours.)
+      const beams: Beam[] = [];
+      if (isRun) {
+        let group: StaveNote[] = [];
+        const flush = () => {
+          if (group.length > 1) beams.push(new Beam(group));
+          group = [];
+        };
+        for (const note of staveNotes) {
+          if (note.getDuration() !== '8') {
+            flush(); // a quarter can't be beamed, and it ends the group
+            continue;
+          }
+          group.push(note);
+          if (group.length === BEAM_GROUP) flush();
+        }
+        flush();
+      }
 
       // The two staves are formatted TOGETHER so a note and its fret number
       // line up in the same column. Formatting them separately is what makes
