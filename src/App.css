@@ -795,6 +795,15 @@
   white-space: normal;
   overflow-wrap: break-word;
 }
+/* THE RING GOES INSIDE. A segmented cell clips its own overflow (see below),
+   and an outline is painted OUTSIDE the border box — so the default 2px offset
+   put the ring exactly where the cell cuts it off, leaving three sides of a
+   box. Inset by the same amount, it lands on the cell's own edge. */
+.seg__btn:focus-visible {
+  outline-offset: -2px;
+  border-radius: 0;
+}
+
 .seg--fill .seg__btn {
   padding-left: 4px;
   padding-right: 4px;

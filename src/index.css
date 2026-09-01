@@ -448,3 +448,26 @@ h1,
 h2 {
   font-weight: 400;
 }
+
+/* ==========================================================================
+   KEYBOARD FOCUS, IN THE APP'S OWN INK
+   --------------------------------------------------------------------------
+   Left to itself the browser draws its default ring on anything focusable
+   that we haven't styled — and on macOS that ring takes the SYSTEM accent
+   colour, so someone with orange set in System Settings gets a fat orange box
+   round a control the moment they press Return on it. It isn't a bug in the
+   app so much as the app never having answered the question, and the answer
+   has to be ours: this palette is the whole point.
+
+   `:where()` so it carries NO specificity. Every bespoke focus rule already
+   written — the site bar's, the panel's, the orb's — still wins, and this is
+   only what happens where nothing else has an opinion.
+
+   It stays visible, deliberately. A focus ring is the one case where a ring is
+   the right answer: with no pointer there's nothing else to say where you are.
+   ========================================================================== */
+:where(button, a, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}

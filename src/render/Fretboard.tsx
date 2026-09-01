@@ -131,6 +131,56 @@ export function Fretboard({
   const stringY = (stringIndex: number) =>
     PAD_TOP + (stringCount - 1 - stringIndex) * STRING_SPACING;
 
+  // ==========================================================================
+  // SWIPING THE NECK, WITHOUT HAVING TO
+  // --------------------------------------------------------------------------
+  // On a phone the neck is drawn at a readable size and its box scrolls
+  // sideways (see the note in App.css). Reading DOWN the page is what chooses
+  // which position is lit — so on a phone, scrolling to the fifth position lit
+  // a set of notes that were off the right-hand edge of the neck, and you had
+  // to go and find them with a second, sideways scroll. Two scrolls to see one
+  // thing, and no sign that the first one had worked.
+  //
+  // So the neck follows what's lit: when the active shape changes, the box
+  // scrolls to centre it. It asks its own parent whether there's anything to
+  // scroll, which keeps this true of any layout rather than of one media
+  // query — on a desktop the whole neck fits, the answer is no, and nothing
+  // happens.
+  // ==========================================================================
+  const boardRef = useRef<SVGSVGElement>(null);
+  // The span of frets currently lit, as a string, so the effect below re-runs
+  // when what's lit MOVES rather than on every render.
+  const litFrets =
+    activeSet && shapes
+      ? [...activeSet].flatMap((i) => (shapes[i] ?? []).map((h) => h.position.fret))
+      : [];
+  const litSpan = litFrets.length
+    ? `${Math.min(...litFrets)}:${Math.max(...litFrets)}`
+    : '';
+  useEffect(() => {
+    const svg = boardRef.current;
+    const box = svg?.parentElement;
+    if (!svg || !box || !litSpan) return;
+    // Nothing to scroll — the whole neck is on screen.
+    if (box.scrollWidth - box.clientWidth < 4) return;
+    const [lo, hi] = litSpan.split(':').map(Number);
+    // SVG user units to screen pixels. Measured rather than assumed, because
+    // the neck is drawn to a height and takes whatever width that implies.
+    const perUnit = svg.getBoundingClientRect().width / width;
+    const centre = ((noteX(lo) + noteX(hi)) / 2) * perUnit;
+    const left = Math.max(
+      0,
+      Math.min(box.scrollWidth - box.clientWidth, centre - box.clientWidth / 2),
+    );
+    box.scrollTo({
+      left,
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ? 'auto'
+        : 'smooth',
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [litSpan]);
+
   // WHAT MAKES A DOT "THE SAME DOT" WHEN THE KEY CHANGES.
   //
   // Change key and every note shifts along the neck. For that to read as a
@@ -354,6 +404,7 @@ export function Fretboard({
 
   return (
     <svg
+      ref={boardRef}
       className={animate ? 'fretboard' : 'fretboard fretboard--still'}
       viewBox={`0 0 ${width} ${height}`}
       onClick={onBackgroundClick}

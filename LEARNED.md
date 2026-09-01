@@ -1955,3 +1955,11 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   `.seg__text` so a short name could take its place blanked every row whose
   options have no short name. `.seg__label:has(.seg__short) .seg__text` swaps
   only where there is something to swap in.
+- **An unstyled focus ring borrows the SYSTEM accent colour.** On macOS that
+  means someone with orange set in System Settings gets a fat orange box round
+  a control the instant they press Return on it. It isn't a browser bug — it's
+  the app never having answered the question. `:where(...)` gives the answer at
+  zero specificity, so every bespoke focus rule already written still wins.
+- **An outline is painted OUTSIDE the border box,** so a parent with
+  `overflow: hidden` clips it — which leaves three sides of a rectangle. A
+  negative `outline-offset` puts the ring on the element's own edge instead.

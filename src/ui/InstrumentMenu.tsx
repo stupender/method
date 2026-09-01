@@ -22,28 +22,63 @@
 import { useState } from 'react';
 import type { Instrument, Tuning } from '../theory/types';
 
-/** A headstock and three strings — small enough to read at 18px. */
+/**
+ * THE SOUND HOLE, WITH THE STRINGS CROSSING IT — a detail crop rather than a
+ * whole instrument.
+ *
+ * Two silhouettes came before this. The first was a diagonal line with a hook
+ * at each end, which at 18px is a squiggle. The second was a proper body
+ * outline, and it was better, but a whole guitar at 18px asks the shape to
+ * carry everything: get the waist a little wrong and it reads as a cello, get
+ * the bouts a little wrong and it reads as a cartoon. There isn't much room
+ * for error in a square the size of a fingernail.
+ *
+ * Stu's idea, and the right one: crop in. A hole with strings across it is
+ * unmistakably a guitar and has no proportions to get wrong — and it happens
+ * to be the app's own vocabulary, since everything here is circles and
+ * strings.
+ *
+ * A SOLID DISC WITH THE STRINGS CUT OUT OF IT, rather than a ring with lines
+ * drawn across. Stu's again, and it's the stronger mark by some way: at 18px a
+ * thin ring is four faint arcs, while a filled circle is a shape you see
+ * before you read it. The strings then read as light rather than as ink, which
+ * is what they are when you look into a sound hole.
+ */
+/**
+ * The strings, as gaps across the hole: EVENLY SPACED, and thick to thin left
+ * to right. The taper is the whole thing — evenly weighted gaps would be a
+ * barcode, and the gauges are what say "guitar" without drawing one. Same rule
+ * the neck itself is drawn with (see stringWidth in render/Fretboard.tsx).
+ *
+ * FOUR, NOT SIX. Six is the honest number and it doesn't survive: at 3 units
+ * apart on a 24-unit grid the gaps land 2.2px apart at the size this actually
+ * renders, and six thin slivers that close up into grey is a worse lie about a
+ * guitar than four clear ones. Four reads as strings; six reads as hatching.
+ */
+const ICON_STRINGS = [
+  { x: 5.7, w: 1.45 },
+  { x: 9.9, w: 1.2 },
+  { x: 14.1, w: 0.98 },
+  { x: 18.3, w: 0.8 },
+];
+
 export function InstrumentIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      {/* The body: a rounded shape low-left, the way a guitar hangs. */}
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+      {/* ONE PATH, with `evenodd`: the disc, then six tall rectangles laid over
+          it. Overlapping subpaths cancel, so the rectangles become GAPS —
+          actual holes in the mark rather than lines painted over it in the
+          background colour. That matters because the bar sits on paper in one
+          theme and on slate in the other, and a hole is right in both. */}
       <path
-        d="M8.6 21.2a4.1 4.1 0 1 1 2.7-7.2l7.4-7.4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
+        fillRule="evenodd"
+        d={
+          'M12 3a9 9 0 1 0 0 18 9 9 0 1 0 0-18z ' +
+          ICON_STRINGS.map(
+            (s) => `M${s.x - s.w / 2} 1.5h${s.w}v21h${-s.w}z`,
+          ).join(' ')
+        }
       />
-      {/* The headstock at the top of the neck. */}
-      <path
-        d="M16.6 4.4 19.7 7.5 21.4 5.8a2.2 2.2 0 0 0-3.1-3.1z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinejoin="round"
-      />
-      {/* The sound hole. */}
-      <circle cx="8.6" cy="17.1" r="1.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
     </svg>
   );
 }
