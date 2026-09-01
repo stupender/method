@@ -164,6 +164,27 @@ chips — they're content, not settings. One more small role: the **stepper**
 (`ui/ShapeStepper.tsx`, ‹ 3 / 7 ›) walks a sequence of shapes in playing order —
 tiny prev/next actions around a live readout, mirrored by the ← → arrow keys.
 
+**A menu is a small panel** (`ui/Menu.tsx`). The two menus in the site bar —
+what's in your hands, and what you've saved — each used to have their own box: a
+rounded card with a drop shadow, floating under an icon, rows styled to taste.
+Nothing else in this app looks like that. Everything else is a flat outlined
+BLOCK on paper with a title strip across the top and rows underneath, so two
+floating cards read as an afterthought.
+
+A menu now takes the panel's language exactly: same hairline border, same square
+corners, same uppercase eyebrow in the same strip, same ground, one width for
+both, **no shadow** — nothing in this app casts one, and a hairline on solid
+stock is how a printed thing sits on a page. Rows are the panel's three-part row:
+a mark, a name that takes the measure, a quiet fact at the end. The instrument
+rows wear the app's own dot, lit for the one you're on; the saved rows wear the
+save button's bookmark, quietly, so the list is visibly the thing that button
+fills (a lit dot would be wrong — a dot means "this is the one you're on", and a
+list of saved places has no current one).
+
+`ui/Menu.tsx` is the one place that decides this, and it also does the two things
+both menus were missing: close on a click away, and close on Escape with focus
+put back on the button that opened it.
+
 ## The aesthetic direction — "Paper & Night"
 
 Pulled from Stu's three Cosmos boards (*Vision Is Expanding*, *Color, Texture,

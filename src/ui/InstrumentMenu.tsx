@@ -19,10 +19,11 @@
 // say one thing isn't a control.
 // ============================================================================
 
-import { useId, useState } from 'react';
+import { useId } from 'react';
 import type { Instrument, Tuning } from '../theory/types';
 import { noteName } from '../theory/notes';
 import { TUNINGS } from '../data/tunings';
+import { Menu, MenuGroup } from './Menu';
 
 /**
  * THE SOUND HOLE, WITH THE STRINGS CROSSING IT — a detail crop rather than a
@@ -134,86 +135,71 @@ export function InstrumentMenu({
   onPickInstrument: (id: string) => void;
   onPickTuning: (id: string) => void;
 }) {
-  const [open, setOpen] = useState(false);
-
   return (
-    <div className="instrumentmenu">
-      <button
-        className={open ? 'sitebar__act sitebar__act--on' : 'sitebar__act'}
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        aria-label={`Instrument — ${instrument.name}`}
-        title={instrument.name}
-      >
-        <InstrumentIcon />
-      </button>
-
-      {open && (
-        <div className="instrumentmenu__list">
-          <p className="instrumentmenu__head">Instrument</p>
-          <ul>
+    <Menu
+      title="Instrument"
+      label={`Instrument — ${instrument.name}`}
+      icon={<InstrumentIcon />}
+    >
+      {(close) => (
+        <>
+          <MenuGroup>
             {instruments.map((i) => (
               <li key={i.id}>
                 {/* The same dot the CONTROLS panel uses for every choice —
                     lit when it's the one you're on. One grammar everywhere. */}
                 <button
                   className={
-                    i.id === instrument.id
-                      ? 'instrumentmenu__item instrumentmenu__item--on'
-                      : 'instrumentmenu__item'
+                    i.id === instrument.id ? 'menu__item menu__item--on' : 'menu__item'
                   }
                   onClick={() => {
                     onPickInstrument(i.id);
-                    setOpen(false);
+                    close();
                   }}
                 >
                   <span className="seg__tick" aria-hidden="true" />
-                  <span className="instrumentmenu__name">{i.name}</span>
-                  {/* WHAT IT'S TUNED TO, not how many strings it has. The
-                      count was a number you had to translate — 6 means guitar,
-                      which you already read on the line beside it. The open
-                      notes are the fact you'd actually want: they say what the
-                      instrument IS, they tell a baritone ukulele from a tenor
-                      at a glance, and they're what changes under you when you
-                      pick one. The instrument you're on shows the tuning
-                      you're actually in; the others show the one they'd
-                      open in. */}
-                  <span className="instrumentmenu__strings">
-                    {openNotes(i.id === instrument.id ? tuning : TUNINGS[i.defaultTuningId])}
+                  <span className="menu__name">{i.name}</span>
+                  {/* WHAT IT'S TUNED TO, not how many strings it has. The count
+                      was a number you had to translate — 6 means guitar, which
+                      you already read on the line beside it. The open notes are
+                      the fact you'd want: they tell a baritone ukulele from a
+                      tenor at a glance, and they're what actually changes under
+                      you when you pick one. The instrument you're on shows the
+                      tuning you're in; the others show the one they'd open in. */}
+                  <span className="menu__note">
+                    {openNotes(
+                      i.id === instrument.id ? tuning : TUNINGS[i.defaultTuningId],
+                    )}
                   </span>
                 </button>
               </li>
             ))}
-          </ul>
+          </MenuGroup>
 
           {/* Only when there's more than one — see the note at the top. */}
           {tunings.length > 1 && (
-            <>
-              <p className="instrumentmenu__head">Tuning</p>
-              <ul>
-                {tunings.map((t) => (
-                  <li key={t.id}>
-                    <button
-                      className={
-                        t.id === tuning.id
-                          ? 'instrumentmenu__item instrumentmenu__item--on'
-                          : 'instrumentmenu__item'
-                      }
-                      onClick={() => {
-                        onPickTuning(t.id);
-                        setOpen(false);
-                      }}
-                    >
-                      <span className="seg__tick" aria-hidden="true" />
-                      <span className="instrumentmenu__name">{t.name}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </>
+            <MenuGroup label="Tuning">
+              {tunings.map((t) => (
+                <li key={t.id}>
+                  <button
+                    className={
+                      t.id === tuning.id ? 'menu__item menu__item--on' : 'menu__item'
+                    }
+                    onClick={() => {
+                      onPickTuning(t.id);
+                      close();
+                    }}
+                  >
+                    <span className="seg__tick" aria-hidden="true" />
+                    <span className="menu__name">{t.name}</span>
+                    <span className="menu__note">{openNotes(t)}</span>
+                  </button>
+                </li>
+              ))}
+            </MenuGroup>
           )}
-        </div>
+        </>
       )}
-    </div>
+    </Menu>
   );
 }

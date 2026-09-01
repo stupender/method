@@ -116,7 +116,7 @@
   transition: opacity 0.12s ease;
 }
 /* The one that carries a count needs room for it, so it alone grows sideways. */
-.sitebar__act:has(.bookmarks__count) {
+.sitebar__act:has(.menu__badge) {
   width: auto;
   padding: 0 4px;
 }
@@ -2107,120 +2107,10 @@
 /* ==========================================================================
    BOOKMARKS — the panel's own control
    --------------------------------------------------------------------------
-   Two marks in the panel's title strip: a filled bookmark that SAVES what the
-   panel is set to, and an outlined one that opens the list of what's saved.
-   Filled means "put something in", outline means "look at what's there" — the
-   same distinction a filled and empty lamp makes elsewhere.
+   A filled bookmark in the panel's title strip SAVES what the panel is set to;
+   the list of what's saved opens from the site bar, and looks like every other
+   menu (see "A MENU IS A SMALL PANEL" below).
    ========================================================================== */
-.bookmarks {
-  position: relative;
-  display: flex;
-  align-items: center;
-  flex: none;
-}
-.bookmarks__count {
-  font-size: 10.5px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-/* The list, hanging under the panel's corner. */
-.bookmarks__list {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  z-index: 40;
-  width: 264px;
-  max-height: 320px;
-  overflow-y: auto;
-  padding: 8px;
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
-}
-.bookmarks__list ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.bookmarks__empty {
-  margin: 0;
-  padding: 6px 4px;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.45;
-}
-.bookmarks__item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 1px 0;
-}
-/* THE NAME IS THE TARGET, and it takes the whole row — a big, obvious thing to
-   hit rather than a 24px circle beside a text field. It reads as text until
-   you point at it, which is the right weight for a list: the row you want
-   lights, the rest stay quiet. */
-.bookmarks__go {
-  flex: 1;
-  min-width: 0;
-  padding: 6px 8px;
-  color: var(--ink);
-  background: transparent;
-  border: 0;
-  border-radius: var(--radius);
-  font: inherit;
-  font-size: 13px;
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
-}
-.bookmarks__go:hover {
-  background: var(--tint-soft);
-}
-.bookmarks__go:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-}
-/* Only while renaming, so the field's box is a MODE you entered rather than
-   the row's resting appearance. */
-.bookmarks__rename {
-  flex: 1;
-  min-width: 0;
-  padding: 5px 7px;
-  color: var(--ink);
-  font: inherit;
-  font-size: 13px;
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-}
-.bookmarks__rename:focus {
-  outline: none;
-  border-color: var(--ink);
-}
-/* The icon is the button — no circle behind it. Quiet until you want it, so a
-   list of saved settings doesn't read as a row of delete buttons. */
-.bookmarks__remove {
-  flex: none;
-  width: 22px;
-  height: 22px;
-  color: var(--ink);
-  opacity: 0.4;
-  background: transparent;
-  border: 0;
-  font-size: 16px;
-  line-height: 1;
-  cursor: pointer;
-  transition: opacity 0.12s ease;
-}
-.bookmarks__remove:hover,
-.bookmarks__remove:focus-visible {
-  opacity: 1;
-}
-
 /* ==========================================================================
    MODULES — one panel and its neck, or two side by side
    --------------------------------------------------------------------------
@@ -2344,44 +2234,87 @@
 }
 
 /* ==========================================================================
-   THE INSTRUMENT MENU — which neck am I looking at
+   A MENU IS A SMALL PANEL
    --------------------------------------------------------------------------
-   Same shape as the saved-settings list beside it: a panel hanging under its
-   icon, rows that light with the app's own dot rather than a tick or a
-   highlight. See ui/InstrumentMenu.tsx.
+   The two menus in the site bar — what's in your hands, and what you've saved
+   — each used to have their own box: a rounded card with a drop shadow,
+   floating under an icon, rows styled to taste. Nothing else in this app looks
+   like that. Everything else is a flat outlined BLOCK on paper with a title
+   strip across the top and rows underneath, and two floating cards in a room
+   of printed blocks read as an afterthought.
+
+   So a menu takes the panel's language exactly: the same hairline border, the
+   same square corners, the same uppercase eyebrow in the same strip, the same
+   ground. NO SHADOW — nothing in this app casts one, and a hairline on solid
+   stock is how a printed thing sits on a page. One width for both, so opening
+   one after the other doesn't make the corner jump.
+
+   See ui/Menu.tsx, which is the one place that decides what a menu is.
    ========================================================================== */
-.instrumentmenu {
+.menu {
   position: relative;
   display: flex;
   align-items: center;
   flex: none;
 }
-.instrumentmenu__list {
+
+.menu__panel {
   position: absolute;
-  top: calc(100% + 10px);
+  top: calc(100% + 9px);
   right: 0;
   z-index: 40;
-  width: 236px;
-  padding: 8px;
+  width: 258px;
+  max-height: 60vh;
+  overflow-y: auto;
   background: var(--bg);
   border: 1px solid var(--line);
-  border-radius: 4px;
-  box-shadow: 0 6px 24px var(--shadow);
+  border-radius: var(--radius);
 }
-.instrumentmenu__list ul {
-  list-style: none;
-  margin: 0 0 4px;
-  padding: 0;
+
+/* The same strip the CONTROLS panel wears, at the same weight. */
+.menu__head {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
 }
-.instrumentmenu__head {
-  margin: 4px 0 6px 6px;
+.menu__title {
+  display: block;
+  padding: 8px 12px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
-.instrumentmenu__item {
+
+.menu__body {
+  padding: 6px;
+}
+
+.menu__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* A heading WITHIN the body, for a menu holding more than one list. Quieter
+   and smaller than the strip above it, because it divides that strip rather
+   than repeating it. The rule above it is what makes it a division. */
+.menu__group {
+  margin: 8px 0 4px;
+  padding: 8px 6px 0;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* ONE ROW SHAPE for both menus: a mark, a name that takes the measure, and a
+   quiet fact at the end. The same three-part row the CONTROLS panel uses. */
+.menu__item {
   display: flex;
   align-items: center;
   gap: 9px;
@@ -2396,29 +2329,106 @@
   text-align: left;
   cursor: pointer;
 }
-.instrumentmenu__item:hover {
+.menu__item:hover {
   background: var(--tint-soft);
+  color: var(--ink);
 }
-.instrumentmenu__item--on {
+.menu__item:focus-visible {
+  outline-offset: -2px;
+}
+.menu__item--on {
   color: var(--ink);
   font-weight: 600;
 }
-.instrumentmenu__name {
+.menu__name {
   flex: 1;
   min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-/* WHAT IT'S TUNED TO — a quiet fact, right-aligned, that tells you what's
-   about to change about the drawing below. Letterspaced because it's a run of
-   single letters rather than a word, and they need the air to read as a list
-   of notes instead of as one long string of capitals. */
-.instrumentmenu__strings {
+/* The quiet fact at the end of a row — what an instrument is tuned to.
+   Letterspaced because it's a run of single letters rather than a word, and
+   they need the air to read as a list of notes instead of one long string. */
+.menu__note {
   flex: none;
   color: var(--muted);
   font-size: 11px;
   letter-spacing: 0.06em;
   white-space: nowrap;
 }
+/* The save button's own mark at the head of a saved row, so the list is
+   visibly the thing that button fills. */
+.menu__mark {
+  flex: none;
+  display: block;
+  width: 13px;
+  height: 13px;
+  opacity: 0.5;
+}
+.menu__mark svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
 
+.menu__empty {
+  margin: 0;
+  padding: 6px 8px 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* A saved row is a name plus a way to be rid of it, so the row is the flex
+   container and the name button is what stretches inside it. */
+.menu__row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.menu__remove {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  color: var(--ink);
+  opacity: 0.35;
+  background: transparent;
+  border: 0;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: opacity 0.12s ease;
+}
+.menu__row:hover .menu__remove,
+.menu__remove:focus-visible {
+  opacity: 1;
+}
+
+/* Only while renaming, so the field's box is a MODE you entered rather than
+   the row's resting appearance. */
+.menu__rename {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 7px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.menu__rename:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+
+/* How many are saved, beside the icon that opens them. */
+.menu__badge {
+  font-size: 10.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
 
 /* THE SCALE'S NAME IS ALSO THE SWITCH that shows the whole scale across the
    neck (see ui/NeckPanel.tsx). It has to read as the heading it already was,
