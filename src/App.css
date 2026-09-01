@@ -60,72 +60,69 @@
   white-space: nowrap;
 }
 
-/* THE BAR'S OWN CONTROLS — saved settings, one panel or two. Same shape as the
-   theme switch beside them, since they're the same kind of thing: something
-   true of the whole app rather than of what's on the page. */
-.sitebar__act {
+/* THE BAR'S OWN CONTROLS — saved settings, one panel or two, and the light.
+   Three things true of the whole app rather than of what's on the page, so
+   they're ONE SET and they finally look like it. They didn't: two were pills
+   at 999px with 16px icons and asymmetric padding, the third was a 30px circle
+   with a 17px icon, and a row of three controls in three shapes reads as three
+   different designs sharing a corner.
+   They're square now, at the page's own 2px radius. The style guide's rule is
+   that 999px reads as app chrome and a small radius reads as ink on a page —
+   and circles are reserved for the things that MEAN circle: the mark, and the
+   dots on the fretboard. */
+.sitebar__act,
+.themetoggle {
   position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   flex: none;
-  padding: 5px 7px;
-  color: var(--muted);
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: color 0.12s ease, border-color 0.12s ease;
-}
-.sitebar__act:hover,
-.sitebar__act--on {
-  color: var(--ink);
-  border-color: var(--line);
-}
-.sitebar__act svg {
-  width: 16px;
-  height: 16px;
-  display: block;
-}
-
-/* A saved panel's mark is FILLED. Outline means "this could be saved"; filled
-   means "this is". The button says where you stand, not just what it does. */
-.panel__act--on {
-  color: var(--tick-ring);
-}
-
-/* One icon, no frame — it sits in the bar as a mark rather than a control,
-   and grows a ring only when you're about to press it. */
-.themetoggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   width: 30px;
   height: 30px;
   padding: 0;
   color: var(--muted);
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 50%;
+  border-radius: var(--radius);
   cursor: pointer;
-  transition:
-    color 0.12s ease,
-    border-color 0.12s ease;
+  transition: color 0.12s ease, border-color 0.12s ease;
 }
+/* The one that carries a count needs room for it, so it alone grows sideways. */
+.sitebar__act:has(.bookmarks__count) {
+  width: auto;
+  padding: 0 7px;
+}
+.sitebar__act:hover,
 .themetoggle:hover {
   color: var(--ink);
   border-color: var(--line);
 }
+/* ON is the same lit state the rest of the app uses for a chosen thing: full
+   ink, and a visible edge so it reads as pressed rather than just hovered. */
+.sitebar__act--on {
+  color: var(--ink);
+  border-color: var(--line);
+  background: var(--tint-soft);
+}
+.sitebar__act svg,
 .themetoggle svg {
   width: 17px;
   height: 17px;
   display: block;
 }
 
-/* Holds the far end of the bar. It used to lean on the Key button for that,
-   and when the button left with the colour key, the whole bar collapsed toward
-   the middle. */
-.sitebar__theme {
+/* (The saved-bookmark mark's own colour lives with `.panel__act` further down.
+   It was up here, and lost to the plain `.panel__act` rule below it — same
+   specificity, later in the file — so the mark filled but stayed grey.) */
+
+/* Holds the far end of the bar, and holds the three app controls TOGETHER.
+   The gap inside is tighter than the bar's own, which is what makes them read
+   as one cluster rather than three marks that happen to be near each other. */
+.sitebar__controls {
+  display: flex;
+  align-items: center;
+  gap: 3px;
   margin-left: auto;
   flex: none;
 }
@@ -1959,7 +1956,9 @@
   color: var(--muted);
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 50%;
+  /* Square, like the site bar's controls — same kind of thing, same shape.
+     Circles in this app mean the mark and the fretboard dots. */
+  border-radius: var(--radius);
   font-size: 14px;
   line-height: 1;
   cursor: pointer;
@@ -1968,6 +1967,18 @@
 .panel__act:hover {
   color: var(--ink);
   border-color: var(--line);
+}
+
+/* SAVED IS RED. The bookmark is filled AND takes the 1st degree's red — the
+   app's own tonic colour — so "this setting is saved" reads from across the
+   room rather than needing a second look to tell filled from outline.
+   It's the one place outside the fretboard where a degree colour means
+   something else, and it gets away with it because a panel header has no
+   degree dots to be confused with. Kept next to `.panel__act` on purpose:
+   it's the same specificity, so it only wins by coming after it. */
+.panel__act--on,
+.panel__act--on:hover {
+  color: var(--deg-1);
 }
 .panel__act svg {
   width: 15px;

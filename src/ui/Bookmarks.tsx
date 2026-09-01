@@ -42,22 +42,30 @@ export function BookmarkIcon({ filled = false }: { filled?: boolean }) {
   );
 }
 
-/** In a panel's header: save what this panel is set to. */
+/**
+ * In a panel's header: save what this panel is set to — and unsave it.
+ *
+ * A TOGGLE, not an "add". It used to only ever add, so pressing it twice on
+ * the same setting saved that setting twice, and there was no way to undo a
+ * save from the place you made it. Since the mark already tells you whether
+ * this exact setting is saved, the button that draws the mark is the obvious
+ * place to change it.
+ */
 export function SaveBookmark({
   saved,
-  onSave,
+  onToggle,
 }: {
   /** True when this exact setting is already in the list. */
   saved: boolean;
-  onSave: () => void;
+  onToggle: () => void;
 }) {
   return (
     <button
       className={saved ? 'panel__act panel__act--on' : 'panel__act'}
-      onClick={onSave}
+      onClick={onToggle}
       aria-pressed={saved}
-      aria-label={saved ? 'This setting is saved' : 'Save this setting'}
-      title={saved ? 'Saved' : 'Save this setting'}
+      aria-label={saved ? 'Saved — remove from saved settings' : 'Save this setting'}
+      title={saved ? 'Saved — click to remove' : 'Save this setting'}
     >
       <BookmarkIcon filled={saved} />
     </button>
@@ -100,21 +108,17 @@ export function BookmarksMenu({
         aria-label={`Saved settings (${list.length})`}
         title="Saved settings"
       >
-        {/* A bookmark with lines beside it: the LIST of them, rather than the
-            act of saving one. */}
+        {/* Just a list. The earlier icon was a bookmark WITH lines beside it,
+            trying to say "the list of bookmarks" in one drawing — which read as
+            a busy version of the save button rather than as something else.
+            Three lines is what every list has looked like for forty years, and
+            the button next to it is already the bookmark. */}
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path
-            d="M5 3h8a1 1 0 0 1 1 1v15l-5-3.6L4 19V4a1 1 0 0 1 1-1z"
+            d="M4 7h16M4 12h16M4 17h10"
             fill="none"
             stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M17.5 7h3M17.5 11h3M17.5 15h3"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.6"
+            strokeWidth="1.7"
             strokeLinecap="round"
           />
         </svg>

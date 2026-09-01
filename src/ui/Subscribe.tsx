@@ -125,19 +125,23 @@ export function Subscribe({
 
   return (
     <div className={`subscribe subscribe--${variant}`}>
+      {/* SAY WHAT THIS IS, in the heading, in both places. The first version
+          led with "Saved — in this browser", which described the SITUATION and
+          left you to work out that the box underneath was a mailing list. The
+          situation is only the reason for asking; the offer is the point, so
+          the offer takes the heading and the reason follows it. */}
+      <h2 className="subscribe__title">Get updates by email</h2>
       {variant === 'invitation' && (
-        <>
-          <h2 className="subscribe__title">Saved — in this browser</h2>
-          <p className="subscribe__blurb">
-            Settings you save live in this browser and nowhere else, so they
-            won't follow you to another device. Leave an email and you'll hear
-            when they can — and when anything else worth playing with lands.
-          </p>
-        </>
+        <p className="subscribe__blurb">
+          You've just saved a setting — and saved settings live in this browser
+          only, so they won't follow you to another device. Leave your email and
+          I'll tell you when they can, and when anything else worth playing with
+          lands.
+        </p>
       )}
       {variant === 'footer' && (
         <p className="subscribe__blurb">
-          Fretboard Constellations is in beta and still being built. Leave an
+          Fretboard Constellations is in beta and still being built. Leave your
           email to hear what's next.
         </p>
       )}
@@ -148,8 +152,11 @@ export function Subscribe({
           in its own words. One validator, one voice. `type="email"` stays for
           the keyboard it gives a phone. */}
       <form className="subscribe__form" onSubmit={submit} noValidate>
+        {/* A VISIBLE label, not one hidden for screen readers only. A lone box
+            with a greyed-out address inside it could be almost anything —
+            search, login, a comment. One word above it removes the guess. */}
         <label className="subscribe__label" htmlFor={`sub-${variant}`}>
-          Email
+          Email address
         </label>
         <input
           id={`sub-${variant}`}
@@ -176,10 +183,19 @@ export function Subscribe({
           value={trap}
           onChange={(e) => setTrap(e.target.value)}
         />
+        {/* The button names the thing it joins. "Join" alone leaves the reader
+            to infer what they're joining. */}
         <button className="pill pill--on" type="submit" disabled={status === 'sending'}>
-          {status === 'sending' ? 'Sending…' : 'Join'}
+          {status === 'sending' ? 'Sending…' : 'Join the list'}
         </button>
       </form>
+
+      {/* What they're agreeing to, before they agree to it. Occasional, from a
+          person, and stoppable — said plainly and once. */}
+      <p className="subscribe__terms">
+        Occasional updates from Stu Pender. No more than that, and you can
+        unsubscribe from any of them.
+      </p>
 
       {status === 'error' && (
         <p className="subscribe__error" role="status">

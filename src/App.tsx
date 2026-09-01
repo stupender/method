@@ -368,11 +368,16 @@ function App() {
             ))}
           </nav>
         )}
-        {/* Paper or Night — the two worlds of the design direction (DESIGN.md).
-            Parked at the far end: it's a room setting, not a music choice. */}
-        {/* The app's own controls, in the order they're reached for: what
-            you've saved, then whether you're working in one panel or two, then
-            the light — which is a room setting and belongs at the end. */}
+        {/* THE APP'S OWN CONTROLS, IN ONE CLUSTER at the far end — what you've
+            saved, then one panel or two, then the light, which is a room
+            setting and belongs last.
+            They used to be three separate children of the bar: two sat just
+            after the title and the third was pushed to the opposite edge, so a
+            set of three related marks read as scattered. Grouped, with a
+            tighter gap inside the group than around it, they read as what they
+            are — the controls FOR the app, as opposed to the controls for the
+            music, which all live in the panel below. */}
+        <div className="sitebar__controls">
         <BookmarksMenu
           list={bookmarks}
           onRestore={(state) =>
@@ -383,30 +388,53 @@ function App() {
             writeBookmarks(bookmarks.map((b) => (b.id === id ? { ...b, name } : b)))
           }
         />
-        {panels.length === 1 && (
-          <button
-            className="sitebar__act"
-            onClick={() =>
-              setPanels((list) => [
-                ...list,
-                { id: `panel-${Date.now()}`, initial: list[0]?.initial },
-              ])
-            }
-            aria-label="Work in two panels"
-            title="Two panels"
-          >
-            {/* Two overlapping circles — the app's own mark cut down to two.
-                Overlapping SQUARES is the operating system's word for
-                duplicating a window; circles that meet is this app's word for
-                two things sharing something. */}
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="9.5" cy="12" r="5.6" fill="none" stroke="currentColor" strokeWidth="1.5" />
-              <circle cx="14.5" cy="12" r="5.6" fill="none" stroke="currentColor" strokeWidth="1.5" />
-            </svg>
-          </button>
-        )}
+        {/* ONE PANEL OR TWO — a switch that stays put and reports which way
+            it's set, lit like every other chosen thing in this app. It used to
+            VANISH when you pressed it, because it only rendered while there
+            was one panel: the control that got you into two-up wasn't there to
+            get you out again, and the only way back was an × inside the panel
+            you wanted to close. A control that disappears on use can't be
+            undone by the person who just used it. */}
+        <button
+          className={panels.length > 1 ? 'sitebar__act sitebar__act--on' : 'sitebar__act'}
+          onClick={() =>
+            setPanels((list) =>
+              list.length > 1
+                ? [list[0]]
+                : [...list, { id: `panel-${Date.now()}`, initial: list[0]?.initial }],
+            )
+          }
+          aria-pressed={panels.length > 1}
+          aria-label={panels.length > 1 ? 'Back to one panel' : 'Work in two panels'}
+          title={panels.length > 1 ? 'One panel' : 'Two panels'}
+        >
+          {/* Two overlapping circles — the app's own mark cut down to two.
+              Overlapping SQUARES is the operating system's word for
+              duplicating a window; circles that meet is this app's word for
+              two things sharing something. Filled when it's on, the way a
+              chosen dot is filled everywhere else. */}
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle
+              cx="9.5"
+              cy="12"
+              r="5.6"
+              fill={panels.length > 1 ? 'currentColor' : 'none'}
+              fillOpacity="0.28"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+            <circle
+              cx="14.5"
+              cy="12"
+              r="5.6"
+              fill={panels.length > 1 ? 'currentColor' : 'none'}
+              fillOpacity="0.28"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+          </svg>
+        </button>
 
-        <div className="sitebar__theme">
           <ThemeToggle theme={theme} onChange={setTheme} />
         </div>
       </header>
@@ -428,7 +456,17 @@ function App() {
               onAddChord={addToSong}
               songLength={current.chords.length}
               bookmarks={bookmarks}
-              onSaveBookmark={(state, label) =>
+              // SAVE, OR UNSAVE. The mark in a panel's corner reports whether
+              // this exact setting is in the list, so the button that draws it
+              // has to be able to take it out again — otherwise pressing it
+              // twice saved the same setting twice and the only way back was
+              // the menu.
+              onToggleBookmark={(state, label) => {
+                const existing = bookmarks.filter((b) => sameSetting(b.state, state));
+                if (existing.length > 0) {
+                  writeBookmarks(bookmarks.filter((b) => !existing.includes(b)));
+                  return;
+                }
                 writeBookmarks([
                   ...bookmarks,
                   {
@@ -437,8 +475,8 @@ function App() {
                     state,
                     savedAt: Date.now(),
                   },
-                ])
-              }
+                ]);
+              }}
               // Only the FIRST panel takes a restore for now. Which side a
               // preset should open into is a real question and Stu flagged it
               // to answer after using two-up; guessing an answer here would
@@ -490,7 +528,7 @@ function App() {
         <div className="sitefoot__about">
           <p>
             Built by{' '}
-            <a href="https://beingsound.com" target="_blank" rel="noreferrer">
+            <a href="https://beingsound.studio" target="_blank" rel="noreferrer">
               Stu Pender
             </a>
             {' '}— guitarist, composer and teacher.
@@ -580,7 +618,7 @@ function Module({
   initial,
   onClose,
   bookmarks,
-  onSaveBookmark,
+  onToggleBookmark,
   restore,
 }: {
   onAddChord: (rootIndex: number, chordId: string) => void;
@@ -592,7 +630,8 @@ function Module({
   onClose?: () => void;
   /** Everything saved, so this panel can tell whether IT is one of them. */
   bookmarks: Bookmark[];
-  onSaveBookmark: (state: ModuleState, label: string) => void;
+  /** Save this setting, or — if it's already saved — remove it. */
+  onToggleBookmark: (state: ModuleState, label: string) => void;
   /** A setting pushed in from the bookmarks menu; the counter is what makes
    *  restoring the same one twice count as an event. */
   restore?: { state: ModuleState; seq: number } | null;
@@ -764,8 +803,8 @@ function Module({
           <div className="panel__actions">
             <SaveBookmark
               saved={bookmarks.some((b) => sameSetting(b.state, state))}
-              onSave={() =>
-                onSaveBookmark(
+              onToggle={() =>
+                onToggleBookmark(
                   moduleState(),
                   describe(moduleState(), {
                     root: noteName(root),
