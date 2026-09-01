@@ -1963,3 +1963,9 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **An outline is painted OUTSIDE the border box,** so a parent with
   `overflow: hidden` clips it — which leaves three sides of a rectangle. A
   negative `outline-offset` puts the ring on the element's own edge instead.
+- **`evenodd` only cancels where there is something to cancel against.** The
+  icon's string gaps were rectangles laid over a disc in one path: inside the
+  disc they cut holes, and outside it — with nothing underneath — each one
+  painted itself, so the mark grew solid bars out of the top and bottom. A
+  mask says what was meant: the disc is the shape, the strings take away from
+  it, and nothing exists outside the circle.
