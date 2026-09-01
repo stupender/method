@@ -56,15 +56,16 @@ export function EarTrainingView({
         <div className="quizpanel__body">
           {material.chords.length === 0 ? (
             <p className="control-hint control-hint--warn">
-              Nothing to quiz yet — turn on Harmony in the View row, and at
-              least one key, scale and degree.
+              Nothing to quiz yet — choose at least one key, one scale, and one
+              quality in the Triads or Sevenths rows above.
             </p>
-          ) : quiz === 'quality' ? (
-            <QualityQuiz material={material} />
           ) : quiz === 'inversion' ? (
             <InversionQuizView material={material} />
-          ) : (
+          ) : quiz === 'function' ? (
             <FunctionQuizView />
+          ) : (
+            /* The default, and today the only one the panel can ask for. */
+            <QualityQuiz material={material} />
           )}
         </div>
       </section>

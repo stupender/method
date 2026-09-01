@@ -67,6 +67,7 @@ import { ThemeToggle } from './ui/ThemeToggle';
 import { SongView, type ChartChord } from './ui/SongView';
 import { PracticeCards, type PracticeCard } from './ui/PracticeCards';
 import { EarTrainingView } from './ui/EarTrainingView';
+import { qualitiesFor } from './theory/earMaterial';
 import { Mark } from './ui/Mark';
 import './App.css';
 
@@ -761,7 +762,7 @@ function Module({
     setState((s) => ({ ...s, [key]: value }));
 
   const { studyMode, rootIndex, scaleId, degree, seventh, structureId } = state;
-  const { inversionIndex, seventhsInEar, quiz, fingering } = state;
+  const { inversionIndex, quiz, fingering } = state;
   const mode: Mode = state.view;
 
   // WHICH NECK THIS MODULE DRAWS. Resolved from ids rather than held as
@@ -783,8 +784,9 @@ function Module({
   const setSeventh = (v: boolean) => set('seventh', v);
   const setStructureId = (v: string | null) => set('structureId', v);
   const setInversionIndex = (v: number) => set('inversionIndex', v);
-  const setSeventhsInEar = (v: boolean) => set('seventhsInEar', v);
-  const setQuiz = (v: 'quality' | 'inversion' | 'function') => set('quiz', v);
+  // No setter: the row that chose between the three drills is gone, since only
+  // Quality is offered. `quiz` still travels in a module's state so the other
+  // two stay compiled and one row brings them back.
   const setFingering = (v: ModuleState['fingering']) => set('fingering', v);
 
   // EAR MODE'S SELECTIONS ARE SETS, not single values. On the neck a control
@@ -798,13 +800,24 @@ function Module({
   // which want set semantics.
   const earRoots: ReadonlySet<number> = new Set(state.earRoots);
   const earScaleIds: ReadonlySet<string> = new Set(state.earScaleIds);
-  const earDegrees: ReadonlySet<number> = new Set(state.earDegrees);
-  const earViews: ReadonlySet<'scale' | 'harmony'> = new Set(state.earViews);
+  const earQualities: ReadonlySet<string> = new Set(state.earQualities);
   const setEarRoots = (s: ReadonlySet<number>) => set('earRoots', [...s]);
   const setEarScaleIds = (s: ReadonlySet<string>) => set('earScaleIds', [...s]);
-  const setEarDegrees = (s: ReadonlySet<number>) => set('earDegrees', [...s]);
-  const setEarViews = (s: ReadonlySet<'scale' | 'harmony'>) =>
-    set('earViews', [...s] as ('scale' | 'harmony')[]);
+  const setEarQualities = (s: ReadonlySet<string>) => set('earQualities', [...s]);
+  // What the chosen scales can actually produce, split into the two families.
+  const earChoices = qualitiesFor(earScaleIds);
+  // Toggling never empties the pool — the last quality standing stays on,
+  // across BOTH rows, since either alone is a perfectly good drill.
+  const toggleQuality = (id: string) => {
+    const next = new Set(earQualities);
+    if (next.has(id)) {
+      if (next.size === 1) return;
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    setEarQualities(next);
+  };
 
   // Toggling never empties a set — with nothing chosen there'd be nothing to
   // quiz, so the last one standing refuses to switch off.
@@ -969,7 +982,7 @@ function Module({
               ariaLabel="Mode"
               options={[
                 { value: 'fretboard' as const, label: 'Fretboard' },
-                { value: 'ear' as const, label: 'Ear' },
+                { value: 'ear' as const, label: 'Ear Training' },
               ]}
               value={studyMode}
               onChange={setStudyMode}
@@ -1016,18 +1029,12 @@ function Module({
         </ControlRow>
         {/* Degree persists across views: in Scales it picks the MODE, in
             Harmony the chord degree. */}
-        <ControlRow label="Gravity" tight>
-          {studyMode === 'ear' ? (
-            /* No "All" cell here — selecting every degree IS all of them, and
-               a separate All would be a second way to say the same thing. */
-            <MultiSelect
-              fill
-              ariaLabel="Degrees in play"
-              options={romanLabels.map((roman, i) => ({ value: i, label: roman }))}
-              values={earDegrees}
-              onToggle={toggleIn(earDegrees, setEarDegrees)}
-            />
-          ) : (
+        {/* GRAVITY IS A FRETBOARD IDEA. It frames what you're LOOKING at, and
+            a listening drill isn't looking at anything — the ear panel asks
+            which sounds are in the pool instead. See the Triads and Seventh
+            Chords rows below. */}
+        {studyMode !== 'ear' && (
+          <ControlRow label="Gravity" tight>
             <Segmented
               fill
               ariaLabel="Gravity"
@@ -1038,21 +1045,10 @@ function Module({
               value={deg}
               onChange={setDegree}
             />
-          )}
-        </ControlRow>
-        <ControlRow label="View">
-          {studyMode === 'ear' ? (
-            <MultiSelect
-              fill
-              ariaLabel="Material in play"
-              options={[
-                { value: 'scale' as const, label: 'Scales' },
-                { value: 'harmony' as const, label: 'Harmony' },
-              ]}
-              values={earViews}
-              onToggle={toggleIn(earViews, setEarViews)}
-            />
-          ) : (
+          </ControlRow>
+        )}
+        {studyMode !== 'ear' && (
+          <ControlRow label="View">
             <Segmented
               fill
               ariaLabel="View"
@@ -1064,8 +1060,40 @@ function Module({
               value={mode}
               onChange={setMode}
             />
-          )}
-        </ControlRow>
+          </ControlRow>
+        )}
+
+        {/* WHAT THE DRILL MAY PLAY YOU, in the two families you'd name them
+            in. The options are DERIVED from the scales chosen above — add
+            harmonic minor and the augmented triad appears here, because
+            harmonic minor has one.
+
+            Two rows rather than a triads-or-sevenths switch, because a pool of
+            "major, minor and dominant 7" is a real thing to drill and a switch
+            can't say it. Emptying both is refused: with nothing in the pool
+            there's no quiz. */}
+        {studyMode === 'ear' && earChoices.triads.length > 0 && (
+          <ControlRow label="Triads">
+            <MultiSelect
+              fill
+              ariaLabel="Triad qualities in play"
+              options={earChoices.triads.map((c) => ({ value: c.id, label: c.name }))}
+              values={earQualities}
+              onToggle={toggleQuality}
+            />
+          </ControlRow>
+        )}
+        {studyMode === 'ear' && earChoices.sevenths.length > 0 && (
+          <ControlRow label="Sevenths">
+            <MultiSelect
+              fill
+              ariaLabel="Seventh-chord qualities in play"
+              options={earChoices.sevenths.map((c) => ({ value: c.id, label: c.name }))}
+              values={earQualities}
+              onToggle={toggleQuality}
+            />
+          </ControlRow>
+        )}
         {/* SCALES' ONE, in the same place Harmony's three sit: at the end of
             the panel, under the View row that summons it. It used to float in
             the gap between the panel and the neck, which made it read as a
@@ -1093,39 +1121,12 @@ function Module({
           </ControlRow>
         )}
 
-        {/* TYPE, in the same place and under the same name as the fretboard's
-            — Ear is the same instrument listened to rather than looked at, so
-            its panel should read down in the same order. It was called Chords
-            and sat above View, which made the two modes look like two apps. */}
-        {studyMode === 'ear' && (
-          <ControlRow label="Type">
-            <Segmented
-              fill
-              ariaLabel="Chord type"
-              options={[
-                { value: 'triads', label: 'Triads' },
-                { value: 'sevenths', label: 'Sevenths' },
-              ]}
-              value={seventhsInEar ? 'sevenths' : 'triads'}
-              onChange={(v) => setSeventhsInEar(v === 'sevenths')}
-            />
-          </ControlRow>
-        )}
-        {studyMode === 'ear' && (
-          <ControlRow label="Quiz">
-            <Segmented
-              fill
-              ariaLabel="Which drill"
-              options={[
-                { value: 'quality' as const, label: 'Quality' },
-                { value: 'inversion' as const, label: 'Inversion' },
-                { value: 'function' as const, label: 'Function' },
-              ]}
-              value={quiz}
-              onChange={setQuiz}
-            />
-          </ControlRow>
-        )}
+        {/* The TYPE and QUIZ rows are gone. Type asked triads-or-sevenths, which
+            the two quality rows above now answer better by letting you have
+            both. Quiz picked between three drills when only one of them is
+            offered — a control with one real answer isn't a control. Quality
+            is hard-wired below; the other two drills are still built and one
+            row brings them back. */}
 
         {/* HARMONY'S THREE, at the end of the panel: what the chords are, how
             they're voiced, and which note is in the bass. They only appear in
@@ -1182,9 +1183,7 @@ function Module({
           selection={{
             roots: earRoots,
             scaleIds: earScaleIds,
-            degrees: earDegrees,
-            views: earViews,
-            sevenths: seventhsInEar,
+            qualities: earQualities,
           }}
         />
       )}

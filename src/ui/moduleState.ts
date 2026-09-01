@@ -59,9 +59,12 @@ export interface ModuleState {
   // rebuilt on the way back in (see toStored / fromStored).
   earRoots: number[];
   earScaleIds: string[];
-  earDegrees: number[];
-  earViews: ('scale' | 'harmony')[];
-  seventhsInEar: boolean;
+  /** Which chord qualities the listening drill may play, by chord id. This
+   *  replaced a degree picker, a Scale/Harmony switch and a triads-or-sevenths
+   *  toggle — see the note on EarSelection in theory/earMaterial.ts. */
+  earQualities: string[];
+  /** Which drill. Only 'quality' is offered today; the other two are built and
+   *  reachable in code, so this stays rather than being deleted. */
   quiz: 'quality' | 'inversion' | 'function';
 
   /** Roughly where you were on the page. See the note in Bookmarks.tsx. */
@@ -89,9 +92,7 @@ export function defaultModuleState(scaleId: string): ModuleState {
     inversionIndex: 0,
     earRoots: [0],
     earScaleIds: [scaleId],
-    earDegrees: [0, 1, 2, 3, 4, 5, 6],
-    earViews: ['harmony'],
-    seventhsInEar: false,
+    earQualities: ['major-triad', 'minor-triad', 'diminished-triad'],
     quiz: 'quality',
   };
 }
@@ -149,6 +150,10 @@ export function loadBookmarks(): Bookmark[] {
       state: {
         instrumentId: 'guitar',
         tuningId: 'guitar-standard',
+        // A bookmark saved before the ear panel was rebuilt has degrees and
+        // views instead of qualities; the three major-scale triads are the
+        // sensible landing place rather than an empty pool.
+        earQualities: ['major-triad', 'minor-triad', 'diminished-triad'],
         ...b.state,
         // AND RETIRED VALUES BECOME THEIR SUCCESSOR. 'box' and 'hybrid' were
         // the old seven-box Positional and Hybrid, which turned out to be the
