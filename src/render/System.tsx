@@ -87,14 +87,19 @@ const TAIL = 14;
 // HOW BIG THE ENGRAVING READS. VexFlow draws at a fixed size — a staff line is
 // 10 units apart and that's that — so the way to make everything larger is to
 // engrave into a NARROWER page and let the SVG scale up to fill its container.
-// At 1.3 a system is drawn as if the column were a third narrower, then
+// At 1.15 a system is drawn as if the column were a seventh narrower, then
 // stretched back out: staff lines, note heads, fret numbers and clef all grow
 // together, and because it's a viewBox and not a bitmap nothing softens.
 //
-// It also means fewer notes fit on a line, so a long run wraps sooner. That's
-// the point rather than a side effect — the old setting fitted a whole
-// two-octave scale across one line at a size you had to lean in to read.
-const ZOOM = 1.3;
+// It also means fewer notes fit on a line, so a long run wraps sooner.
+//
+// FOUND BY OVERSHOOTING. This was 1.0 and the fret numbers were too small to
+// read; it went to 1.3 and a two-octave scale turned into three enormous
+// systems that dominated the page — on a phone the notation was bigger than
+// the fretboard it was describing. The real problem at 1.0 was never the
+// engraving's size, it was that the fret numbers were set in a music font (see
+// the metrics block below); with that fixed, the drawing only needed a nudge.
+const ZOOM = 1.15;
 
 // VexFlow wants "c#/4" — letter, accidental, slash, octave. Written pitch, so
 // an octave above where the guitar sounds.

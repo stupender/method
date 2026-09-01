@@ -226,3 +226,11 @@
   color: var(--ink);
   text-underline-offset: 2px;
 }
+
+/* The quiet legal line at the bottom of the about column. */
+.sitefoot__legal {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  opacity: 0.85;
+}

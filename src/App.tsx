@@ -35,6 +35,7 @@ import { ChordScaleLadder } from './ui/ChordScaleLadder';
 import { InversionLadder } from './ui/InversionLadder';
 import { ControlPanel, ControlRow } from './ui/ControlPanel';
 import { Subscribe } from './ui/Subscribe';
+import { AUTHOR, BEING_SOUND, SUBSTACK } from './ui/links';
 import { alreadyAsked, markDismissed } from './ui/asked';
 import { BookmarksMenu, SaveBookmark } from './ui/Bookmarks';
 import {
@@ -528,14 +529,29 @@ function App() {
         <div className="sitefoot__about">
           <p>
             Built by{' '}
-            <a href="https://beingsound.studio" target="_blank" rel="noreferrer">
-              Stu Pender
+            <a href={BEING_SOUND} target="_blank" rel="noreferrer">
+              {AUTHOR}
             </a>
             {' '}— guitarist, composer and teacher.
           </p>
           <p>
             A living textbook for the fretboard: see the shape, hear the sound,
             play with it.
+          </p>
+          {/* One invitation, and only once there's somewhere to send people.
+              See ui/links.ts — an unset address renders nothing at all rather
+              than a link that goes nowhere. */}
+          {SUBSTACK && (
+            <p>
+              Stu writes about practice and music at{' '}
+              <a href={SUBSTACK} target="_blank" rel="noreferrer">
+                his Substack
+              </a>
+              .
+            </p>
+          )}
+          <p className="sitefoot__legal">
+            © {new Date().getFullYear()} {AUTHOR}. Being Sound.
           </p>
         </div>
         <Subscribe variant="footer" />

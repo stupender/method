@@ -7,9 +7,26 @@
          a fresh filename is the only reliable way to make an old one let go. If
          the icon is ever redrawn again, rename it again. -->
     <link rel="icon" type="image/svg+xml" href="/mark.svg" />
-    <link rel="apple-touch-icon" href="/mark.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- iOS wants a PNG and composites it on black, so it gets the one drawn
+         on white rather than the SVG. -->
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Fretboard Constellations</title>
+
+    <!-- ADD TO HOME SCREEN. The manifest names the app and points at its
+         icons; the service worker (registered in src/main.tsx) is the other
+         half a browser insists on before it will offer to install a site.
+         Worth knowing where this DOESN'T work: WhatsApp opens links in its own
+         in-app browser, which is a webview with no install affordance at all.
+         Someone arriving from a WhatsApp message has to tap "Open in
+         Safari/Chrome" first — so this is for the second visit, not the
+         first. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#f4efe3" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#14151d" media="(prefers-color-scheme: dark)" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Constellations" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="description" content="An interactive music-theory and guitar-learning tool. Learn by seeing the fretboard, hearing the sound, and playing with it." />
     <!-- The two faces of the art-book direction (see DESIGN.md "Paper & Night"):
          Newsreader for display — a literary serif with real character at size —

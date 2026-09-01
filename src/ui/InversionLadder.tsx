@@ -46,7 +46,7 @@ import { NeckPanel } from './NeckPanel';
 import { SHOW_PLAY_BUTTONS } from './flags';
 import { DegreeLegend } from './DegreeLegend';
 import { useScrollFocus } from './useScrollFocus';
-import { System } from '../render/System';
+import { LazySystem as System } from '../render/LazySystem';
 import { useStepper } from './ShapeStepper';
 
 const loFret = (shape: PlacedNote[]) =>

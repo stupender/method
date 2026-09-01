@@ -56,3 +56,9 @@
 .system svg text {
   fill: currentColor;
 }
+
+/* The space a system will occupy, held while VexFlow is still downloading, so
+   the page doesn't jump under a thumb when it lands. See LazySystem.tsx. */
+.system--loading {
+  min-height: 190px;
+}
