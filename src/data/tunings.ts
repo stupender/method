@@ -89,6 +89,29 @@ export const UKE_TENOR_STANDARD: Tuning = {
   ],
 };
 
+// THE KEYBOARD'S "TUNING" — where its lowest key is.
+//
+// A piano isn't tuned in the sense the rest of this file means, but the field
+// it fills is the same one: the pitch of the open (fret 0) string, which here
+// is the pitch of the leftmost key. So a Tuning on a keyboard is really a
+// RANGE — move it and the whole instrument slides. Two of them, so a low bass
+// line and a right-hand voicing can each be seen where they actually live.
+export const KEYBOARD_C2: Tuning = {
+  id: 'keyboard-c2',
+  name: 'C2 – C5',
+  instrumentId: 'keyboard',
+  openNotes: [{ letter: 'C', accidental: 0, octave: 2 }],
+};
+
+// The same three octaves, an octave up — where most of what you'd play with
+// your right hand sits, and the register the treble staff is written for.
+export const KEYBOARD_C3: Tuning = {
+  id: 'keyboard-c3',
+  name: 'C3 – C6',
+  instrumentId: 'keyboard',
+  openNotes: [{ letter: 'C', accidental: 0, octave: 3 }],
+};
+
 // Lookup by tuning id.
 export const TUNINGS: Record<string, Tuning> = {
   [GUITAR_STANDARD.id]: GUITAR_STANDARD,
@@ -97,6 +120,8 @@ export const TUNINGS: Record<string, Tuning> = {
   // the menu offers them in.
   [UKE_TENOR_LOW_G.id]: UKE_TENOR_LOW_G,
   [UKE_TENOR_STANDARD.id]: UKE_TENOR_STANDARD,
+  [KEYBOARD_C2.id]: KEYBOARD_C2,
+  [KEYBOARD_C3.id]: KEYBOARD_C3,
 };
 
 /** Every tuning an instrument can be in, in the order they're offered. */

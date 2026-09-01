@@ -56,12 +56,48 @@ export const UKULELE_TENOR: Instrument = {
   defaultTuningId: 'uke-tenor-low-g',
 };
 
+// THE KEYBOARD — one string, and every fret a semitone.
+//
+// That sentence is the whole design. A piano is a single unbroken course of
+// notes: press the key a semitone above the last one and you get the next
+// note. A guitar string is the same thing, once. So a keyboard is a one-string
+// instrument with as many "frets" as it has keys, and every pure function in
+// theory/ works on it with no changes at all — a scale is still a set of
+// (string 0, fret n) positions, a chord is still a set of pitches placed on
+// the neck it's given.
+//
+// What changes is the PICTURE, which is what `layout: 'keys'` says: draw keys,
+// not a neck. And what falls away is everything that only exists because a
+// guitar has six strings — which fingering, which string set. There's one way
+// to play a C on a keyboard.
+//
+// THREE OCTAVES FROM C2, which is 36 semitones and 37 keys. Wide enough that a
+// scale has room to run in more than one register and a chord can be voiced
+// low or high; narrow enough to stay legible across a phone. The bottom note
+// is C because a keyboard's octaves are read from C — the two-black-key group
+// is the landmark your eye finds, and starting anywhere else would put that
+// landmark in a different place from every real piano.
+export const KEYBOARD: Instrument = {
+  id: 'keyboard',
+  name: 'Keyboard',
+  stringCount: 1,
+  fretCount: 36,
+  defaultTuningId: 'keyboard-c2',
+  layout: 'keys',
+};
+
 // A lookup so the rest of the app can find an instrument by id.
 export const INSTRUMENTS: Record<string, Instrument> = {
   [GUITAR.id]: GUITAR,
   [UKULELE_BARITONE.id]: UKULELE_BARITONE,
   [UKULELE_TENOR.id]: UKULELE_TENOR,
+  [KEYBOARD.id]: KEYBOARD,
 };
 
-/** The order they're offered in: the big one first, then down. */
-export const INSTRUMENT_LIST: Instrument[] = [GUITAR, UKULELE_BARITONE, UKULELE_TENOR];
+/** The order they're offered in: the fretted ones, then the keyboard. */
+export const INSTRUMENT_LIST: Instrument[] = [
+  GUITAR,
+  UKULELE_BARITONE,
+  UKULELE_TENOR,
+  KEYBOARD,
+];

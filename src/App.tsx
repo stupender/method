@@ -62,7 +62,7 @@ import { MultiSelect } from './ui/MultiSelect';
 import { PatternExplorer } from './ui/PatternExplorer';
 import { ScaleExplorer } from './ui/ScaleExplorer';
 import { Segmented } from './ui/Segmented';
-import { SHOW_ADD_TO_PLAY } from './ui/flags';
+import { SHOW_ADD_TO_PLAY, SHOW_KEYBOARD } from './ui/flags';
 import { ThemeToggle } from './ui/ThemeToggle';
 import { SongView, type ChartChord } from './ui/SongView';
 import { PracticeCards, type PracticeCard } from './ui/PracticeCards';
@@ -418,7 +418,12 @@ function App() {
             of these controls, since everything below it is drawn for whatever
             this says. */}
         <InstrumentMenu
-          instruments={INSTRUMENT_LIST}
+          /* The keyboard is built and currently hidden — see SHOW_KEYBOARD. */
+          instruments={
+            SHOW_KEYBOARD
+              ? INSTRUMENT_LIST
+              : INSTRUMENT_LIST.filter((i) => i.layout !== 'keys')
+          }
           tunings={tuningsFor(instrument.id)}
           instrument={instrument}
           tuning={tuning}
@@ -1107,7 +1112,12 @@ function Module({
             the gap between the panel and the neck, which made it read as a
             control belonging to neither — and it's the same kind of choice as
             Voicing, so it belongs in the same kind of row. */}
-        {studyMode === 'fretboard' && mode === 'scale' && (
+        {/* ...AND ONLY ON AN INSTRUMENT THAT HAS FINGERINGS TO CHOOSE. CAGED
+            and the notes-per-string family are all answers to "which of the
+            six places do I play this note in", and a keyboard has one place
+            for every note. A row whose every option means the same thing is
+            worse than no row. */}
+        {studyMode === 'fretboard' && mode === 'scale' && instrument.layout !== 'keys' && (
           <ControlRow label="Fingering">
             <Segmented
               fill

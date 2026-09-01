@@ -194,6 +194,20 @@ export interface Instrument {
   stringCount: number;    // 6 for guitar, 4 for ukulele
   fretCount: number;      // how many frets to draw, e.g. 15
   defaultTuningId: string; // which Tuning to load first
+  /**
+   * HOW IT'S DRAWN, and nothing more.
+   *
+   * A keyboard is a ONE-STRING instrument in this model: one course of notes,
+   * each fret a semitone above the last. Every piece of theory above already
+   * works on it unchanged — a scale is a set of (string 0, fret n) positions
+   * exactly as it is on a guitar — so the only thing that differs is the
+   * picture. `'keys'` tells the render layer to draw a keyboard instead of a
+   * neck, and tells the UI to stop offering the questions that only a fretted
+   * instrument has (which fingering? which string set?).
+   *
+   * Absent means 'frets', so nothing that already exists has to say so.
+   */
+  layout?: 'frets' | 'keys';
 }
 
 // A tuning is the list of OPEN-STRING notes for an instrument.

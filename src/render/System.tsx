@@ -49,6 +49,7 @@ import {
   Voice,
 } from 'vexflow';
 import type { PlacedNote } from '../theory/types';
+import { midiOf } from '../theory/notes';
 import { Beam } from 'vexflow';
 import './System.css';
 
@@ -129,15 +130,250 @@ const ACCIDENTAL_CODE: Record<number, string> = {
   [2]: '##',
 };
 
-function vexKey(p: PlacedNote): string {
-  const octave = (p.note.octave ?? 4) + 1;
+// WHICH OCTAVE IT'S WRITTEN IN. Guitar music is written an octave above where
+// it sounds — that's what the little 8 under the clef means — so a guitar's
+// written octave is its sounding one plus 1. A keyboard is written where it
+// sounds, like everything else. It's one number, and getting it wrong would
+// put every note on the wrong line while looking perfectly plausible.
+const writtenOctave = (p: PlacedNote, keyboard: boolean) =>
+  (p.note.octave ?? 4) + (keyboard ? 0 : 1);
+
+function vexKey(p: PlacedNote, keyboard: boolean): string {
+  const octave = writtenOctave(p, keyboard);
   return `${p.note.letter.toLowerCase()}${ACCIDENTAL_CODE[p.note.accidental]}/${octave}`;
+}
+
+// ============================================================================
+// THE GRAND STAFF — one line of keyboard music
+// ----------------------------------------------------------------------------
+// Treble over bass, braced together, with MIDDLE C as the line between them: a
+// note goes on the staff its hand would play it with, and the other staff
+// rests. That last part is what makes it read as keyboard music rather than as
+// two unrelated staves — a rest is a statement that the other hand is silent
+// here, and the eye needs it to keep the two lines in step.
+//
+// It's a separate function rather than another set of branches through the
+// fretted path because almost nothing is shared: no tablature, no string
+// numbers, no 8vb, two staves instead of one, and rests, which the guitar
+// systems never have.
+// ============================================================================
+const BASS_TOP = 84; // where the lower staff sits under the treble one
+const MIDDLE_C = 60; // C4 in MIDI — the line between the two hands
+
+/**
+ * WHICH STAVES THIS MUSIC NEEDS.
+ *
+ * A grand staff is right for two hands and wrong for one. A one-octave scale
+ * is one hand: printed across a braced pair it comes out as a line of music
+ * with a matching line of RESTS above or below it, and thirteen rests is a lot
+ * of ink to say "nothing here". A scale book prints that run on one staff with
+ * a couple of ledger lines, which is what anyone reading it expects.
+ *
+ * So the choice is made by range, with a generous allowance for ledger lines
+ * — two or three of them are ordinary. Only music that genuinely reaches
+ * across both hands, like a spread voicing from the bottom of the keyboard to
+ * the top, gets the braced pair.
+ */
+// The pitches the two staves cover between their outermost lines: E4–F5 for
+// treble, G2–A3 for bass. Everything outside them hangs on ledger lines.
+const TREBLE_LOW = 64; // E4, the bottom line
+const TREBLE_HIGH = 77; // F5, the top line
+const BASS_LOW = 43; // G2
+const BASS_HIGH = 57; // A3
+// About an octave's worth of ledger lines. Past that a staff is the wrong one
+// and the music wants both.
+const TOO_FAR = 14;
+
+function stavesNeeded(moments: PlacedNote[][]): 'treble' | 'bass' | 'grand' {
+  const midis = moments.flat().map((p) => midiOf(p.note));
+  if (midis.length === 0) return 'treble';
+  const low = Math.min(...midis);
+  const high = Math.max(...midis);
+  // How far outside each staff this music reaches, in semitones — a stand-in
+  // for how many ledger lines it would need, which is what makes a staff the
+  // wrong one to read it on.
+  const outside = (lo: number, hi: number) =>
+    Math.max(0, lo - low) + Math.max(0, high - hi);
+  const onTreble = outside(TREBLE_LOW, TREBLE_HIGH);
+  const onBass = outside(BASS_LOW, BASS_HIGH);
+  if (Math.min(onTreble, onBass) > TOO_FAR) return 'grand';
+  return onTreble <= onBass ? 'treble' : 'bass';
+}
+
+function drawKeyboardSystem({
+  ctx,
+  top,
+  staveWidth,
+  line,
+  duration,
+  isRun,
+  staves,
+}: {
+  ctx: ReturnType<Renderer['getContext']>;
+  top: number;
+  staveWidth: number;
+  line: PlacedNote[][];
+  duration: string;
+  isRun: boolean;
+  staves: 'treble' | 'bass' | 'grand';
+}) {
+  const grand = staves === 'grand';
+  // A single staff sits at the top on its own; a pair is braced together.
+  const treble =
+    staves === 'bass' ? null : new Stave(0, STAFF_TOP + top, staveWidth);
+  treble?.addClef('treble');
+  treble?.setContext(ctx).draw();
+
+  const bass =
+    staves === 'treble'
+      ? null
+      : new Stave(0, (grand ? BASS_TOP : STAFF_TOP) + top, staveWidth);
+  bass?.addClef('bass');
+  bass?.setContext(ctx).draw();
+
+  if (treble && bass) {
+    // The brace at the left, and the thin line closing the system — the pair
+    // of marks that say "these two staves are played at once".
+    new StaveConnector(treble, bass)
+      .setType(StaveConnector.type.BRACE)
+      .setContext(ctx)
+      .draw();
+    new StaveConnector(treble, bass)
+      .setType(StaveConnector.type.SINGLE_LEFT)
+      .setContext(ctx)
+      .draw();
+  }
+
+  // A staff with nothing to play at this moment holds a rest of the same
+  // length, so both voices carry the same number of beats and the formatter
+  // lines the two hands up.
+  const REST_KEY = { treble: 'b/4', bass: 'd/3' };
+  // WHICH NOTES GO WHERE. On a grand staff middle C is the border; on a single
+  // staff there is no border, so everything goes on the one staff there is.
+  const belongsTo = (p: PlacedNote, clef: 'treble' | 'bass') =>
+    !grand || (clef === 'treble' ? midiOf(p.note) >= MIDDLE_C : midiOf(p.note) < MIDDLE_C);
+  const trebleNotes: StaveNote[] = [];
+  const bassNotes: StaveNote[] = [];
+  // Which moments are real notes on each staff — rests can't be beamed, and a
+  // beam drawn across one would join two groups that aren't a group.
+  const trebleSounds: boolean[] = [];
+  const bassSounds: boolean[] = [];
+
+  for (const moment of line) {
+    for (const clef of ['treble', 'bass'] as const) {
+      if (clef === 'treble' && !treble) continue;
+      if (clef === 'bass' && !bass) continue;
+      const mine = moment
+        .filter((p) => belongsTo(p, clef))
+        .sort((a, b) => midiOf(a.note) - midiOf(b.note));
+      const sounds = mine.length > 0;
+      const note = new StaveNote({
+        keys: sounds ? mine.map((p) => vexKey(p, true)) : [REST_KEY[clef]],
+        duration: sounds ? duration : `${duration}r`,
+        clef,
+      });
+      mine.forEach((p, i) => {
+        if (p.note.accidental !== 0) {
+          note.addModifier(new Accidental(ACCIDENTAL_CODE[p.note.accidental]), i);
+        }
+      });
+      if (clef === 'treble') {
+        trebleNotes.push(note);
+        trebleSounds.push(sounds);
+      } else {
+        bassNotes.push(note);
+        bassSounds.push(sounds);
+      }
+    }
+  }
+
+  // Beamed in fours like the guitar systems, but only across notes that
+  // actually sound — a run that crosses middle C hands the beam from one staff
+  // to the other, and each staff beams the stretch it holds.
+  const beams: Beam[] = [];
+  if (isRun) {
+    for (const [notes, sounds] of [
+      [trebleNotes, trebleSounds],
+      [bassNotes, bassSounds],
+    ] as const) {
+      let run: StaveNote[] = [];
+      // Fours, then pairs, and a lone note joins its neighbour rather than
+      // standing off flagged at the end — the same rule, stated the same way,
+      // as the guitar systems below. See the long note there.
+      const flush = () => {
+        const sizes: number[] = [];
+        let left = run.length;
+        while (left >= BEAM_GROUP + 2 || left === BEAM_GROUP) {
+          sizes.push(BEAM_GROUP);
+          left -= BEAM_GROUP;
+        }
+        while (left >= 2) {
+          sizes.push(2);
+          left -= 2;
+        }
+        if (left === 1 && sizes.length > 0) sizes[sizes.length - 1] += 1;
+        let at = 0;
+        for (const size of sizes) {
+          const group = run.slice(at, at + size);
+          if (group.length > 1) beams.push(new Beam(group));
+          at += size;
+        }
+        run = [];
+      };
+      notes.forEach((n, i) => {
+        if (sounds[i]) run.push(n);
+        else flush();
+      });
+      flush();
+    }
+  }
+
+  // A HAND THAT NEVER PLAYS ON THIS LINE GETS AN EMPTY STAFF, not a row of
+  // rests. Rests keep the two hands in step when they take turns — which is
+  // what they're for — but a scale that lives entirely below middle C printed
+  // sixteen treble rests above it, and sixteen rests is a lot of ink to say
+  // "nothing here". The staff is still drawn, braced, with its clef: the
+  // system stays a grand staff, it just has one line of music on it.
+  const voices: Voice[] = [];
+  const stavesFor: Stave[] = [];
+  if (treble && trebleSounds.some(Boolean)) {
+    voices.push(
+      new Voice({ numBeats: line.length, beatValue: 4 })
+        .setStrict(false)
+        .addTickables(trebleNotes),
+    );
+    stavesFor.push(treble);
+  }
+  if (bass && bassSounds.some(Boolean)) {
+    voices.push(
+      new Voice({ numBeats: line.length, beatValue: 4 })
+        .setStrict(false)
+        .addTickables(bassNotes),
+    );
+    stavesFor.push(bass);
+  }
+  if (voices.length === 0) return;
+
+  const startX = Math.max(
+    treble?.getNoteStartX() ?? 0,
+    bass?.getNoteStartX() ?? 0,
+  );
+  treble?.setNoteStartX(startX);
+  bass?.setNoteStartX(startX);
+
+  const formatter = new Formatter();
+  voices.forEach((v) => formatter.joinVoices([v]));
+  formatter.format(voices, staveWidth - startX - 10);
+
+  voices.forEach((v, i) => v.draw(ctx, stavesFor[i]));
+  beams.forEach((b) => b.setContext(ctx).draw());
 }
 
 export function System({
   events,
   strings = 6,
   width,
+  keyboard = false,
 }: {
   // Each entry is one moment: the notes sounding together at it.
   events: PlacedNote[][];
@@ -156,6 +392,17 @@ export function System({
    * at 680 in the first place, where a staff line is a staff line.
    */
   width?: number;
+  /**
+   * IT'S FOR A KEYBOARD — so there is no tablature.
+   *
+   * TAB says which string and which fret, and a keyboard has neither; a
+   * one-line TAB stave with a fret number on it would be a diagram of nothing.
+   * So this draws a single staff instead, at concert pitch (no 8vb, because a
+   * keyboard sounds where it's written), and picks its clef from where the
+   * music actually sits — bass for a left-hand register, treble for a
+   * right-hand one — which is what stops a low run becoming six ledger lines.
+   */
+  keyboard?: boolean;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const [measured, setMeasured] = useState<number | null>(null);
@@ -245,7 +492,7 @@ export function System({
       for (const p of moment) {
         // Written pitch, an octave above where the guitar sounds — the same
         // `octave + 1` the keys use.
-        const step = LETTER_STEP[p.note.letter] + 7 * ((p.note.octave ?? 4) + 1);
+        const step = LETTER_STEP[p.note.letter] + 7 * writtenOctave(p, keyboard);
         if (step > highestStep) highestStep = step;
       }
     }
@@ -253,8 +500,17 @@ export function System({
     const headroom =
       highestStep > TOP_LINE_STEP ? (highestStep - TOP_LINE_STEP) * 5 + 8 : 0;
 
-    const HEIGHT = heightFor(strings) + headroom;
-    const LINE_HEIGHT = lineHeightFor(strings);
+    // KEYBOARD MUSIC IS WRITTEN ON ITS OWN STAVES — treble, bass, or the two
+    // braced together when the music really does need both hands. See
+    // stavesNeeded above for how that's decided and why it isn't always a
+    // grand staff.
+    const keyStaves = keyboard ? stavesNeeded(moments) : 'treble';
+
+    // Room for the staff, plus the ledger lines that hang off it — and for a
+    // second staff underneath when there is one.
+    const KEYBOARD_HEIGHT = keyStaves === 'grand' ? 168 : 108;
+    const HEIGHT = (keyboard ? KEYBOARD_HEIGHT : heightFor(strings)) + headroom;
+    const LINE_HEIGHT = keyboard ? KEYBOARD_HEIGHT + 16 : lineHeightFor(strings);
 
     const room = Math.max(1, drawWidth - CLEF_COLUMN - TAIL);
     const perLine =
@@ -292,6 +548,20 @@ export function System({
     lines.forEach((line, lineIndex) => {
       const top = headroom + lineIndex * LINE_HEIGHT;
 
+      // ---- THE KEYBOARD'S OWN SYSTEM: a grand staff, no tablature ----------
+      if (keyboard) {
+        drawKeyboardSystem({
+          ctx,
+          top,
+          staveWidth,
+          line,
+          duration,
+          isRun,
+          staves: keyStaves,
+        });
+        return;
+      }
+
       const stave = new Stave(0, STAFF_TOP + top, staveWidth);
       // "8vb" is the little 8 under the clef: sounds an octave lower than
       // written, which is what guitar notation means.
@@ -299,7 +569,9 @@ export function System({
       stave.setContext(ctx).draw();
 
       // Ruled for THIS instrument: six lines for a guitar, four for a uke.
-      const tab = new TabStave(0, TAB_TOP + top, staveWidth, { numLines: strings });
+      const tab = new TabStave(0, TAB_TOP + top, staveWidth, {
+        numLines: strings,
+      });
       tab.addClef('tab');
       // ...AND THE "TAB" MARK RESIZED TO MATCH. VexFlow's `tab` clef is hard
       // wired to the SIX-string glyph, so on a four-line ukulele stave the
@@ -313,7 +585,9 @@ export function System({
       //   U+E06D  6-string TAB clef   (VexFlow's default)
       //   U+E06E  4-string TAB clef
       if (strings !== 6) {
-        const clef = tab.getModifiers().find((m) => m instanceof Clef) as Clef | undefined;
+        const clef = tab.getModifiers().find((m) => m instanceof Clef) as
+          | Clef
+          | undefined;
         if (clef) {
           clef.code = strings <= 4 ? '\uE06E' : '\uE06D';
           clef.setText(clef.code);
@@ -340,7 +614,7 @@ export function System({
           (a, b) => a.position.stringIndex - b.position.stringIndex,
         );
         const note = new StaveNote({
-          keys: low.map(vexKey),
+          keys: low.map((n) => vexKey(n, false)),
           duration,
           clef: 'treble',
         });
@@ -462,7 +736,7 @@ export function System({
     return () => {
       el.innerHTML = '';
     };
-  }, [events, strings, width, measured]);
+  }, [events, strings, width, measured, keyboard]);
 
   return <div className="system" ref={host} aria-label="Notation and tablature" />;
 }

@@ -34,6 +34,8 @@ export function LazySystem(props: {
   events: PlacedNote[][];
   strings?: number;
   width?: number;
+  /** Passed straight through — see the `keyboard` prop on System. */
+  keyboard?: boolean;
 }) {
   return (
     <Suspense fallback={<div className="system system--loading" aria-hidden="true" />}>

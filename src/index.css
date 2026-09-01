@@ -36,6 +36,13 @@
   --tab-line: #cfc7b1; /* TAB string lines */
   --string: #b3a892; /* the strings on the neck */
   --inlay: #ded5bd; /* position-marker dots */
+  /* THE KEYBOARD. Its own two colours, because a keyboard's identity IS white
+     and black — borrowing --neck and --ink would have drawn a beige board with
+     beige keys on it. Warm, not clinical: these are the stock and the ink of
+     this app's paper, not a photograph of a Yamaha. */
+  --key-white: #faf6ec;
+  --key-black: #37322a;
+  --key-edge: #cfc6b0; /* the hairline between one white key and the next */
 
   /* ---- PAPER: ink ------------------------------------------------------- */
   --ink: #1e1b16; /* near-black text */
@@ -190,6 +197,12 @@
     --tab-line: #363b4d;
     --string: #4a5063;
     --inlay: #2a2f3e;
+    /* Keys at night are LIT, not inverted: a keyboard under a stage lamp.
+     The white stays the lighter of the two, because a keyboard the other way
+     round is not a keyboard. */
+  --key-white: #b9bcca;
+  --key-black: #23262f;
+  --key-edge: #8f94a3;
 
     --ink: #ece7dc;
     --muted: #938c7e;
@@ -280,6 +293,12 @@
   --tab-line: #363b4d;
   --string: #4a5063;
   --inlay: #2a2f3e;
+  /* Keys at night are LIT, not inverted: a keyboard under a stage lamp.
+     The white stays the lighter of the two, because a keyboard the other way
+     round is not a keyboard. */
+  --key-white: #b9bcca;
+  --key-black: #23262f;
+  --key-edge: #8f94a3;
 
   --ink: #ece7dc;
   --muted: #938c7e;

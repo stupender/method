@@ -34,6 +34,7 @@ import type {
 } from '../theory/types';
 import {
   placeVoicingByStringSet,
+  placeVoicingOnKeys,
   isStretch,
   inversionCount,
   voicingName,
@@ -41,7 +42,7 @@ import {
 import { midiOf, noteName } from '../theory/notes';
 import { checkRowsAgree } from '../theory/agree';
 import { playChord } from '../audio/player';
-import { Fretboard } from '../render/Fretboard';
+import { Board } from '../render/Board';
 import { NeckPanel } from './NeckPanel';
 import { SHOW_PLAY_BUTTONS } from './flags';
 import { placeScale } from '../theory/scale';
@@ -55,6 +56,13 @@ const loFret = (shape: PlacedNote[]) =>
 
 // How long between chords when a whole set plays through.
 const STEP_MS = 620;
+
+/** The lowest sounding note of a shape, named with its octave — "C3". */
+function bassNoteOf(shape: PlacedNote[]): string {
+  if (shape.length === 0) return '';
+  const low = shape.reduce((a, b) => (midiOf(a.note) <= midiOf(b.note) ? a : b));
+  return `${noteName(low.note)}${low.note.octave ?? ''}`;
+}
 
 export function InversionLadder({
   instrument,
@@ -103,8 +111,17 @@ export function InversionLadder({
   // of which string it skipped. Grouped by register there are three or four
   // blocks, each holding every inversion that can be played from that string,
   // which is what a guitarist means by "the same shape further up".
+  // ON A KEYBOARD THERE IS ONE PLACE TO PLAY IT, so there's nothing to search
+  // for and nothing to group: each inversion has exactly one voicing, and the
+  // page becomes what it always meant — the chord tones taking the bass in
+  // turn, one row each. See placeVoicingOnKeys in theory/chord.ts.
+  const keys = instrument.layout === 'keys';
   const perInversion = Array.from({ length: voiceCount }, (_, inv) =>
-    placeVoicingByStringSet(instrument, tuning, root, chord, structure, inv),
+    keys
+      ? [placeVoicingOnKeys(instrument, tuning, root, chord, structure, inv)].filter(
+          (s): s is PlacedNote[] => s !== null,
+        )
+      : placeVoicingByStringSet(instrument, tuning, root, chord, structure, inv),
   );
   const registerOf = (shape: PlacedNote[]) =>
     Math.min(...shape.map((p) => p.position.stringIndex));
@@ -223,10 +240,14 @@ export function InversionLadder({
   // different string per inversion) naming one set would be a lie, so it's
   // named by where it starts instead.
   const groupLabel = (g: { key: string; rows: { shape: PlacedNote[] }[] }) => {
+    if (keys) return `${noteName(root)}${chord.symbol}`;
     const names = new Set(g.rows.map((r) => stringNames(r.shape)));
     if (names.size === 1) return [...names][0];
     return `from ${noteName(tuning.openNotes[Number(g.key)])}`;
   };
+  // "strings" is a guitar word; on a keyboard the one block is the chord and
+  // what follows its name is what the rows of it are.
+  const setNote = keys ? 'inverted' : 'strings';
 
   return (
     <>
@@ -257,13 +278,15 @@ export function InversionLadder({
                  from and not the thing on the neck. */
               aside={
                 pinned !== null && flat[pinned]
-                  ? `${voicingName(chord, structure, flat[pinned].inv)} · ${stringNames(flat[pinned].shape)}`
+                  ? keys
+                    ? voicingName(chord, structure, flat[pinned].inv)
+                    : `${voicingName(chord, structure, flat[pinned].inv)} · ${stringNames(flat[pinned].shape)}`
                   : focusedSet !== null && groups[focusedSet]
-                    ? `${groupLabel(groups[focusedSet])} strings`
+                    ? `${groupLabel(groups[focusedSet])} ${setNote}`
                     : undefined
               }
             >
-            <Fretboard
+            <Board
               instrument={instrument}
               tuning={tuning}
               highlights={wholeNeck}
@@ -301,7 +324,7 @@ export function InversionLadder({
                   {SHOW_PLAY_BUTTONS && (
                     <button
                       className="tab-play"
-                      aria-label={`${playingSet === g.key ? 'Stop' : 'Play'} the ${groupLabel(g)} strings`}
+                      aria-label={`${playingSet === g.key ? 'Stop' : 'Play'} ${groupLabel(g)} ${setNote}`}
                       onClick={(e) => {
                         e.stopPropagation(); // selecting the set is the header's job
                         toggleSet(g);
@@ -313,8 +336,8 @@ export function InversionLadder({
                   <span className="voicing-set__name">{groupLabel(g)}</span>
                   <span className="voicing-set__note">
                     {g.rows.length === voiceCount
-                      ? 'strings'
-                      : `strings — ${g.rows.length} of ${voiceCount}`}
+                      ? setNote
+                      : `${setNote} — ${g.rows.length} of ${voiceCount}`}
                   </span>
                 </header>
 
@@ -353,14 +376,25 @@ export function InversionLadder({
                       </div>
                       {/* Notation over tablature, joined down the left —
                           one system, the way guitar music is set. */}
-                      <System events={[r.shape]} strings={instrument.stringCount} width={210} />
+                      <System
+                        events={[r.shape]}
+                        strings={instrument.stringCount}
+                        keyboard={keys}
+                        width={210}
+                      />
                       {/* Where on the neck, and whether it's a reach. The TAB
                           shows the frets; this says which end of the neck they
                           are, which the numbers alone don't. */}
+                      {/* Where on the neck, and whether it's a reach —
+                          neither of which is a fact about a keyboard. There it
+                          says the register instead: the same question in the
+                          instrument's own terms. */}
                       <span className="tab-card__caption">
-                        {isStretch(r.shape)
-                          ? `fr. ${loFret(r.shape)} · a stretch`
-                          : `fr. ${loFret(r.shape)}`}
+                        {keys
+                          ? bassNoteOf(r.shape)
+                          : isStretch(r.shape)
+                            ? `fr. ${loFret(r.shape)} · a stretch`
+                            : `fr. ${loFret(r.shape)}`}
                       </span>
                     </div>
                   ))}
@@ -371,6 +405,15 @@ export function InversionLadder({
         </div>
 
           <footer className="footnote">
+            {keys ? (
+              <>
+                {noteName(root)}
+                {chord.symbol} in every inversion — each chord tone taking the
+                bass in turn. On a keyboard each of these has exactly one home,
+                so what you see is the whole answer.
+              </>
+            ) : (
+              <>
             {noteName(root)}
             {chord.symbol} in every inversion, on every string set it reaches —
             each chord tone taking the bass in turn. The same inversion in two
@@ -378,6 +421,8 @@ export function InversionLadder({
             block is short, that voicing simply doesn't fit those strings:
             close-voiced sevenths only sit on A D G B, which is exactly why
             guitarists play them as Drop 2.
+              </>
+            )}
           </footer>
         </>
       )}

@@ -332,6 +332,50 @@ export function placeVoicingOnSet(
   return shape ?? null;
 }
 
+/**
+ * THE SAME QUESTION FOR AN INSTRUMENT WITH NO STRINGS TO CHOOSE.
+ *
+ * Everything above this line exists because a guitar can play the same note in
+ * five places and something has to decide which. A keyboard can't: a pitch is
+ * one key, and that's the end of it. So placing a voicing on a keyboard isn't
+ * a search at all — it's arithmetic. Take the voices the theory already built,
+ * put each one on the key that sounds it, and slide the whole chord by octaves
+ * until it lands inside the range the instrument is drawn over.
+ *
+ * Sliding by OCTAVES rather than clamping is the one thing to get right: the
+ * chord has to stay the chord. A voicing shoved note-by-note into range would
+ * be a different voicing wearing the same name.
+ *
+ * Returns null when even that can't fit it — a spread voicing wider than the
+ * three octaves on screen has nowhere to go.
+ */
+export function placeVoicingOnKeys(
+  instrument: Instrument,
+  tuning: Tuning,
+  root: Note,
+  chord: ChordDefinition,
+  structure: VoicingStructure,
+  inversion: number,
+): PlacedNote[] | null {
+  const voices = buildVoices(root, chord, structure, inversion);
+  const open = openMidi(tuning, 0);
+  const frets = voices.map((v) => midiOf(v.note) - open);
+
+  // How many octaves to move it so the lowest voice is on the board and the
+  // highest still is. Both bounds, because either end can be the one hanging
+  // off — a bass-heavy voicing falls off the bottom, a spread one off the top.
+  const minShift = Math.ceil(-Math.min(...frets) / 12);
+  const maxShift = Math.floor((instrument.fretCount - Math.max(...frets)) / 12);
+  if (minShift > maxShift) return null;
+
+  return voices.map((v, i) => ({
+    position: { stringIndex: 0, fret: frets[i] + 12 * minShift },
+    note: { ...v.note, octave: (v.note.octave ?? 4) + minShift },
+    intervalName: v.degree,
+    isRoot: v.isRoot,
+  }));
+}
+
 /** Every string set a voicing of this many voices could use, widest first. */
 export function candidateStringSets(
   voiceCount: number,

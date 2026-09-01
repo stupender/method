@@ -50,3 +50,24 @@ export const SHOW_ADD_TO_PLAY = false;
  * prop; flipping this to true turns it back on.
  */
 export const NECK_ANIMATION = false;
+
+/**
+ * THE KEYBOARD, in the instrument menu.
+ *
+ * OFF, and not because it doesn't work — it does, end to end: the keys draw,
+ * the seven modes lay out as octave runs, chords voice on it, and the notation
+ * becomes proper keyboard notation (a staff, no tablature, written where it
+ * sounds, on a grand staff when the music needs both hands).
+ *
+ * It's off because of the name over the door. This is Fretboard
+ * Constellations, and a keyboard in the instrument menu quietly makes it
+ * something else — a general music-theory tool that also does guitars. The
+ * keyboard is a real teaching instrument and this will want it one day; today
+ * the scope is the neck.
+ *
+ * Flip this to true and it comes back with nothing else to change. The
+ * instrument, its two ranges, the renderer and the notation are all still
+ * here — see data/instruments.ts (KEYBOARD), render/Keyboard.tsx, and the
+ * `layout: 'keys'` note in theory/types.ts.
+ */
+export const SHOW_KEYBOARD = false;

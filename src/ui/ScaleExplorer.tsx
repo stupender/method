@@ -11,11 +11,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { Instrument, Note, ScaleDefinition, Tuning } from '../theory/types';
-import { scalePositions, fiveShapes } from '../theory/scalePositions';
+import { scalePositions, fiveShapes, octaveRuns } from '../theory/scalePositions';
 import { placeScale, realizeScale } from '../theory/scale';
 import { midiOf, noteName } from '../theory/notes';
 import { playSequence, type Sequence } from '../audio/player';
-import { Fretboard } from '../render/Fretboard';
+import { Board } from '../render/Board';
 import { NeckPanel } from './NeckPanel';
 import { SHOW_PLAY_BUTTONS } from './flags';
 import { DegreeLegend } from './DegreeLegend';
@@ -73,11 +73,17 @@ export function ScaleExplorer({
   const [pinnedShape, setPinnedShape] = useState<number | null>(null);
   const activeShape = pinnedShape;
 
+  // AN INSTRUMENT WITH ONE COURSE OF NOTES HAS NO FINGERINGS TO CHOOSE — see
+  // the note on `layout` in theory/types.ts. On a keyboard the seven rows are
+  // the seven MODES, each an octave run from its own degree, which is the same
+  // list under the same names and the only cut a keyboard has.
+  const keys = instrument.layout === 'keys';
   // CAGED is its own construction; the NPS family is one function with a
   // different count. See theory/scalePositions.ts for why they're different
   // kinds of thing rather than settings of one thing.
-  const positions =
-    fingering === 'caged'
+  const positions = keys
+    ? octaveRuns(instrument, tuning, root, scale)
+    : fingering === 'caged'
       ? fiveShapes(instrument, tuning, root, scale)
       : scalePositions(
           instrument,
@@ -134,7 +140,7 @@ export function ScaleExplorer({
 
   // A stable key for "which scale, in which fingering" — when it changes the set
   // of positions changes, so any pinned index is stale and we clear it.
-  const modeKey = `${scale.id}:${root.letter}${root.accidental}:${fingering}`;
+  const modeKey = `${instrument.id}:${scale.id}:${root.letter}${root.accidental}:${fingering}`;
   useEffect(() => {
     setPinnedShape(null);
     // AND SHOW THE WHOLE FIELD AGAIN. Picking CAGED or 3NPS lit every note on
@@ -239,7 +245,7 @@ export function ScaleExplorer({
           legend={<DegreeLegend root={root} scale={scale} />}
           aside={activeShape != null ? positionLabel(activeShape) : undefined}
         >
-        <Fretboard
+        <Board
           instrument={instrument}
           tuning={tuning}
           highlights={wholeNeck}
@@ -309,6 +315,7 @@ export function ScaleExplorer({
             <System
               events={upAndDown(pos.notes).map((n) => [n])}
               strings={instrument.stringCount}
+              keyboard={keys}
             />
           </div>
         ))}

@@ -46,7 +46,7 @@ function degreeOf(intervalName: string): number | null {
   return m ? Number(m[1]) : null;
 }
 
-interface FretboardProps {
+export interface FretboardProps {
   instrument: Instrument;
   tuning: Tuning;
   // Notes to light up. Anything in this list gets a coloured dot + label.

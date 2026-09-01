@@ -445,3 +445,78 @@ export function hybridBoxes(
 ): ScalePosition[] {
   return positionScan(instrument, tuning, root, scale, true);
 }
+
+// ---- System 3: octave runs, for an instrument with no strings to choose -----
+//
+// A KEYBOARD HAS NO FINGERING SYSTEMS, because it has no choice to make: every
+// note is in exactly one place. CAGED and the notes-per-string family are all
+// answers to "which of the six places do I play this in", and on a keyboard
+// that question doesn't arise.
+//
+// So what takes their place? The thing a keyboard player actually practises:
+// the scale from each of its degrees, one octave, in order. Start on the
+// tonic and it's Ionian; start on the second and the same seven notes are
+// Dorian; and so on. That's the same list of seven rows the guitar shows —
+// same names, same colours, same order — but cut by MODE rather than by
+// position, which on a keyboard is the only cut there is.
+//
+// The run is n+1 notes long: an octave, ending on the note it began on, so it
+// closes the way you'd play it.
+export function octaveRuns(
+  instrument: Instrument,
+  tuning: Tuning,
+  root: Note,
+  scale: ScaleDefinition,
+): ScalePosition[] {
+  const byPitchClass = toneLookup(root, scale);
+  const open = midiOf(tuning.openNotes[0]);
+  // Every fret on this one course that belongs to the scale, low to high.
+  const frets: number[] = [];
+  for (let f = 0; f <= instrument.fretCount; f++) {
+    if (byPitchClass.has((((open + f) % 12) + 12) % 12)) frets.push(f);
+  }
+
+  const size = scale.intervals.length; // 7 for the usual scales
+  // WHERE THE HAND ACTUALLY SITS: around MIDDLE C. You don't practise a scale
+  // at the very bottom of a keyboard, and a run taken at the lowest place its
+  // degree occurs is exactly that — three octaves of instrument with the notes
+  // all crowded into the leftmost one, written on a bass staff you'd never
+  // read them from. So each run is taken from whichever occurrence of its
+  // degree lands nearest middle C, and only falls back to the middle of the
+  // range on an instrument that doesn't reach it.
+  const MIDDLE_C = 60;
+  const middle = Math.min(
+    Math.max(MIDDLE_C - open, 0),
+    instrument.fretCount,
+  ) || instrument.fretCount / 2;
+  const positions: ScalePosition[] = [];
+  for (let degree = 0; degree < size; degree++) {
+    // Every place this degree occurs, as an index into the scale tones above.
+    const starts = frets
+      .map((f, i) => ({ f, i }))
+      .filter(
+        ({ f }) =>
+          byPitchClass.get((((open + f) % 12) + 12) % 12)?.degreeIndex === degree,
+      )
+      // ...that have a whole octave above them still on the instrument.
+      .filter(({ i }) => i + size < frets.length);
+    if (starts.length === 0) continue;
+    // Nearest the middle, measured from the run's own centre.
+    const startAt = starts.reduce((best, s) => {
+      const centre = (n: { i: number }) => (frets[n.i] + frets[n.i + size]) / 2;
+      return Math.abs(centre(s) - middle) < Math.abs(centre(best) - middle) ? s : best;
+    }).i;
+    const run = frets.slice(startAt, startAt + size + 1);
+    // An octave that doesn't finish inside the instrument's range isn't a run.
+    if (run.length < size + 1) continue;
+    positions.push({
+      notes: run.map((f) =>
+        placeAt(tuning, 0, f, byPitchClass.get((((open + f) % 12) + 12) % 12)!),
+      ),
+      name: scale.modeNames?.[degree] ?? `Position ${degree + 1}`,
+      lowestFret: run[0],
+      degreeIndex: degree,
+    });
+  }
+  return positions;
+}

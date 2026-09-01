@@ -1,0 +1,40 @@
+/* ==========================================================================
+   Keyboard.css — the look of the keys
+   --------------------------------------------------------------------------
+   ONLY THE KEYS ARE HERE. Everything else the keyboard draws — the dots, their
+   seven degree colours, the labels, the dimming, the constellation lines — is
+   the fretboard's, borrowed by putting `fretboard` on the same <svg>. A lit
+   3rd is the same mark on both instruments, and one copy of that mark is the
+   only way it stays that way. See the note at the top of Keyboard.tsx.
+   ========================================================================== */
+
+/* The board has no `--neck` surface of its own: the keys ARE the surface, and
+   a coloured panel behind them only ever showed as a rim around the outside. */
+.keyboard {
+  background: none;
+}
+
+.keyboard .key--white {
+  fill: var(--key-white);
+  stroke: var(--key-edge);
+  stroke-width: 1;
+}
+
+/* The black keys carry a hairline of the white key's edge colour so they read
+   as sitting ON the board rather than as holes cut through it. */
+.keyboard .key--black {
+  fill: var(--key-black);
+  stroke: var(--key-edge);
+  stroke-width: 0.75;
+}
+
+/* The octave marks under each C — the keyboard's fret numbers, and styled as
+   them (see .fret-number in Fretboard.css); this only adds the letter-spacing
+   a name wants and a ruler's digits don't. */
+.keyboard .fret-number {
+  letter-spacing: 0.04em;
+}
+
+/* (No constellation rules: the keyboard draws no joining lines at all. See the
+   note in Keyboard.tsx — a line between two notes on one course can only run
+   left to right, which is what the order of the notes already says.) */

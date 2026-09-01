@@ -33,12 +33,13 @@ import { placeScale, relabelByScale } from '../theory/scale';
 import {
   candidateStringSets,
   placeVoicingOnSet,
+  placeVoicingOnKeys,
   isStretch,
 } from '../theory/chord';
 import { midiOf, noteName } from '../theory/notes';
 import { checkRowsAgree } from '../theory/agree';
 import { playChord } from '../audio/player';
-import { Fretboard } from '../render/Fretboard';
+import { Board } from '../render/Board';
 import { NeckPanel } from './NeckPanel';
 import { SHOW_PLAY_BUTTONS } from './flags';
 import { DegreeLegend } from './DegreeLegend';
@@ -57,6 +58,13 @@ const octaveUp = (shape: PlacedNote[]): PlacedNote[] =>
     position: { ...p.position, fret: p.position.fret + 12 },
     note: { ...p.note, octave: (p.note.octave ?? 4) + 1 },
   }));
+
+/** The lowest sounding note of a shape, named with its octave — "C3". */
+function bassNoteOf(shape: PlacedNote[]): string {
+  if (shape.length === 0) return '';
+  const low = shape.reduce((a, b) => (midiOf(a.note) <= midiOf(b.note) ? a : b));
+  return `${noteName(low.note)}${low.note.octave ?? ''}`;
+}
 
 // How long between chords when a set plays through.
 const STEP_MS = 520;
@@ -130,7 +138,36 @@ export function ChordScaleLadder({
   const voiceCount = degrees[0]
     ? (seventh ? 4 : 3)
     : 3;
-  const sets = candidateStringSets(voiceCount, instrument.stringCount)
+
+  // A KEYBOARD HAS ONE STRING SET, and it isn't a choice. Everything below
+  // this — which run of strings, how wide a span, where the skip falls — is a
+  // guitarist's question about where on six strings to put four notes. On a
+  // keyboard each pitch is one key, so the chord scale is simply the seven
+  // chords, each voiced where it sounds. One block, seven rows.
+  const keys = instrument.layout === 'keys';
+  const keySet = keys
+    ? [
+        {
+          key: 'keys',
+          shapes: degrees.map((d) =>
+            placeVoicingOnKeys(
+              instrument,
+              tuning,
+              d.chordRoot,
+              d.chord,
+              structure,
+              inversion,
+            ),
+          ),
+        },
+      ].filter((s) => s.shapes.every((sh) => sh !== null))
+        .map((s) => ({
+          key: s.key,
+          shapes: s.shapes.map((sh) => relabelByScale(root, scale, sh as PlacedNote[])),
+        }))
+    : [];
+
+  const sets = keys ? keySet : candidateStringSets(voiceCount, instrument.stringCount)
     .map((strings) => ({
       key: strings.join('-'),
       strings,
@@ -341,8 +378,15 @@ export function ChordScaleLadder({
   useStepper(viewRef, flat.length, pinned, selectRow);
 
   // A string set named by its open-string notes, low -> high, e.g. "E A D G".
+  // On a keyboard there are no strings to name, so the one block says what it
+  // actually is: the whole key, voiced.
   const setLabel = (key: string) =>
-    key.split('-').map((i) => noteName(tuning.openNotes[+i])).join(' ');
+    keys
+      ? 'The key'
+      : key.split('-').map((i) => noteName(tuning.openNotes[+i])).join(' ');
+  // "strings" after that name is a guitar word. On a keyboard the block is
+  // "The key · harmonised", which says the same thing about the same thing.
+  const setNote = keys ? 'harmonised' : 'strings';
 
   return (
     <>
@@ -372,11 +416,11 @@ export function ChordScaleLadder({
                 pinned !== null && flat[pinned]
                   ? `${noteName(flat[pinned].degree.chordRoot)} ${flat[pinned].degree.chord.name} · ${flat[pinned].degree.roman}`
                   : focusedSet !== null && groups[focusedSet]
-                    ? `${setLabel(groups[focusedSet].key)} strings`
+                    ? `${setLabel(groups[focusedSet].key)} ${setNote}`
                     : undefined
               }
             >
-            <Fretboard
+            <Board
               instrument={instrument}
               tuning={tuning}
               highlights={wholeNeck}
@@ -413,7 +457,7 @@ export function ChordScaleLadder({
                   {SHOW_PLAY_BUTTONS && (
                     <button
                       className="tab-play"
-                      aria-label={`${playingSet === g.key ? 'Stop' : 'Play'} the chord scale on the ${setLabel(g.key)} strings`}
+                      aria-label={`${playingSet === g.key ? 'Stop' : 'Play'} the chord scale on ${setLabel(g.key)} ${setNote}`}
                       onClick={(e) => {
                         e.stopPropagation(); // selecting the set is the header's job
                         toggleSet(g);
@@ -423,7 +467,7 @@ export function ChordScaleLadder({
                     </button>
                   )}
                   <span className="voicing-set__name">{setLabel(g.key)}</span>
-                  <span className="voicing-set__note">strings</span>
+                  <span className="voicing-set__note">{setNote}</span>
                 </header>
 
                 <div className="tab-shelf">
@@ -464,14 +508,28 @@ export function ChordScaleLadder({
                       </div>
                       {/* Notation over tablature, joined down the left —
                           one system, the way guitar music is set. */}
-                      <System events={[r.shape]} strings={instrument.stringCount} width={210} />
+                      <System
+                        events={[r.shape]}
+                        strings={instrument.stringCount}
+                        keyboard={keys}
+                        width={210}
+                      />
                       {/* Where on the neck, and whether it's a reach. The TAB
                           shows the frets; this says which end of the neck they
                           are, which the numbers alone don't. */}
+                      {/* Where on the neck, and whether it's a reach. On a
+                          keyboard neither is a fact about anything: there are
+                          no frets, and every triad "spans" seven semitones
+                          without being a stretch at all. So the caption says
+                          the register instead — which is the useful thing
+                          there, and the same question ("where is this?")
+                          answered in the instrument's own terms. */}
                       <span className="tab-card__caption">
-                        {isStretch(r.shape)
-                          ? `fr. ${loFret(r.shape)} · a stretch`
-                          : `fr. ${loFret(r.shape)}`}
+                        {keys
+                          ? bassNoteOf(r.shape)
+                          : isStretch(r.shape)
+                            ? `fr. ${loFret(r.shape)} · a stretch`
+                            : `fr. ${loFret(r.shape)}`}
                       </span>
                     </div>
                   ))}
@@ -482,10 +540,14 @@ export function ChordScaleLadder({
         </div>
 
           <footer className="footnote">
-            The whole key harmonised, on every string set that holds all seven
-            chords — the same progression in three or four places on the neck.
-            Each block climbs from its lowest chord, so the cycle starts wherever
-            the key actually sits lowest rather than always on I.
+            {keys
+              ? `The whole key harmonised, climbing from its lowest chord — so the
+                 cycle starts where the key actually sits lowest rather than
+                 always on I.`
+              : `The whole key harmonised, on every string set that holds all seven
+                 chords — the same progression in three or four places on the neck.
+                 Each block climbs from its lowest chord, so the cycle starts
+                 wherever the key actually sits lowest rather than always on I.`}
           </footer>
         </>
       )}
