@@ -10,9 +10,7 @@
 // ============================================================================
 
 import { useEffect, useRef, useState } from 'react';
-import type { Note, ScaleDefinition } from '../theory/types';
-import { GUITAR } from '../data/instruments';
-import { GUITAR_STANDARD } from '../data/tunings';
+import type { Instrument, Note, ScaleDefinition, Tuning } from '../theory/types';
 import { scalePositions, positionalBoxes, hybridBoxes } from '../theory/scalePositions';
 import { placeScale } from '../theory/scale';
 import { midiOf, noteName } from '../theory/notes';
@@ -27,6 +25,8 @@ import { useStepper } from './ShapeStepper';
 import type { PlacedNote } from '../theory/types';
 
 export function ScaleExplorer({
+  instrument,
+  tuning,
   root,
   scale,
   fingering,
@@ -34,6 +34,11 @@ export function ScaleExplorer({
   focus,
   labelMode = 'degree',
 }: {
+  /** WHICH NECK. Handed in rather than imported, which is the whole point of
+   *  the instrument/tuning model: this view draws whatever it's given and
+   *  knows nothing about guitars. */
+  instrument: Instrument;
+  tuning: Tuning;
   root: Note;
   scale: ScaleDefinition;
   /** Which fingering system the position boxes are cut by: 3-notes-per-string,
@@ -67,10 +72,10 @@ export function ScaleExplorer({
 
   const positions =
     fingering === '3nps'
-      ? scalePositions(GUITAR, GUITAR_STANDARD, root, scale)
+      ? scalePositions(instrument, tuning, root, scale)
       : fingering === 'box'
-        ? positionalBoxes(GUITAR, GUITAR_STANDARD, root, scale)
-        : hybridBoxes(GUITAR, GUITAR_STANDARD, root, scale);
+        ? positionalBoxes(instrument, tuning, root, scale)
+        : hybridBoxes(instrument, tuning, root, scale);
   const shapes = positions.map((p) => p.notes);
 
   // Reading down the page walks the positions: whichever card is under the
@@ -97,7 +102,7 @@ export function ScaleExplorer({
   // chosen from this, not the whole truth: drawing only the boxes was leaving
   // 8–12 real notes off every key (C major lost its open E and everything from
   // fret 15 up). The neck shows the scale; the boxes light a path through it.
-  const wholeNeck = placeScale(GUITAR, GUITAR_STANDARD, root, scale);
+  const wholeNeck = placeScale(instrument, tuning, root, scale);
 
   // A stable key for "which scale, in which fingering" — when it changes the set
   // of positions changes, so any pinned index is stale and we clear it.
@@ -195,8 +200,8 @@ export function ScaleExplorer({
           aside={activeShape != null ? positions[activeShape]?.name : undefined}
         >
         <Fretboard
-          instrument={GUITAR}
-          tuning={GUITAR_STANDARD}
+          instrument={instrument}
+          tuning={tuning}
           highlights={wholeNeck}
           shapes={shapes}
           activeShapeIndex={activeShape}
@@ -271,7 +276,10 @@ export function ScaleExplorer({
             </div>
             {/* The run as notation over tablature — one note per moment, in
                 the order it's played. */}
-            <System events={upAndDown(pos.notes).map((n) => [n])} />
+            <System
+              events={upAndDown(pos.notes).map((n) => [n])}
+              strings={instrument.stringCount}
+            />
           </div>
         ))}
       </div>

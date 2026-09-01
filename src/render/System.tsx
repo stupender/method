@@ -71,12 +71,25 @@ Metrics.clear();
 
 const STAFF_TOP = 0;
 const TAB_TOP = 76;
-// Tall enough for SIX tab lines and the fret numbers that sit on the lowest of
-// them. At 190 the bottom string's line fell outside the SVG and was clipped —
-// a five-string guitar, which is a hard thing to un-see once you've seen it.
-const HEIGHT = 212;
-// Vertical distance from one system to the next when the music wraps.
-const LINE_HEIGHT = 236;
+// VexFlow's default gap between two TAB lines.
+const TAB_LINE = 13;
+// Room below the lowest TAB line for the fret numbers that sit ON it, plus the
+// air the stave keeps above its own top line. Found by fitting the figure that
+// already worked for six strings: at 190 the bottom line fell outside the SVG
+// and was clipped, which reads as a five-string guitar and is a hard thing to
+// un-see once you've seen it.
+const TAB_MARGIN = 70;
+
+/**
+ * How tall one system is — WHICH DEPENDS ON THE INSTRUMENT. This was the fixed
+ * 212 that six strings need; a ukulele's four-line TAB is two lines shorter,
+ * and a fixed height would have left the difference as dead space under every
+ * uke system on the page.
+ */
+const heightFor = (strings: number) =>
+  TAB_TOP + (strings - 1) * TAB_LINE + TAB_MARGIN;
+/** Distance from one system to the next when the music wraps. */
+const lineHeightFor = (strings: number) => heightFor(strings) + 24;
 // The narrowest a note may sit from its neighbour before the music goes onto
 // another line instead. Below about this the fret numbers start colliding.
 const MIN_NOTE_SPACING = 26;
@@ -118,10 +131,18 @@ function vexKey(p: PlacedNote): string {
 
 export function System({
   events,
+  strings = 6,
   width,
 }: {
   // Each entry is one moment: the notes sounding together at it.
   events: PlacedNote[][];
+  /**
+   * How many strings the instrument has, so the TAB staff is ruled for the
+   * instrument in hand — four lines for a ukulele, six for a guitar. It also
+   * sets where each fret number lands, since VexFlow numbers strings downward
+   * from the highest one and we number them upward from the lowest.
+   */
+  strings?: number;
   /**
    * Draw at this many units wide. Omit it and the system MEASURES its
    * container and draws at that size instead — which is the difference between
@@ -192,6 +213,9 @@ export function System({
     // not have to look back up at the first to find out what clef it's in.
     // Room for notes: the width less the clef column and a little air at the
     // end. Both staves reserve about the same, so one figure serves.
+    const HEIGHT = heightFor(strings);
+    const LINE_HEIGHT = lineHeightFor(strings);
+
     const room = Math.max(1, drawWidth - CLEF_COLUMN - TAIL);
     const perLine =
       moments.length === 1 ? 1 : Math.max(4, Math.floor(room / MIN_NOTE_SPACING));
@@ -214,7 +238,8 @@ export function System({
       stave.addClef('treble', 'default', '8vb');
       stave.setContext(ctx).draw();
 
-      const tab = new TabStave(0, TAB_TOP + top, staveWidth);
+      // Ruled for THIS instrument: six lines for a guitar, four for a uke.
+      const tab = new TabStave(0, TAB_TOP + top, staveWidth, { numLines: strings });
       tab.addClef('tab');
       // The T A B letters are drawn tall and the formatter doesn't leave much
       // after them, so the first fret number lands against the A and the B. A
@@ -248,9 +273,11 @@ export function System({
         tabNotes.push(
           new TabNote({
             positions: low.map((p) => ({
-              // VexFlow strings count 1..6 down from the high e; ours count
-              // 0..5 up from the low E.
-              str: 6 - p.position.stringIndex,
+              // VexFlow counts strings DOWNWARD from the highest (1 = high e on
+              // a guitar, 1 = A on a ukulele); we count UPWARD from string 0,
+              // the one nearest your face. So the two orders are mirrors, and
+              // the count of strings is what turns one into the other.
+              str: strings - p.position.stringIndex,
               fret: p.position.fret,
             })),
             duration,
@@ -312,7 +339,7 @@ export function System({
     return () => {
       el.innerHTML = '';
     };
-  }, [events, width, measured]);
+  }, [events, strings, width, measured]);
 
   return <div className="system" ref={host} aria-label="Notation and tablature" />;
 }

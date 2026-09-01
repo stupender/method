@@ -1892,3 +1892,15 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Some endpoints are public on purpose.** Kit's form subscription URL takes no
   API key — which is what makes it safe in a page that ships its own source.
   Not every missing secret is a mistake.
+- **"It's just data" is a claim you only find out about when you cash it.**
+  Adding the ukulele took two instrument entries and three tunings, exactly as
+  the architecture promised — plus threading an `Instrument`/`Tuning` pair
+  through five views that had been importing `GUITAR` as a constant. The
+  theory layer was genuinely parameterised; the UI layer had quietly hard-coded
+  what the engine below it was careful not to.
+- **A re-entrant tuning breaks "index 0 is the lowest string".** A tenor uke's
+  G sounds ABOVE the C beside it, so string order by POSITION and by PITCH stop
+  agreeing. Position wins here, because everything drawn is a diagram of where
+  fingers go — but the voicing engine assumes pitch order, so inversion labels
+  inherit the assumption. Documented at the tuning rather than fixed, with
+  low-G offered as the exact alternative.

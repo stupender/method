@@ -75,11 +75,6 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
   text-decoration: none;
-  transition: color 0.12s ease, border-color 0.12s ease;
-}
-.sitebar__beta:hover {
-  color: var(--ink);
-  border-color: var(--ink);
 }
 
 /* THE BAR'S OWN CONTROLS — saved settings, one panel or two, and the light.
@@ -2275,4 +2270,77 @@
   width: 15px;
   height: 15px;
   display: block;
+}
+
+/* ==========================================================================
+   THE INSTRUMENT MENU — which neck am I looking at
+   --------------------------------------------------------------------------
+   Same shape as the saved-settings list beside it: a panel hanging under its
+   icon, rows that light with the app's own dot rather than a tick or a
+   highlight. See ui/InstrumentMenu.tsx.
+   ========================================================================== */
+.instrumentmenu {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: none;
+}
+.instrumentmenu__list {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 40;
+  width: 236px;
+  padding: 8px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  box-shadow: 0 6px 24px var(--shadow);
+}
+.instrumentmenu__list ul {
+  list-style: none;
+  margin: 0 0 4px;
+  padding: 0;
+}
+.instrumentmenu__head {
+  margin: 4px 0 6px 6px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.instrumentmenu__item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 8px;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+}
+.instrumentmenu__item:hover {
+  background: var(--tint-soft);
+}
+.instrumentmenu__item--on {
+  color: var(--ink);
+  font-weight: 600;
+}
+.instrumentmenu__name {
+  flex: 1;
+  min-width: 0;
+}
+/* How many strings — a quiet fact, right-aligned, that tells you what's about
+   to change about the drawing below. */
+.instrumentmenu__strings {
+  flex: none;
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
 }

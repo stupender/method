@@ -130,7 +130,8 @@ briefs".**
 - **Aesthetic:** craft-paper/analog look; constellations + bioluminescence; art-
   book palettes. **Cultures (v3+):** Raga/SARGAM, Barry Harris bebop.
 - **Data only:** slash chords; more scales (diminished/whole-tone/bebop); extra
-  chord qualities (6ths, extensions); alternate tunings; ukulele.
+  chord qualities (6ths, extensions); alternate guitar tunings.
+  (~~ukulele~~ done — baritone and tenor ship; see data/instruments.ts.)
 - **Business:** protect IP before launch; distribution strategy.
 
 ## Working notes

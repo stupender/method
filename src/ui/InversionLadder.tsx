@@ -24,14 +24,14 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type {
+  Instrument,
   Note,
+  Tuning,
   ScaleDefinition,
   ChordDefinition,
   PlacedNote,
   VoicingStructure,
 } from '../theory/types';
-import { GUITAR } from '../data/instruments';
-import { GUITAR_STANDARD } from '../data/tunings';
 import {
   placeVoicingByStringSet,
   isStretch,
@@ -56,12 +56,18 @@ const loFret = (shape: PlacedNote[]) =>
 const STEP_MS = 620;
 
 export function InversionLadder({
+  instrument,
+  tuning,
   root,
   chord,
   structure,
   gravity,
   labelMode = 'degree',
 }: {
+  /** WHICH NECK. Handed in rather than imported — this view draws whatever
+   *  it's given and knows nothing about guitars. */
+  instrument: Instrument;
+  tuning: Tuning;
   root: Note;
   chord: ChordDefinition;
   // From the CONTROLS panel — see the note in ChordScaleLadder.
@@ -97,7 +103,7 @@ export function InversionLadder({
   // blocks, each holding every inversion that can be played from that string,
   // which is what a guitarist means by "the same shape further up".
   const perInversion = Array.from({ length: voiceCount }, (_, inv) =>
-    placeVoicingByStringSet(GUITAR, GUITAR_STANDARD, root, chord, structure, inv),
+    placeVoicingByStringSet(instrument, tuning, root, chord, structure, inv),
   );
   const registerOf = (shape: PlacedNote[]) =>
     Math.min(...shape.map((p) => p.position.stringIndex));
@@ -203,7 +209,7 @@ export function InversionLadder({
     shape
       .map((p) => p.position.stringIndex)
       .sort((a, b) => a - b)
-      .map((i) => noteName(GUITAR_STANDARD.openNotes[i]))
+      .map((i) => noteName(tuning.openNotes[i]))
       .join(' ');
   // Name a block by its strings when every inversion in it uses the same ones —
   // which is the usual case. When they differ (an open voicing skipping a
@@ -212,7 +218,7 @@ export function InversionLadder({
   const groupLabel = (g: { key: string; rows: { shape: PlacedNote[] }[] }) => {
     const names = new Set(g.rows.map((r) => stringNames(r.shape)));
     if (names.size === 1) return [...names][0];
-    return `from ${noteName(GUITAR_STANDARD.openNotes[Number(g.key)])}`;
+    return `from ${noteName(tuning.openNotes[Number(g.key)])}`;
   };
 
   return (
@@ -251,8 +257,8 @@ export function InversionLadder({
               }
             >
             <Fretboard
-              instrument={GUITAR}
-              tuning={GUITAR_STANDARD}
+              instrument={instrument}
+              tuning={tuning}
               shapes={shapes}
               activeShapeIndex={pinned}
               activeShapeIndices={pinned === null ? litShapes : null}
@@ -341,7 +347,7 @@ export function InversionLadder({
                       </div>
                       {/* Notation over tablature, joined down the left —
                           one system, the way guitar music is set. */}
-                      <System events={[r.shape]} width={210} />
+                      <System events={[r.shape]} strings={instrument.stringCount} width={210} />
                       {/* Where on the neck, and whether it's a reach. The TAB
                           shows the frets; this says which end of the neck they
                           are, which the numbers alone don't. */}

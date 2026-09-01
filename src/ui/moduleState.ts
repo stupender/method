@@ -21,6 +21,15 @@
 // ============================================================================
 
 export interface ModuleState {
+  /** Which instrument the neck is drawn as, and how it's strung. Guitar,
+   *  baritone ukulele, tenor ukulele — see data/instruments.ts. Part of a
+   *  module's state rather than an app-wide setting on purpose: with two
+   *  panels open you can put a guitar beside a ukulele and see the same
+   *  harmony land on both, which is most of the reason a teacher would want
+   *  two panels at all. */
+  instrumentId: string;
+  tuningId: string;
+
   /** Fretboard or Ear. */
   studyMode: 'fretboard' | 'ear';
   /** Scales or Harmony — the fretboard's two views. */
@@ -67,6 +76,8 @@ export interface ModuleState {
  */
 export function defaultModuleState(scaleId: string): ModuleState {
   return {
+    instrumentId: 'guitar',
+    tuningId: 'guitar-standard',
     studyMode: 'fretboard',
     view: 'scale',
     fingering: '3nps',
@@ -133,7 +144,12 @@ export function loadBookmarks(): Bookmark[] {
     type Stored = Omit<Bookmark, 'state'> & { state: Partial<ModuleState> };
     return (parsed as Stored[]).map((b) => ({
       ...b,
-      state: { fingering: '3nps' as const, ...b.state } as ModuleState,
+      state: {
+        fingering: '3nps' as const,
+        instrumentId: 'guitar',
+        tuningId: 'guitar-standard',
+        ...b.state,
+      } as ModuleState,
     }));
   } catch {
     return [];

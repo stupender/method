@@ -32,7 +32,7 @@ export const AUTHOR = 'Stu Pender';
  *
  * Empty renders no link at all, same as the Substack above.
  */
-export const FEEDBACK_EMAIL = '';
+export const FEEDBACK_EMAIL = 'stu_pender@me.com';
 
 /**
  * A subject line the message arrives with, so beta notes sort themselves out

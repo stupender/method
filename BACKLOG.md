@@ -619,8 +619,12 @@ beside the Western defaults.
 - **Chord qualities:** ~~augmented, dim7, m(maj7), maj7♯5~~ (done) — remaining:
   6ths, 9/11/13 extensions, altered dominants.
 - Slash chords.
-- **Instruments/tunings:** alternate tunings (drop-D, DADGAD), ukulele — the
-  engine is already instrument/tuning-agnostic.
+- **Instruments/tunings:** ~~ukulele (baritone + tenor, high-G and low-G)~~
+  (done 2026-09-01 — and it really was almost pure data: two instrument
+  entries, three tunings, plus threading the pair through the views that had
+  been importing GUITAR directly. The only engine change was telling the TAB
+  staff how many lines to rule.) Remaining: alternate guitar tunings (drop-D,
+  DADGAD), which are now one data file each with nothing else to do.
 
 ---
 

@@ -10,14 +10,18 @@
 
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import type {
+  Instrument,
   Note,
   ScaleDefinition,
   PlacedNote,
+  Tuning,
   VoicingStructure,
 } from './theory/types';
 import { SCALES } from './data/scales';
 import { CHORDS } from './data/chords';
 import { ROOT_CHOICES } from './data/roots';
+import { INSTRUMENTS, INSTRUMENT_LIST, GUITAR } from './data/instruments';
+import { TUNINGS, GUITAR_STANDARD, tuningsFor } from './data/tunings';
 import { realizeScale } from './theory/scale';
 import { modeAt } from './theory/mode';
 import { diatonicChords } from './theory/harmony';
@@ -44,6 +48,7 @@ import {
 } from './ui/links';
 import { alreadyAsked, markDismissed } from './ui/asked';
 import { BookmarksMenu, SaveBookmark } from './ui/Bookmarks';
+import { InstrumentMenu } from './ui/InstrumentMenu';
 import {
   defaultModuleState,
   describe,
@@ -283,6 +288,23 @@ function App() {
   ]);
   // THE SAVED SETTINGS live here rather than in a panel, because the list is
   // the app's and a panel is only one of the things that can be in it.
+  // WHICH INSTRUMENT, for the whole app. It's held here rather than per-panel
+  // because it answers "what is in my hands today", which doesn't change
+  // between two views of the same lesson. It's still written into every saved
+  // setting (see `moduleState`), so a bookmark made on a ukulele comes back on
+  // one.
+  const [instrumentId, setInstrumentId] = useState('guitar');
+  const [tuningId, setTuningId] = useState('guitar-standard');
+  const instrument = INSTRUMENTS[instrumentId] ?? GUITAR;
+  const tuning = TUNINGS[tuningId] ?? GUITAR_STANDARD;
+  // Picking an instrument picks its tuning too: the two have to move together
+  // or the neck would be drawn with six strings' worth of notes on four.
+  const pickInstrument = (id: string) => {
+    const next = INSTRUMENTS[id] ?? GUITAR;
+    setInstrumentId(next.id);
+    setTuningId(next.defaultTuningId);
+  };
+
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => loadBookmarks());
   // THE ONE TIME THIS APP ASKS FOR ANYTHING. Saving your first setting is the
   // moment the offer is true — what you just saved lives in this browser and
@@ -403,11 +425,27 @@ function App() {
             are — the controls FOR the app, as opposed to the controls for the
             music, which all live in the panel below. */}
         <div className="sitebar__controls">
+        {/* WHAT'S IN YOUR HANDS, first in the cluster — it's the widest-scoped
+            of these controls, since everything below it is drawn for whatever
+            this says. */}
+        <InstrumentMenu
+          instruments={INSTRUMENT_LIST}
+          tunings={tuningsFor(instrument.id)}
+          instrument={instrument}
+          tuning={tuning}
+          onPickInstrument={pickInstrument}
+          onPickTuning={setTuningId}
+        />
         <BookmarksMenu
           list={bookmarks}
-          onRestore={(state) =>
-            setRestore((r) => ({ state, seq: (r?.seq ?? 0) + 1 }))
-          }
+          onRestore={(state) => {
+            // A saved setting includes the instrument it was made on, and
+            // that lives above the panels — so restoring has to set it here
+            // as well as pushing the rest into the panel.
+            if (state.instrumentId) setInstrumentId(state.instrumentId);
+            if (state.tuningId) setTuningId(state.tuningId);
+            setRestore((r) => ({ state, seq: (r?.seq ?? 0) + 1 }));
+          }}
           onRemove={(id) => writeBookmarks(bookmarks.filter((b) => b.id !== id))}
           onRename={(id, name) =>
             writeBookmarks(bookmarks.map((b) => (b.id === id ? { ...b, name } : b)))
@@ -481,6 +519,8 @@ function App() {
               onAddChord={addToSong}
               songLength={current.chords.length}
               bookmarks={bookmarks}
+              instrumentId={instrumentId}
+              tuningId={tuningId}
               // SAVE, OR UNSAVE. The mark in a panel's corner reports whether
               // this exact setting is in the list, so the button that draws it
               // has to be able to take it out again — otherwise pressing it
@@ -688,6 +728,8 @@ function Module({
   initial,
   onClose,
   bookmarks,
+  instrumentId,
+  tuningId,
   onToggleBookmark,
   restore,
 }: {
@@ -698,6 +740,9 @@ function Module({
   initial?: ModuleState;
   /** Given when this module can be closed. */
   onClose?: () => void;
+  /** Which neck to draw — chosen in the site bar, shared by every panel. */
+  instrumentId: string;
+  tuningId: string;
   /** Everything saved, so this panel can tell whether IT is one of them. */
   bookmarks: Bookmark[];
   /** Save this setting, or — if it's already saved — remove it. */
@@ -724,6 +769,17 @@ function Module({
   const { studyMode, rootIndex, scaleId, degree, seventh, structureId } = state;
   const { inversionIndex, seventhsInEar, quiz, fingering } = state;
   const mode: Mode = state.view;
+
+  // WHICH NECK THIS MODULE DRAWS. Resolved from ids rather than held as
+  // objects, because a bookmark has to survive being written to storage and a
+  // whole Instrument doesn't round-trip usefully. Falling back to the guitar
+  // means a preset naming an instrument that no longer exists still opens.
+  // The menu that sets these lives in the site bar, so they arrive as props
+  // rather than out of this panel's own state. They're still PART of that
+  // state — a bookmark has to remember which instrument you saved it on — so
+  // `moduleState()` folds them back in below, and restoring one sets the menu.
+  const instrument = INSTRUMENTS[instrumentId] ?? GUITAR;
+  const tuning = TUNINGS[tuningId] ?? GUITAR_STANDARD;
 
   const setStudyMode = (v: 'fretboard' | 'ear') => set('studyMode', v);
   const setMode = (v: Mode) => set('view', v === 'harmony' ? 'harmony' : 'scale');
@@ -801,7 +857,12 @@ function Module({
   // Saving is now the whole of it: the panel's state IS the thing a bookmark
   // holds, so there's nothing to gather. (This was fifteen lines when the
   // settings lived apart.)
-  const moduleState = (): ModuleState => ({ ...state, scrollY: Math.round(window.scrollY) });
+  const moduleState = (): ModuleState => ({
+    ...state,
+    instrumentId,
+    tuningId,
+    scrollY: Math.round(window.scrollY),
+  });
 
   const romanLabels = diatonicChords(root, scale, false).map((c) => c.roman);
 
@@ -1130,6 +1191,8 @@ function Module({
 
       {studyMode === 'fretboard' && mode === 'scale' && (
         <ScaleView
+          instrument={instrument}
+          tuning={tuning}
           root={root}
           scale={scale}
           degree={deg}
@@ -1151,6 +1214,8 @@ function Module({
       )}
       {studyMode === 'fretboard' && mode === 'harmony' && (
         <HarmonyView
+          instrument={instrument}
+          tuning={tuning}
           root={root}
           scale={scale}
           degree={deg}
@@ -1170,6 +1235,8 @@ function Module({
 // Degree 0 is the scale itself; degree 4 of a major key is Mixolydian, etc. The
 // neck then shows that mode rooted on its own degree, in every position.
 function ScaleView({
+  instrument,
+  tuning,
   root,
   scale,
   degree,
@@ -1177,6 +1244,9 @@ function ScaleView({
   focus,
   onPickNote,
 }: {
+  /** The neck this module draws — passes straight through. */
+  instrument: Instrument;
+  tuning: Tuning;
   root: Note;
   scale: ScaleDefinition;
   degree: number;
@@ -1205,6 +1275,8 @@ function ScaleView({
       {/* No title here any more: the scale's name and its notes ride on the
           fretboard itself, where they stay visible while you scroll. */}
       <ScaleExplorer
+        instrument={instrument}
+        tuning={tuning}
         root={modeRoot}
         scale={modeScale}
         fingering={fingering}
@@ -1295,6 +1367,8 @@ function ChordView({ root }: { root: Note }) {
 // The degree comes from the shared selector above, so it stays put when you flip
 // between Scales and Harmony. This view just adds the triad/seventh choice.
 function HarmonyView({
+  instrument,
+  tuning,
   root,
   scale,
   degree,
@@ -1305,6 +1379,9 @@ function HarmonyView({
   onAddChord,
   songLength,
 }: {
+  /** The neck this module draws — passes straight through to both ladders. */
+  instrument: Instrument;
+  tuning: Tuning;
   root: Note;
   scale: ScaleDefinition;
   degree: number;
@@ -1366,6 +1443,8 @@ function HarmonyView({
 
       {isAll ? (
         <ChordScaleLadder
+          instrument={instrument}
+          tuning={tuning}
           root={root}
           scale={scale}
           seventh={seventh}
@@ -1375,6 +1454,8 @@ function HarmonyView({
         />
       ) : (
         <InversionLadder
+          instrument={instrument}
+          tuning={tuning}
           root={selected.chordRoot}
           chord={selected.chord}
           structure={structure}

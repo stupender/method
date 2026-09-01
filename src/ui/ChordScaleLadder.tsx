@@ -21,13 +21,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type {
+  Instrument,
   Note,
+  Tuning,
   ScaleDefinition,
   PlacedNote,
   VoicingStructure,
 } from '../theory/types';
-import { GUITAR } from '../data/instruments';
-import { GUITAR_STANDARD } from '../data/tunings';
 import { diatonicChords } from '../theory/harmony';
 import { relabelByScale } from '../theory/scale';
 import {
@@ -63,6 +63,8 @@ const octaveUp = (shape: PlacedNote[]): PlacedNote[] =>
 const STEP_MS = 520;
 
 export function ChordScaleLadder({
+  instrument,
+  tuning,
   root,
   scale,
   seventh,
@@ -70,6 +72,10 @@ export function ChordScaleLadder({
   inversion,
   labelMode = 'degree',
 }: {
+  /** WHICH NECK. Handed in rather than imported — this view draws whatever
+   *  it's given and knows nothing about guitars. */
+  instrument: Instrument;
+  tuning: Tuning;
   root: Note;
   scale: ScaleDefinition;
   seventh: boolean;
@@ -99,7 +105,7 @@ export function ChordScaleLadder({
   // chord instead — GRAVITY: ii — and the centre moves to it; that's
   // InversionLadder, where the chord's own labels are the right ones.)
   const placedPerChord = degrees.map((d) =>
-    placeVoicingByStringSet(GUITAR, GUITAR_STANDARD, d.chordRoot, d.chord, structure, inversion).map(
+    placeVoicingByStringSet(instrument, tuning, d.chordRoot, d.chord, structure, inversion).map(
       (shape) => relabelByScale(root, scale, shape),
     ),
   );
@@ -128,7 +134,7 @@ export function ChordScaleLadder({
     const rows = Array.from({ length: degrees.length }, (_, k) => {
       const i = (startAt + k) % degrees.length;
       let s = base[i];
-      while (s.length && loFret(s) < prevLo && hiFret(s) + 12 <= GUITAR.fretCount) {
+      while (s.length && loFret(s) < prevLo && hiFret(s) + 12 <= instrument.fretCount) {
         s = octaveUp(s);
       }
       if (s.length) prevLo = loFret(s);
@@ -203,7 +209,7 @@ export function ChordScaleLadder({
 
   // A string set named by its open-string notes, low -> high, e.g. "E A D G".
   const setLabel = (key: string) =>
-    key.split('-').map((i) => noteName(GUITAR_STANDARD.openNotes[+i])).join(' ');
+    key.split('-').map((i) => noteName(tuning.openNotes[+i])).join(' ');
 
   return (
     <>
@@ -235,8 +241,8 @@ export function ChordScaleLadder({
               }
             >
             <Fretboard
-              instrument={GUITAR}
-              tuning={GUITAR_STANDARD}
+              instrument={instrument}
+              tuning={tuning}
               shapes={shapes}
               activeShapeIndex={pinned}
               activeShapeIndices={pinned === null ? litShapes : null}
@@ -323,7 +329,7 @@ export function ChordScaleLadder({
                       </div>
                       {/* Notation over tablature, joined down the left —
                           one system, the way guitar music is set. */}
-                      <System events={[r.shape]} width={210} />
+                      <System events={[r.shape]} strings={instrument.stringCount} width={210} />
                       {/* Where on the neck, and whether it's a reach. The TAB
                           shows the frets; this says which end of the neck they
                           are, which the numbers alone don't. */}

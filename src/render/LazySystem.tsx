@@ -30,7 +30,11 @@ const System = lazy(() =>
   import('./System').then((m) => ({ default: m.System })),
 );
 
-export function LazySystem(props: { events: PlacedNote[][]; width?: number }) {
+export function LazySystem(props: {
+  events: PlacedNote[][];
+  strings?: number;
+  width?: number;
+}) {
   return (
     <Suspense fallback={<div className="system system--loading" aria-hidden="true" />}>
       <System {...props} />
