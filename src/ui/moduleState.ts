@@ -39,7 +39,7 @@ export interface ModuleState {
    *  It lives here rather than inside the scale view because it's a SETTING —
    *  as much a part of "what this panel is showing" as the key is — and a
    *  preset that didn't remember it came back in the wrong fingering. */
-  fingering: '3nps' | 'box' | 'hybrid';
+  fingering: '3nps' | 'shapes';
 
   /** Index into ROOT_CHOICES. */
   rootIndex: number;
@@ -141,14 +141,25 @@ export function loadBookmarks(): Bookmark[] {
     // an OLDER version of this app, so it doesn't necessarily have every field
     // a ModuleState has today. Saying `Bookmark[]` here would be a promise the
     // data can't keep.
-    type Stored = Omit<Bookmark, 'state'> & { state: Partial<ModuleState> };
+    type Stored = Omit<Bookmark, 'state'> & {
+      state: Omit<Partial<ModuleState>, 'fingering'> & { fingering?: string };
+    };
     return (parsed as Stored[]).map((b) => ({
       ...b,
       state: {
-        fingering: '3nps' as const,
         instrumentId: 'guitar',
         tuningId: 'guitar-standard',
         ...b.state,
+        // AND RETIRED VALUES BECOME THEIR SUCCESSOR. 'box' and 'hybrid' were
+        // the old seven-box Positional and Hybrid, which turned out to be the
+        // same thing as each other and the wrong count besides; both are the
+        // five-shape system now. A bookmark saved under either opens in the
+        // system that replaced it rather than falling back to 3nps, which
+        // would silently change what you'd saved.
+        fingering:
+          b.state?.fingering === 'box' || b.state?.fingering === 'hybrid'
+            ? ('shapes' as const)
+            : ((b.state?.fingering as ModuleState['fingering']) ?? '3nps'),
       } as ModuleState,
     }));
   } catch {

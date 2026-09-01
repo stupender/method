@@ -11,7 +11,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { Instrument, Note, ScaleDefinition, Tuning } from '../theory/types';
-import { scalePositions, positionalBoxes, hybridBoxes } from '../theory/scalePositions';
+import { scalePositions, fiveShapes } from '../theory/scalePositions';
 import { placeScale, realizeScale } from '../theory/scale';
 import { midiOf, noteName } from '../theory/notes';
 import { playSequence, type Sequence } from '../audio/player';
@@ -46,7 +46,7 @@ export function ScaleExplorer({
    *  string). Chosen in the CONTROLS panel, alongside key and scale, because
    *  it's that same kind of setting — and because a saved preset has to
    *  remember it. */
-  fingering: '3nps' | 'box' | 'hybrid';
+  fingering: '3nps' | 'shapes';
   // Click a note on the neck to make it the new root (re-root the mode).
   onPickRoot?: (placed: PlacedNote) => void;
   // After a re-root, the fret the user clicked — pin the position covering it, so
@@ -73,9 +73,7 @@ export function ScaleExplorer({
   const positions =
     fingering === '3nps'
       ? scalePositions(instrument, tuning, root, scale)
-      : fingering === 'box'
-        ? positionalBoxes(instrument, tuning, root, scale)
-        : hybridBoxes(instrument, tuning, root, scale);
+      : fiveShapes(instrument, tuning, root, scale);
   const shapes = positions.map((p) => p.notes);
 
   // Reading down the page walks the positions: whichever card is under the

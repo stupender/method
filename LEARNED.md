@@ -1904,3 +1904,16 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   fingers go — but the voicing engine assumes pitch order, so inversion labels
   inherit the assumption. Documented at the tuning rather than fixed, with
   low-G offered as the exact alternative.
+- **Five shapes, not seven — and the intervals say which five.** A seven-note
+  scale offers seven starting degrees, but a box starting on the upper note of
+  a HALF step sits in the same hand position as the one below it, so those
+  collapse. Dropping the starts that are a semitone above their predecessor
+  gives CAGED's five for any major-type scale, derived rather than hard-coded.
+- **An in-position shape is a WINDOW, not a walk.** Put a hand at a fret and
+  the shape is every scale note under it, on every string. Building it by
+  stepping along a ladder and crossing strings describes three-notes-per-string
+  instead — which is why the old "Positional" produced seven boxes.
+- **Two controls that always agree are one control.** Positional and Hybrid
+  returned identical results for every major-7 scale, so in the app's default
+  key a third of that row did nothing. Worth checking that options actually
+  differ in the common case, not just the case they were designed for.

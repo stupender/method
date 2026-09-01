@@ -153,6 +153,121 @@ export function scalePositions(
   return positions;
 }
 
+
+// ---- System 2: the FIVE SHAPES (CAGED / position playing) -----------------
+//
+// WHY FIVE AND NOT SEVEN, which is the thing the old "Positional" got wrong.
+//
+// A seven-note scale offers seven notes to start a position on, so it's
+// tempting to build seven boxes. Players don't, and the reason is in the
+// intervals. A major scale runs W W H W W W H: two of its steps are HALF
+// steps. A box starting on the upper note of a half step sits in essentially
+// the same place on the neck as the box starting on the lower note — one fret
+// apart is not a different hand position. So those two collapse, and seven
+// starts become FIVE SHAPES. That's the CAGED system, and it's what every
+// printed position sheet shows.
+//
+// Concretely in C major the half steps are 3->4 and 7->1, so the starts on F
+// and C fall away and the shapes begin on D, E, G, A and B. It cross-checks
+// against a Phrygian sheet: E Phrygian is the same seven notes, E is the 3rd
+// of C major, and it survives — so Phrygian's first pattern starts on its own
+// root, which is exactly how those sheets are drawn.
+//
+// A SHAPE IS A WINDOW, not a walk. The old code built a box by stepping along
+// a ladder of scale tones and crossing strings when one climbed too high,
+// which is how you'd describe 3-notes-per-string. An in-position shape is
+// simpler and more honest than that: put your hand at a fret, and the shape is
+// EVERY scale note under it, on every string. That's what the diagrams draw
+// and it's what the hand actually does.
+const SHAPE_SPAN = 4; // frets beyond the start — a five-fret window, with the
+                      // stretch note the half steps ask for included
+
+export function fiveShapes(
+  instrument: Instrument,
+  tuning: Tuning,
+  root: Note,
+  scale: ScaleDefinition,
+): ScalePosition[] {
+  const byPitchClass = toneLookup(root, scale);
+  const { stringCount, fretCount } = instrument;
+  const lowOpen = midiOf(tuning.openNotes[0]);
+  const degreeCount = scale.intervals.length;
+
+  // WHICH DEGREES SURVIVE. A degree is dropped when it sits a semitone above
+  // the one before it — that's the collapse described above. Derived from the
+  // scale's own intervals rather than hard-coded, so it gives five for any
+  // seven-note scale with two half steps and does the right thing for scales
+  // shaped differently (harmonic minor's augmented second keeps all seven).
+  const semis = scale.intervals.map((iv) => iv.semitones);
+  const startDegrees: number[] = [];
+  for (let d = 0; d < degreeCount; d++) {
+    const prev = (d - 1 + degreeCount) % degreeCount;
+    const step = ((semis[d] - semis[prev]) % 12 + 12) % 12;
+    if (step !== 1) startDegrees.push(d); // 1 semitone = same hand position
+  }
+
+  const positions: ScalePosition[] = [];
+  for (const degree of startDegrees) {
+    // Where this degree first sits on the lowest string.
+    let startFret = -1;
+    for (let f = 0; f <= fretCount; f++) {
+      const tone = byPitchClass.get((((lowOpen + f) % 12) + 12) % 12);
+      if (tone && tone.degreeIndex === degree) {
+        startFret = f;
+        break;
+      }
+    }
+    if (startFret < 0) continue;
+
+    // The window, and every scale note inside it on every string —
+    // BUT EACH PITCH ONLY ONCE.
+    //
+    // A scale doesn't repeat a note, and a guitar will happily offer you the
+    // same one twice: G to B is a major 3rd where every other pair is a 4th,
+    // so in most windows one pitch sits on BOTH strings. Taking the window
+    // literally put B3 at G-string fret 4 and again at B-string fret 0, and
+    // the run played it twice in a row.
+    //
+    // The duplicate to keep is the one on the LOWER string, which is what
+    // "in position" means: climb a string as far as the window reaches, then
+    // cross. Strings are walked low to high here, so the first sighting of a
+    // pitch is already the right one and the rest are skipped.
+    const hi = Math.min(fretCount, startFret + SHAPE_SPAN);
+    const notes: PlacedNote[] = [];
+    const sounded = new Set<number>();
+    for (let s = 0; s < stringCount; s++) {
+      const open = midiOf(tuning.openNotes[s]);
+      for (let f = startFret; f <= hi; f++) {
+        const tone = byPitchClass.get((((open + f) % 12) + 12) % 12);
+        if (!tone) continue;
+        const midi = open + f;
+        if (sounded.has(midi)) continue; // already fingered, lower down
+        sounded.add(midi);
+        notes.push(placeAt(tuning, s, f, tone));
+      }
+    }
+    // A shape with a string missing isn't a hand position, it's a fragment.
+    const stringsCovered = new Set(notes.map((n) => n.position.stringIndex)).size;
+    if (stringsCovered < stringCount) continue;
+
+    positions.push({
+      notes,
+      name: scale.modeNames?.[degree] ?? `Shape ${degree + 1}`,
+      lowestFret: startFret,
+      degreeIndex: degree,
+    });
+  }
+  // UP THE NECK, in the order you'd read them. They're built in DEGREE order,
+  // which for C major puts the D shape (fret 10) first and the E shape (open)
+  // second — so the page would start you halfway up the neck and send you back
+  // to the nut. Reading down a page walks up the neck everywhere else here.
+  return positions.sort((a, b) => a.lowestFret - b.lowestFret);
+}
+
+// ---- RETIRED: the old 7-box "Positional" and "Hybrid" --------------------
+// Kept only until nothing imports them. See fiveShapes above for why seven
+// in-position boxes was the wrong count, and why Hybrid was identical to
+// Positional in every major-7 scale — two names for one thing.
 // ---- Systems 2 & 3: in-position boxes (Positional and Hybrid) -------------
 // Both lay TWO OCTAVES of consecutive scale tones across the neck, staying in one
 // ~4-fret position: move up a string the moment a tone climbs past the window's

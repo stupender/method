@@ -220,9 +220,29 @@ export function System({
     const room = Math.max(1, drawWidth - CLEF_COLUMN - TAIL);
     const perLine =
       moments.length === 1 ? 1 : Math.max(4, Math.floor(room / MIN_NOTE_SPACING));
+
+    // BREAK IT IN HALF, NOT BY THE YARD.
+    //
+    // This used to fill each line to capacity and start a new one wherever the
+    // count ran out, which put the break at an arbitrary note — a run would
+    // turn around in the middle of line two for no reason you could see.
+    //
+    // A scale run is a shape: up, then back down. Halving it puts the break
+    // exactly at the turn, so the ascent is one line and the descent is the
+    // next. Halve again if a half still doesn't fit, and the breaks keep
+    // landing on the shape's own joints instead of cutting across them.
+    //
+    // The count is odd (the top note is played once, not twice), so the first
+    // half takes the extra note — which is the apex itself. Line one therefore
+    // ENDS on the top note and line two begins the way down, which is how
+    // you'd read it aloud.
+    let lineCount = 1;
+    while (Math.ceil(moments.length / lineCount) > perLine) lineCount *= 2;
     const lines: PlacedNote[][][] = [];
-    for (let i = 0; i < moments.length; i += perLine) {
-      lines.push(moments.slice(i, i + perLine));
+    for (let i = 0; i < lineCount; i++) {
+      const from = Math.round((i * moments.length) / lineCount);
+      const to = Math.round(((i + 1) * moments.length) / lineCount);
+      if (to > from) lines.push(moments.slice(from, to));
     }
 
     const renderer = new Renderer(el, Renderer.Backends.SVG);

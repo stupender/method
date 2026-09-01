@@ -362,15 +362,30 @@ that degree** to Play (the chord-on-a-degree machinery already exists in Harmony
 via `diatonicChords`). Now that notes are individually clickable (re-root), a
 modifier/secondary action could add that degree's chord. Its own step.
 
-### Positional fingering, refined ✓ (done)
+### Fingering systems ✓ (rebuilt 2026-09-01 — CAGED, and the row cut to two)
 
-~~In positional mode the 3rd low-E note moves to the A string, continuing 2–3 per
-string in one position.~~ Done — `positionalBoxes` rewritten as a true in-position
-scan (2 on the low E for most boxes). Also added a third system, `hybridBoxes`
-(**Hybrid**: 2 on the low E, then 3 per string — a common learned blend), and
-clarified the naming: **Positional = the 7-position system** (not CAGED).
-Still open: a **CAGED** (5-shape) system; per-user **saved fingering preference**;
-the open-position nuance (Positional keeps 3 on the low E there).
+The row offered three systems and one of them wasn't real. **Positional and
+Hybrid returned byte-identical boxes for every major-7 scale** — the same thing
+under two names in the app's own default key — because Hybrid diverges from
+Positional only on a ♭7. And Positional built SEVEN in-position boxes, which is
+3nps-shaped thinking; position playing has **five**.
+
+Now: **3 per string** (7 patterns) and **5 Shapes** (CAGED). Two systems, which
+is how they're taught, and how the printed sheets are drawn.
+
+The five come out of the intervals rather than a lookup: drop the starts that
+sit a **semitone above their predecessor**, because one fret apart isn't a
+different hand position. C major's half steps at 3→4 and 7→1 drop the F and C
+starts, leaving D, E, G, A, B. Cross-checks against a Phrygian sheet — E is the
+3rd of C major and survives, so Phrygian's Pattern 1 starts on its own root at
+the nut, which is exactly what the app now draws.
+
+A shape is also modelled differently: **a window, not a walk.** Put the hand at
+a fret and the shape is every scale note under it on every string. The old code
+stepped along a ladder crossing strings, which describes 3nps, not a position.
+
+Still open: per-user **saved fingering preference**; **CAGED letter names**
+(C/A/G/E/D shape) as an alternative to the modal names the shapes carry now.
 
 ### String sets are a first-class choice
 
