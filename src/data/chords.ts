@@ -28,6 +28,7 @@ export const MAJOR_TRIAD: ChordDefinition = {
   name: 'Major Triad',
   kind: 'chord',
   symbol: '',            // e.g. "C"
+  short: 'Major',
   intervals: [P1, M3, P5],
 };
 
@@ -36,6 +37,7 @@ export const MINOR_TRIAD: ChordDefinition = {
   name: 'Minor Triad',
   kind: 'chord',
   symbol: 'm',           // e.g. "Cm"
+  short: 'Minor',
   intervals: [P1, m3, P5],
 };
 
@@ -44,6 +46,7 @@ export const DIMINISHED_TRIAD: ChordDefinition = {
   name: 'Diminished Triad',
   kind: 'chord',
   symbol: '°',           // e.g. "B°" — the same sign the Roman numeral uses
+  short: 'Dim',
   intervals: [P1, m3, d5],
 };
 
@@ -52,6 +55,7 @@ export const AUGMENTED_TRIAD: ChordDefinition = {
   name: 'Augmented Triad',
   kind: 'chord',
   symbol: '+',           // e.g. "E+" (the III+ of harmonic/melodic minor)
+  short: 'Aug',
   intervals: [P1, M3, A5],
 };
 
@@ -61,6 +65,7 @@ export const MAJOR_SEVENTH: ChordDefinition = {
   name: 'Major Seventh',
   kind: 'chord',
   symbol: 'maj7',        // e.g. "Cmaj7"
+  short: 'maj7',
   intervals: [P1, M3, P5, M7],
 };
 
@@ -69,6 +74,7 @@ export const MINOR_SEVENTH: ChordDefinition = {
   name: 'Minor Seventh',
   kind: 'chord',
   symbol: 'm7',          // e.g. "Dm7"
+  short: 'm7',
   intervals: [P1, m3, P5, m7],
 };
 
@@ -77,6 +83,7 @@ export const DOMINANT_SEVENTH: ChordDefinition = {
   name: 'Dominant Seventh',
   kind: 'chord',
   symbol: '7',           // e.g. "G7"
+  short: '7',
   intervals: [P1, M3, P5, m7],
 };
 
@@ -85,6 +92,7 @@ export const HALF_DIMINISHED: ChordDefinition = {
   name: 'Half-Diminished (m7♭5)',
   kind: 'chord',
   symbol: 'ø7',          // e.g. "Bø7" — half-diminished, as the numeral has it
+  short: 'm7♭5',
   intervals: [P1, m3, d5, m7],
 };
 
@@ -93,6 +101,7 @@ export const MINOR_MAJOR_SEVENTH: ChordDefinition = {
   name: 'Minor-Major Seventh',
   kind: 'chord',
   symbol: 'm(maj7)',     // e.g. "Cm(maj7)" — the tonic of harmonic/melodic minor
+  short: 'm(maj7)',
   intervals: [P1, m3, P5, M7],
 };
 
@@ -101,6 +110,7 @@ export const DIMINISHED_SEVENTH: ChordDefinition = {
   name: 'Diminished Seventh',
   kind: 'chord',
   symbol: '°7',          // e.g. "B°7" — the vii°7 of harmonic minor/major
+  short: '°7',
   intervals: [P1, m3, d5, d7],
 };
 
@@ -109,6 +119,7 @@ export const AUGMENTED_MAJOR_SEVENTH: ChordDefinition = {
   name: 'Augmented-Major Seventh',
   kind: 'chord',
   symbol: 'maj7♯5',      // e.g. "E♭maj7♯5" — the III of melodic minor
+  short: 'maj7♯5',
   intervals: [P1, M3, A5, M7],
 };
 

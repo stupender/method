@@ -330,6 +330,9 @@
   border: 1px solid var(--line);
   border-radius: 4px;
   overflow: hidden;
+  /* Named so the rows inside can ask how wide THIS panel is — see
+     `.seg__short`. With two panels open the window says nothing useful. */
+  container: panel / inline-size;
 }
 /* The title strip, with room for whatever belongs to the panel as a whole. */
 .panel__head {
@@ -452,16 +455,14 @@
      to survive means twelve keys become three comfortable rows instead of one
      illegible one.
 
-     `!important` is doing real work here and isn't laziness: Segmented sets
-     `gridTemplateColumns` as an INLINE style (it counts the options at render
-     time), and an inline style beats any stylesheet rule on specificity alone.
-     A declaration marked important is the one thing that outranks it. */
+     (This needed `!important` when Segmented set the columns as an inline
+     style. It doesn't any more — the layout is CSS's, and a custom property is
+     all that changes here.) */
   .seg--fill {
-    grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)) !important;
+    --seg-floor: 104px;
   }
-  /* A key or a Roman numeral is short — pack more of them per line. */
   .panel__row--tight .seg--fill {
-    grid-template-columns: repeat(auto-fit, minmax(62px, 1fr)) !important;
+    --seg-floor: 58px;
   }
   /* (The rest of the small-screen segmented-control rules live down with the
      `.seg` block itself — they have to override `.seg--fill .seg__btn`, and
@@ -701,6 +702,14 @@
   display: grid;
   width: 100%;
   gap: 0;
+  /* AS MANY PER LINE AS FIT, then the next line. Equal cells either way — the
+     panel's rhythm survives — but a row is no longer forced onto one line at
+     any cost. The floor is the narrowest a cell may be before the row wraps
+     instead; rows of short labels (keys, Roman numerals) set a smaller one. */
+  grid-template-columns: repeat(auto-fit, minmax(var(--seg-floor, 158px), 1fr));
+}
+.panel__row--tight .seg--fill {
+  --seg-floor: 62px;
 }
 .seg__btn {
   font-family: var(--sans);
@@ -720,15 +729,16 @@
    how wide to be and got it wrong both ways — a 6px stub under "I", or a rule
    so wide it belonged to the column rather than the word. A dot has no width
    to argue about. */
+/* THE DOT SITS ON THE MIDDLE OF ITS WORDS, one line or two — and because the
+   grid gives every cell in a row the same height and the label is centred
+   inside it, the dots also line up with each other straight across the row.
+   Both at once, which is the thing that's hard to get by hand: centring the
+   dot per-item alone would stagger them, and lining them up alone would leave
+   a dot floating beside the first line of a two-line name. */
 .seg__label {
   display: inline-flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 7px;
-}
-/* The dot rides the FIRST line of a wrapped label rather than centring itself
-   against two. */
-.seg__tick {
-  margin-top: 5px;
 }
 /* IN THE PANEL, THE MARK IS A DOT. One kind of switch for the whole box: the
    underline that used to mark a pick-one row is gone from here, because a
@@ -753,6 +763,28 @@
    can't recover from, since that's where these names differ.
    Short labels (a key, a Roman numeral) never wrap anyway, so nothing that
    fitted before moves. */
+/* THE SHORT NAME APPEARS WHEN THE FULL ONE WON'T FIT, and which is which is
+   decided by the PANEL's width rather than the window's — a container query,
+   because with two panels open side by side the window is wide and each panel
+   is not. A media query would have kept showing "Half-Diminished (m7♭5)" in a
+   half-width column.
+   Both names are always in the markup and CSS picks one, so nothing measures
+   anything and there's no state to get wrong. Where container queries aren't
+   supported the full name simply stays, which is the old behaviour. */
+.seg__short {
+  display: none;
+  min-width: 0;
+}
+
+@container panel (max-width: 620px) {
+  .seg__text {
+    display: none;
+  }
+  .seg__short {
+    display: inline;
+  }
+}
+
 .seg__text {
   min-width: 0;
   white-space: normal;
@@ -762,6 +794,10 @@
   padding-left: 4px;
   padding-right: 4px;
   min-width: 0;
+  /* Centre the label in a cell the grid has stretched to the row's height. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   /* The CELL clips, so a long name can't spill into its neighbour. The label
      inside must NOT clip — that's what cut the dot's glow off flat — and the
      dot sits far enough from this edge that the halo clears it. */

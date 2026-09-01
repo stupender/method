@@ -1077,7 +1077,11 @@ function Module({
             <MultiSelect
               fill
               ariaLabel="Triad qualities in play"
-              options={earChoices.triads.map((c) => ({ value: c.id, label: c.name }))}
+              options={earChoices.triads.map((c) => ({
+                value: c.id,
+                label: c.name,
+                short: c.short,
+              }))}
               values={earQualities}
               onToggle={toggleQuality}
             />
@@ -1088,7 +1092,11 @@ function Module({
             <MultiSelect
               fill
               ariaLabel="Seventh-chord qualities in play"
-              options={earChoices.sevenths.map((c) => ({ value: c.id, label: c.name }))}
+              options={earChoices.sevenths.map((c) => ({
+                value: c.id,
+                label: c.name,
+                short: c.short,
+              }))}
               values={earQualities}
               onToggle={toggleQuality}
             />

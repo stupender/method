@@ -134,6 +134,15 @@ export interface ScaleDefinition extends TheoryUnitBase {
 export interface ChordDefinition extends TheoryUnitBase {
   kind: 'chord';
   symbol: string;          // chord-symbol suffix, e.g. "" (major), "maj7", "m7"
+  /**
+   * The name at its shortest, for a control too narrow for the full one —
+   * "Dim" for "Diminished Triad", "m7♭5" for "Half-Diminished (m7♭5)".
+   *
+   * NOT the symbol. A symbol is what you write after a letter, so a major
+   * triad's is empty — perfectly correct on a chord chart and useless as a
+   * button label. This is a NAME, just a short one.
+   */
+  short: string;
   intervals: Interval[];   // chord tones from the root, including P1
 }
 

@@ -36,7 +36,12 @@ export function Segmented<T extends string | number>({
   className,
   fill = false,
 }: {
-  options: { value: T; label: ReactNode }[];
+    /**
+   * `short` is the same name at its shortest, shown when the panel is too
+   * narrow for the full one. Both are rendered and CSS picks — see
+   * `.seg__short` in App.css — so the swap costs no measuring and no state.
+   */
+  options: { value: T; label: ReactNode; short?: ReactNode }[];
   value: T;
   onChange: (value: T) => void;
   ariaLabel: string; // what this choice IS, e.g. "Key" or "Fingering"
@@ -53,7 +58,14 @@ export function Segmented<T extends string | number>({
       className={cls}
       role="radiogroup"
       aria-label={ariaLabel}
-      style={fill ? { gridTemplateColumns: `repeat(${options.length}, 1fr)` } : undefined}
+      /* NO INLINE COLUMN COUNT. It used to force `repeat(N, 1fr)` — every
+         option on ONE line however little room there was — so a long label had
+         nowhere to go but inside its own button, and "Half-Diminished (m7♭5)"
+         either broke across two lines mid-name or lost its end. The row wraps
+         as WHOLE BUTTONS now, laid out by CSS with `auto-fit` and a floor
+         width (see `.seg--fill` in App.css). Cells stay equal, which is the
+         panel's whole rhythm; there are just as many rows of them as the width
+         needs. */
     >
       {options.map((o) => (
         <button
@@ -70,6 +82,9 @@ export function Segmented<T extends string | number>({
             {/* The text truncates, not the label — the label holds the dot, and
                 clipping it clips the dot's glow. */}
             <span className="seg__text">{o.label}</span>
+            {o.short !== undefined && (
+              <span className="seg__short">{o.short}</span>
+            )}
           </span>
         </button>
       ))}

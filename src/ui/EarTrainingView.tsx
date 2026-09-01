@@ -139,28 +139,31 @@ function QualityQuiz({ material }: { material: EarMaterial }) {
 
   return (
     <>
-      <div className={revealed ? 'eartest eartest--settled' : 'eartest'}>
+      <div
+        className={
+          'eartest' +
+          (revealed ? ' eartest--settled' : '') +
+          (sounding ? ' eartest--sounding' : '')
+        }
+      >
+        {/* The seven degrees, orbiting — see EarTest.css. */}
+        <span className="eartest__ring" aria-hidden="true">
+          {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+            <span key={n} className="eartest__spark">
+              <i />
+          </span>
+          ))}
+        </span>
+
         {/* THE ORB IS THE SOUND. Press it to hear the chord — first time, or
             again. One thing to press, in one place, rather than a Start button
             that becomes a Replay button somewhere else. Its glow drifts while
             the chord is unnamed and stills when you've answered. */}
         <button
-          className={
-            'eartest__orb' +
-            (revealed ? ' eartest__orb--settled' : '') +
-            (sounding ? ' eartest__orb--sounding' : '')
-          }
+          className="eartest__orb"
           onClick={question === null ? newQuestion : replay}
           aria-label={question === null ? 'Play the first chord' : 'Play it again'}
         >
-          {/* The seven degrees, orbiting — see EarTest.css. */}
-          <span className="eartest__ring" aria-hidden="true">
-            {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-              <span key={n} className="eartest__spark">
-                <i />
-              </span>
-            ))}
-          </span>
           <span className="eartest__face" aria-hidden="true">
             {/* Plain ink — the colour is in the orbit around it. */}
             <svg viewBox="0 0 24 24" fill="currentColor">

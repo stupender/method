@@ -26,7 +26,7 @@
   flex-direction: column;
   align-items: center;
   gap: 22px;
-  padding: 10px 18px 8px;
+  padding: 34px 18px 10px;
   overflow: hidden;
   isolation: isolate;
 }
@@ -40,10 +40,7 @@
   position: relative;
   width: 128px;
   height: 128px;
-  /* The dots orbit outside the disc, so the button can't clip them — and the
-     margin is the room that orbit needs, or a dot crosses the caption below. */
   overflow: visible;
-  margin: 42px 0 40px;
   padding: 0;
   border: 0;
   background: none;
@@ -72,9 +69,18 @@
 
    They slow and fade the moment you answer. Seven possibilities become one.
    ========================================================================== */
+/* THE WHOLE BACK OF THE BOX, not a ring round the button. Each dot is roughly
+   a third of the panel across, drifting so slowly you can't watch it move —
+   you look away and look back and it's somewhere else. That scale is what
+   stops them reading as decoration: at 30px they were beads on a necklace, at
+   300 they're weather.
+   A blurred CIRCLE also solves what a gradient wash couldn't — it has no edges
+   to find, so it never turns into a lighter rectangle in the corner of a box
+   that does. */
 .eartest__ring {
   position: absolute;
   inset: 0;
+  z-index: -1;
   pointer-events: none;
 }
 /* TWO ELEMENTS PER DOT, because two things are moving at once and a single
@@ -97,25 +103,26 @@
   margin: calc(var(--size) / -2);
   border-radius: 50%;
   background: var(--hue);
-  /* Just enough softness to bloom into its neighbours where they cross —
-     these are the app's dots, not fog. */
-  filter: blur(1.5px);
-  opacity: 0.85;
+  /* Barely there, and enormously soft. Two of them crossing is the only time
+     you really notice one — which is the riso idea: the overlap is the event,
+     not the ink. */
+  filter: blur(48px);
+  opacity: 0.17;
   mix-blend-mode: multiply;
   animation: eartest-breathe var(--breath) ease-in-out infinite alternate;
   /* THE GENTLE RETURN. The swell on a played chord arrives fast and leaves
      slowly — it snaps bright on the attack and eases back over the best part
      of a second, the way a note does. Done as a transition rather than a
      keyframe so there's no end-of-animation snap back to normal. */
-  transition: filter 900ms ease-out, opacity 900ms ease-out;
+  transition: filter 1400ms ease-out, opacity 1400ms ease-out;
 }
 
 @keyframes eartest-breathe {
   from {
-    transform: scale(0.72);
+    transform: scale(0.82);
   }
   to {
-    transform: scale(1.28);
+    transform: scale(1.22);
   }
 }
 @media (prefers-color-scheme: dark) {
@@ -141,20 +148,20 @@
 /* Seven of them, and no two alike: its own orbit, its own year, its own size,
    its own slow breath. The numbers are deliberately not multiples of each
    other, so the arrangement never repeats. */
-.eartest__spark:nth-child(1) { --from: 0deg;   --r: 84px;  --dur: 15s; --size: 18px; --breath: 6.5s; --hue: var(--deg-1); }
-.eartest__spark:nth-child(2) { --from: 51deg;  --r: 96px;  --dur: 19s; --size: 12px; --breath: 8.3s; --hue: var(--deg-2); }
-.eartest__spark:nth-child(3) { --from: 103deg; --r: 88px;  --dur: 23s; --size: 21px; --breath: 5.7s; --hue: var(--deg-3); }
-.eartest__spark:nth-child(4) { --from: 154deg; --r: 101px; --dur: 17s; --size: 14px; --breath: 9.1s; --hue: var(--deg-4); }
-.eartest__spark:nth-child(5) { --from: 206deg; --r: 92px;  --dur: 27s; --size: 19px; --breath: 7.2s; --hue: var(--deg-5); }
-.eartest__spark:nth-child(6) { --from: 257deg; --r: 105px; --dur: 21s; --size: 11px; --breath: 6.1s; --hue: var(--deg-6); }
-.eartest__spark:nth-child(7) { --from: 309deg; --r: 86px;  --dur: 25s; --size: 16px; --breath: 8.8s; --hue: var(--deg-7); }
+.eartest__spark:nth-child(1) { --from: 0deg; --r: 118px; --dur: 210s; --size: 300px; --breath: 64s; --hue: var(--deg-1); }
+.eartest__spark:nth-child(2) { --from: 148deg; --r: 166px; --dur: 260s; --size: 210px; --breath: 81s; --hue: var(--deg-2); }
+.eartest__spark:nth-child(3) { --from: 74deg; --r: 96px; --dur: 185s; --size: 340px; --breath: 57s; --hue: var(--deg-3); }
+.eartest__spark:nth-child(4) { --from: 233deg; --r: 188px; --dur: 305s; --size: 240px; --breath: 92s; --hue: var(--deg-4); }
+.eartest__spark:nth-child(5) { --from: 300deg; --r: 134px; --dur: 240s; --size: 320px; --breath: 70s; --hue: var(--deg-5); }
+.eartest__spark:nth-child(6) { --from: 41deg; --r: 205px; --dur: 330s; --size: 195px; --breath: 48s; --hue: var(--deg-6); }
+.eartest__spark:nth-child(7) { --from: 192deg; --r: 152px; --dur: 275s; --size: 270px; --breath: 86s; --hue: var(--deg-7); }
 
-.eartest__orb--settled .eartest__spark,
-.eartest__orb--settled .eartest__spark i {
+.eartest--settled .eartest__spark,
+.eartest--settled .eartest__spark i {
   animation-play-state: paused;
 }
-.eartest__orb--settled .eartest__spark i {
-  opacity: 0.14;
+.eartest--settled .eartest__spark i {
+  opacity: 0.05;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -168,10 +175,12 @@
    the one moment the picture is tied to the audio rather than to the state of
    the question, and the thing that makes the panel feel alive rather than
    decorated. */
-.eartest__orb--sounding .eartest__spark i {
-  filter: blur(0.5px) saturate(1.3);
-  opacity: 1;
-  transition-duration: 110ms; /* in fast, out slow — see the base rule */
+.eartest--sounding .eartest__spark i {
+  /* A LIFT, NOT A FOCUS. It brightens and firms slightly on the attack and
+     never resolves into a hard dot — the sound isn't sharp either. */
+  filter: blur(40px) saturate(1.4);
+  opacity: 0.3;
+  transition-duration: 200ms; /* in fast, out slow — see the base rule */
 }
 
 /* The disc itself sits over the glow and carries the mark you press. */
@@ -321,11 +330,9 @@
     height: 104px;
   }
   /* Pulled in with the disc so the orbit still clears it. */
-  .eartest__spark {
-    --r: 78px !important;
-    width: 14px;
-    height: 14px;
-    margin: -7px;
+  /* Smaller box, smaller weather — still about a third of it across. */
+  .eartest__spark i {
+    --size: 200px;
   }
   .eartest__answers {
     grid-template-columns: 1fr 1fr;
