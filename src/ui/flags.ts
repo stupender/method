@@ -28,3 +28,25 @@ export const SHOW_PLAY_BUTTONS = false;
 //
 // The songbook underneath it is untouched; this is only the doorway.
 export const SHOW_ADD_TO_PLAY = false;
+
+/**
+ * SLIDE THE NECK'S DOTS AND LINES when what's on it changes.
+ *
+ * OFF, deliberately. The idea is a good one — a chord's voices moving from one
+ * grip to the next shows you the voice leading, which is a thing worth
+ * watching — but making it true in every case turned into a long chase.
+ * Matching a note to "the same note a moment ago" has to survive key changes,
+ * gravity changes, fingering-system changes and voicing changes, and each of
+ * those wants a different answer about what counts as the same note. Several
+ * rounds in it was still half right, and half-right motion is worse than none:
+ * some dots slid while others blinked, which reads as a bug rather than as
+ * movement.
+ *
+ * So it's off until it can be done properly in one pass, rather than being
+ * patched case by case. Everything still lands exactly where it should — it
+ * just doesn't travel there.
+ *
+ * The machinery is all still in render/Fretboard.tsx behind the `animate`
+ * prop; flipping this to true turns it back on.
+ */
+export const NECK_ANIMATION = false;

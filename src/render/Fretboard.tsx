@@ -14,6 +14,7 @@
 import { useEffect, useRef } from 'react';
 import type { Instrument, Tuning, PlacedNote } from '../theory/types';
 import { noteName } from '../theory/notes';
+import { NECK_ANIMATION } from '../ui/flags';
 import './Fretboard.css';
 
 // --- Geometry constants (in SVG user units) -------------------------------
@@ -77,18 +78,16 @@ interface FretboardProps {
   /**
    * Slide the dots and swing the lines when what's on the neck changes.
    *
-   * ON FOR CHORDS, OFF FOR SCALES. Moving between voicings of one chord is a
-   * small, related change and watching it travel shows you the voice leading —
-   * that's the whole reason the animation exists. Moving between scale
-   * positions isn't like that: sixty dots rearrange at once into a shape that
-   * shares almost nothing with the last one, and animating it is a lot of
-   * motion illustrating nothing you could follow.
+   * OFF EVERYWHERE FOR NOW — see NECK_ANIMATION in ui/flags.ts for why. The
+   * prop stays because the distinction is still the right one when it comes
+   * back: a chord's voices moving between grips is worth watching, a scale
+   * position rearranging wholesale isn't.
    */
   animate?: boolean;
 }
 
 export function Fretboard({
-  animate = true,
+  animate = NECK_ANIMATION,
   instrument,
   tuning,
   highlights = [],
