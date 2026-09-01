@@ -35,6 +35,15 @@ export interface ScalePosition {
   notes: PlacedNote[]; // the box, ready for the fretboard
   name: string; // mode / position label
   lowestFret: number;
+  /**
+   * Which degree of the parent scale this box starts on — 0 for the tonic, 1
+   * for the second, and so on. The NAME above says which mode that makes
+   * ("Dorian"); this says which note it starts from, so a caller that wants to
+   * write "D Dorian" can look the note up without re-deriving it. Kept as an
+   * index rather than a formatted note because spelling a note is the UI's job
+   * and this file is theory.
+   */
+  degreeIndex: number;
 }
 
 // Shared lookup: scale tone (spelling + degree + root flag) by pitch class.
@@ -138,6 +147,7 @@ export function scalePositions(
       notes,
       name: scale.modeNames?.[startDegree] ?? `Position ${positions.length + 1}`,
       lowestFret: Math.min(...notes.map((p) => p.position.fret)),
+      degreeIndex: startDegree,
     });
   }
   return positions;
@@ -260,6 +270,7 @@ function positionScan(
       notes,
       name: scale.modeNames?.[startDegree] ?? `Position ${positions.length + 1}`,
       lowestFret: Math.min(...notes.map((p) => p.position.fret)),
+      degreeIndex: startDegree,
     });
   }
   return positions;

@@ -12,7 +12,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Instrument, Note, ScaleDefinition, Tuning } from '../theory/types';
 import { scalePositions, positionalBoxes, hybridBoxes } from '../theory/scalePositions';
-import { placeScale } from '../theory/scale';
+import { placeScale, realizeScale } from '../theory/scale';
 import { midiOf, noteName } from '../theory/notes';
 import { playSequence, type Sequence } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
@@ -103,6 +103,22 @@ export function ScaleExplorer({
   // 8–12 real notes off every key (C major lost its open E and everything from
   // fret 15 up). The neck shows the scale; the boxes light a path through it.
   const wholeNeck = placeScale(instrument, tuning, root, scale);
+
+  // WHAT THE POSITION UNDER THE NECK IS, NAMED IN FULL — "D Dorian", not just
+  // "Dorian". The mode alone tells you the flavour but not where it starts, and
+  // starting note is half of what you need to actually play it. Beside the
+  // scale's own name it reads as the pair it is: C Major, and the D Dorian you
+  // happen to be standing in.
+  //
+  // Falls back to the bare name for a scale with no mode names, where the label
+  // is "Position 3" and a note in front of it would say nothing.
+  const parentTones = realizeScale(root, scale);
+  const positionLabel = (i: number): string | undefined => {
+    const pos = positions[i];
+    if (!pos) return undefined;
+    const tone = parentTones[pos.degreeIndex];
+    return scale.modeNames && tone ? `${noteName(tone.note)} ${pos.name}` : pos.name;
+  };
 
   // A stable key for "which scale, in which fingering" — when it changes the set
   // of positions changes, so any pinned index is stale and we clear it.
@@ -197,7 +213,7 @@ export function ScaleExplorer({
         <NeckPanel
           name={`${noteName(root)} ${scale.name}`}
           legend={<DegreeLegend root={root} scale={scale} />}
-          aside={activeShape != null ? positions[activeShape]?.name : undefined}
+          aside={activeShape != null ? positionLabel(activeShape) : undefined}
         >
         <Fretboard
           instrument={instrument}
