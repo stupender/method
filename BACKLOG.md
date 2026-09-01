@@ -624,7 +624,98 @@ beside the Western defaults.
 
 ---
 
+## The v1 brief (2026-09-01) — and what it costs
+
+Stu's brief, in one line: *a guitarist in the Julian Lage masterclass group
+opens one link on their phone, immediately uses the fretboard tool, can
+optionally make a free account to save their settings, sees Stu's name linking
+to Being Sound, and finds one gentle invitation to the Substack.* Anything not
+needed for that sentence isn't in v1.
+
+### Checked against what's actually built
+
+- **Not Electron, and never was.** Three dependencies: react, react-dom,
+  vexflow. It's a Vite web build, already hosted and already reachable by URL.
+  The brief's "priority is to get a hosted web version live" is done.
+- **PWA is genuinely missing** — no manifest, no service worker. A day's work.
+  But note the constraint that decides how much it matters: **you cannot
+  install a PWA from inside WhatsApp's in-app browser.** It's a webview with no
+  add-to-home-screen affordance; the reader has to open in Safari or Chrome
+  first. So the PWA is worth having and is NOT the first-run experience for the
+  audience the brief names. First run is a cold webview over mobile data.
+- **"Keep the source private" needs a host change.** A public repo is mandatory
+  for Pages on a free plan. Either GitHub Pro (~$4/mo) or move to
+  Vercel/Netlify/Cloudflare — and since accounts would force that move anyway,
+  one move buys both.
+- **Email capture is built**, at the moment the brief describes (saving your
+  first setting). But it's a MAILING-LIST signup, not an account. If accounts
+  arrive, these have to merge into one ask — nobody should be asked for their
+  address twice on the same page.
+
+### The two gaps, and they are not the same size
+
+**Gap 1 — the phone. Cheap, and the brief's first clause is false without it.**
+Measured at 375×812 on 2026-09-01, with nothing overflowing the viewport (so it
+LOOKS fine to a layout check) and yet:
+  - the KEY row renders its twelve keys as bare punctuation — the note names
+    are gone entirely;
+  - SCALE shows "Melodi…", "Harmo…", "Harmo…", the last two identical;
+  - GRAVITY shows "A.." for All and "v…" for vii°; FINGERING shows "3 per stri…";
+  - the neck is **77px tall** — six strings and seventeen frets in 77px;
+  - and it starts **582px down**, so on a 812px screen the thing the app is FOR
+    occupies about 9% of the first view.
+  Add ~783KB of gzipped JavaScript arriving over mobile data first.
+  This is the release. "Immediately doing something useful" is not true today.
+
+**Gap 2 — the account. Expensive, and it is the entire rest of the release.**
+"Auth/storage as light as possible, e.g. email + magic link" is the one item in
+the brief that isn't light: it means a backend, a database, personal data held
+on a server, GDPR duties that come with holding it, auth edge cases and email
+deliverability — and it permanently changes what this codebase IS, from a
+static site anyone can fork and run to a service with secrets and users. That
+runs straight into the CLAUDE.md constraint that Stu must be able to explain
+this in an interview and a small local model must be able to maintain it.
+
+**A middle path worth considering before committing to the backend:** a saved
+setting becomes a LINK. Settings already persist per device; the only real gap
+is between devices, and a URL closes it (send it to yourself) at zero server
+cost — while also being the sharing mechanism the funnel wants. It does not
+literally satisfy "make a free account", which is Stu's call to make. The
+brief's own logic argues for it though: it says real usage should inform the
+curriculum rather than the reverse, and the same applies here — ship, then find
+out what people actually want kept.
+
+### Recommended cut
+
+**v1.0** — the phone, PWA, attribution + copyright, the Substack invitation,
+and the VexFlow lazy-load (no longer a nicety once the audience is on mobile
+data). Ships to the Lage group.
+**v1.1** — the account, if real use asks for it, together with the host move
+that also makes the repo private.
+
+---
+
 ## Business / launch
+
+> **SUPERSEDED IN PART, 2026-09-01.** Stu brought a v1 Build Brief written with
+> the business plan in front of it, and it settles several things this section
+> was still weighing. **The app is not monetized directly.** It's the FORM
+> layer of the Being Sound pedagogy and its job is to be a trust engine and the
+> top of a funnel into the teaching — lessons, the Sounding With immersion, the
+> Substack. So: no payments, no tiers, no referral mechanics, no gate on core
+> features. The founding-supporter link, the eventual paid workbench and the
+> unlock-code machinery below are all OFF the plan, not merely deferred.
+>
+> What survives is the reasoning about EMAIL and ACCOUNTS, because the brief
+> lands in the same place by a different route: no signup wall, the core tool
+> usable immediately, and email captured as the natural result of saving
+> something worth keeping. The brief goes one step further than we had — it
+> wants a real free account (email + magic link) so settings follow you between
+> devices, which is a backend and is costed honestly under "The v1 brief"
+> below.
+>
+> The rest of this section is kept as the record of how the payment question
+> was reasoned through, in case the answer ever needs revisiting.
 
 Written up 2026-08-31, when Stu asked about accounts, payments and
 subscriptions ahead of sharing this with the Julian Lage masterclass group and
