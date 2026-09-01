@@ -2193,9 +2193,20 @@
 }
 
 /* The page opens out when there are two, since the default measure is set for
-   reading one column of text and two fretboards need more than that. */
-.page--split {
-  max-width: min(96vw, 1760px);
+   reading one column of text and two fretboards need more than that.
+   ONLY WHERE THEY'RE ACTUALLY SIDE BY SIDE. This used to apply at every width,
+   which was wrong twice over on a phone: the modules are stacked below 1100px
+   so there's no second column to make room for, and `min(96vw, …)` on a 375px
+   screen resolves to 360px — NARROWER than the viewport. The page then
+   centred itself inside its own window and every gutter on the page grew by
+   7px, so turning on two panels quietly re-laid-out a single-column phone
+   view that hadn't changed shape at all.
+   Keyed to 1101px to meet the `max-width: 1100px` rule above exactly; the two
+   describe the same boundary and have to move together. */
+@media (min-width: 1101px) {
+  .page--split {
+    max-width: min(96vw, 1760px);
+  }
 }
 
 /* A panel's own controls: bookmark, add a second, close. */
