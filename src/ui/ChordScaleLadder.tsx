@@ -110,9 +110,31 @@ export function ChordScaleLadder({
     ),
   );
   const setsPerChord = placedPerChord.map((shapes) => new Set(shapes.map(stringSetKey)));
-  const sets = [...(setsPerChord[0] ?? [])]
-    .filter((key) => setsPerChord.every((s) => s.has(key)))
+
+  // WHICH STRING SETS HOLD THE WHOLE KEY — and what to do when none of them do.
+  //
+  // Ideally a set holds all seven chords, and reading down it is the key
+  // climbing one shape. But that isn't always possible, and OPEN TRIADS WITH
+  // THE 5TH IN THE BASS are the case that proves it: a major one spans a major
+  // 6th then a minor 6th, a minor one spans them the other way round, and the
+  // two want different string gaps. In C major the majors sit on E-D-G and the
+  // minors on E-A-G, and no set takes all seven.
+  //
+  // That used to filter down to nothing and leave an empty page under a
+  // message about seventh chords, which was neither true nor useful. So: take
+  // the sets that hold the whole key when there are any, and otherwise take
+  // the ones that hold the MOST of it. A chord scale with two chords missing
+  // is still worth seeing — and the gap is the interesting part, because it's
+  // telling you the voicing changes shape between major and minor.
+  const everySet = new Set(placedPerChord.flatMap((shapes) => shapes.map(stringSetKey)));
+  const coverage = (key: string) => setsPerChord.filter((s) => s.has(key)).length;
+  const bestCoverage = Math.max(0, ...[...everySet].map(coverage));
+  const wanted = bestCoverage === setsPerChord.length ? setsPerChord.length : bestCoverage;
+  const sets = [...everySet]
+    .filter((key) => coverage(key) === wanted)
     .sort((a, b) => Number(a.split('-')[0]) - Number(b.split('-')[0]));
+  /** True when no single set could hold the key — see above. */
+  const partial = wanted > 0 && wanted < setsPerChord.length;
 
   // One block per string set. Within a block the key CLIMBS: start from the
   // lowest chord on the neck and octave-shift each following chord up when it
@@ -140,7 +162,9 @@ export function ChordScaleLadder({
       if (s.length) prevLo = loFret(s);
       return { degree: degrees[i], shape: s, index: counter++ };
     });
-    return { key, rows };
+    // A chord that can't be voiced on this set leaves no card behind — an
+    // empty one would be a staff with nothing on it and no way to tell why.
+    return { key, rows: rows.filter((r) => r.shape.length > 0) };
   });
 
 
@@ -234,8 +258,13 @@ export function ChordScaleLadder({
           element that IS this view. */}
       {groups.length === 0 ? (
         <p className="control-hint control-hint--warn">
-          These close-voiced seventh chords don't lay out as a chord scale on any
-          one string set — try Drop 2 or Drop 3.
+          {/* It said "these close-voiced seventh chords" whatever you were
+              actually looking at, which was wrong most of the time it appeared
+              — and by the time it appeared the real answer was usually the
+              partial fallback above, not an apology. */}
+          {structure.name} {seventh ? 'seventh chords' : 'triads'} with this bass
+          note don't lay out on the neck in this key — try another bass note, or
+          a different voicing.
         </p>
       ) : (
         <>
@@ -301,7 +330,14 @@ export function ChordScaleLadder({
                     </button>
                   )}
                   <span className="voicing-set__name">{setLabel(g.key)}</span>
-                  <span className="voicing-set__note">strings</span>
+                  <span className="voicing-set__note">
+                    strings
+                    {/* When no set could hold all seven, say which are here
+                        rather than letting a short list look like a bug. The
+                        gap is the point: this voicing changes shape between
+                        major and minor, so the two want different strings. */}
+                    {partial && ` — ${g.rows.length} of ${degrees.length}`}
+                  </span>
                 </header>
 
                 <div className="tab-shelf">
