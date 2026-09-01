@@ -68,13 +68,23 @@
   cursor: default;
   user-select: none;
   align-self: center;
-  padding: 2px 7px;
+  /* SMALL ENOUGH TO BE A FOOTNOTE ON THE NAME. It's a status, not a feature —
+     it says "things will move" and then gets out of the way. At 10.5px in a
+     7px box it was reading as a second word in the title, which gave a
+     temporary fact the same weight as the app's name.
+     The letterspacing goes UP as the size comes down: below about 9px a run of
+     capitals closes into a single dark block, and the air is what keeps it
+     legible as four letters. */
+  padding: 1px 5px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   color: var(--muted);
-  font-size: 10.5px;
+  font-size: 8.5px;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.2em;
+  /* The letterspacing is applied AFTER the last letter too, which leaves the
+     word sitting left of centre in its box. Half of it back on the right. */
+  text-indent: 0.2em;
   text-transform: uppercase;
   text-decoration: none;
 }
@@ -156,6 +166,20 @@
   gap: 3px;
   margin-left: auto;
   flex: none;
+  /* BOTH MENUS HANG FROM THE SAME PLACE — the right edge of this cluster,
+     rather than each from its own icon.
+     It's the better behaviour twice over. A menu that always opens in the same
+     spot is easier to use than one that jumps left or right depending on which
+     mark you pressed; and it's the only version that FITS, because the
+     instrument icon sits three marks in from the page's edge, so a 258px menu
+     hung from it reached past the left of a phone screen and got clipped.
+     Making the cluster the positioned ancestor is all it takes: the panel's
+     `right: 0` then means the cluster's right edge. `.menu` stays relative on
+     its own, so the component still works anywhere else. */
+  position: relative;
+}
+.sitebar__controls .menu {
+  position: static;
 }
 
 @media (max-width: 560px) {
@@ -2263,7 +2287,11 @@
   top: calc(100% + 9px);
   right: 0;
   z-index: 40;
-  width: 258px;
+  /* IT CAN'T BE WIDER THAN THE PAGE. Anchored to its button's right edge, a
+     fixed 258px menu hangs off the LEFT of a phone — the button is near the
+     right edge and the menu reaches back further than the screen goes. The
+     viewport is the real limit, so it's the one written down. */
+  width: min(258px, calc(100vw - 24px));
   max-height: 60vh;
   overflow-y: auto;
   background: var(--bg);
