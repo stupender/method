@@ -35,7 +35,13 @@ import { ChordScaleLadder } from './ui/ChordScaleLadder';
 import { InversionLadder } from './ui/InversionLadder';
 import { ControlPanel, ControlRow } from './ui/ControlPanel';
 import { Subscribe } from './ui/Subscribe';
-import { AUTHOR, BEING_SOUND, SUBSTACK } from './ui/links';
+import {
+  AUTHOR,
+  BEING_SOUND,
+  FEEDBACK_EMAIL,
+  FEEDBACK_SUBJECT,
+  SUBSTACK,
+} from './ui/links';
 import { alreadyAsked, markDismissed } from './ui/asked';
 import { BookmarksMenu, SaveBookmark } from './ui/Bookmarks';
 import {
@@ -355,6 +361,24 @@ function App() {
       <header className="sitebar">
         <Mark className="sitebar__mark" variant="triad" press />
         <h1 className="sitebar__name">Fretboard Constellations</h1>
+        {/* BETA, AND A WAY TO SAY SO. The footer is the right home for the
+            feedback link but it's at the end of a very long page, and the one
+            thing worth having in beta is people telling you WHY something
+            confused them.
+            A word rather than a fourth icon, deliberately: the cluster at the
+            other end is for OPERATING the app — what you've saved, one panel
+            or two, the light — and reaching the person who made it isn't that.
+            It also earns its place by carrying information the reader wants
+            anyway: this is unfinished, things will move, that's expected. */}
+        {FEEDBACK_EMAIL && (
+          <a
+            className="sitebar__beta"
+            href={`mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(FEEDBACK_SUBJECT)}`}
+            title="In beta — tell Stu what's confusing or broken"
+          >
+            Beta
+          </a>
+        )}
         {/* Top-level areas: a higher separation than the modes within Study. */}
         {AREAS.length > 1 && (
           <nav className="topnav" role="group" aria-label="Area">
@@ -561,6 +585,23 @@ function App() {
                 his Substack
               </a>
               .
+            </p>
+          )}
+          {/* THE ONE THING WORTH MORE THAN ANY DASHBOARD while this is in
+              beta. A plain mailto rather than a form on purpose: it reaches
+              Stu's actual inbox, the sender can write freely and attach a
+              screenshot of the thing that confused them, and the reply comes
+              from a person instead of a ticketing system. It also needs no
+              backend, no spam handling and nothing to maintain. */}
+          {FEEDBACK_EMAIL && (
+            <p>
+              Something confusing, broken, or missing?{' '}
+              <a
+                href={`mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(FEEDBACK_SUBJECT)}`}
+              >
+                Tell Stu
+              </a>
+              {' '}— it's in beta and still being shaped.
             </p>
           )}
           <p className="sitefoot__legal">

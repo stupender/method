@@ -60,6 +60,28 @@
   white-space: nowrap;
 }
 
+/* The beta mark beside the title: a label first, a link second. Quiet enough
+   not to compete with the name it sits against, underlined so it's plainly
+   something you can press. */
+.sitebar__beta {
+  flex: none;
+  align-self: center;
+  padding: 2px 7px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.sitebar__beta:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
 /* THE BAR'S OWN CONTROLS — saved settings, one panel or two, and the light.
    Three things true of the whole app rather than of what's on the page, so
    they're ONE SET and they finally look like it. They didn't: two were pills
