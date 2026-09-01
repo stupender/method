@@ -37,17 +37,23 @@ export const UKULELE_BARITONE: Instrument = {
   defaultTuningId: 'uke-baritone-standard',
 };
 
-// TENOR — G4 C4 E4 A4. Take the baritone's four strings, start at the 5th fret
-// (D->G, G->C, B->E, E->A) and put the lowest one up an octave. That octave is
-// the whole character of the instrument: the G sounds ABOVE the C beside it,
-// so the four strings don't climb in pitch the way a guitar's do. See the
-// note on the tuning in data/tunings.ts for what that costs.
+// TENOR — G C E A. Take the baritone's four strings, start at the 5th fret
+// (D->G, G->C, B->E, E->A), and that's a tenor.
+//
+// IT OPENS IN LOW G, which is not the commoner tuning of the two. Stu's call,
+// and the reasoning is worth keeping: on a re-entrant (high G) tenor the
+// lowest-numbered string sounds ABOVE the one next to it, which breaks the
+// assumption the voicing engine rests on and makes an inversion label name a
+// bass note that isn't sounding. Low G climbs like every other tuning here, so
+// everything the app says is exactly true — and a player holding a high-G uke
+// reads the same shapes and adjusts for the one string without being told
+// anything wrong. High G is one tap away in the menu.
 export const UKULELE_TENOR: Instrument = {
   id: 'uke-tenor',
   name: 'Tenor Ukulele',
   stringCount: 4,
   fretCount: 15,
-  defaultTuningId: 'uke-tenor-standard',
+  defaultTuningId: 'uke-tenor-low-g',
 };
 
 // A lookup so the rest of the app can find an instrument by id.

@@ -42,6 +42,21 @@ export const UKE_BARITONE_STANDARD: Tuning = {
   ],
 };
 
+// TENOR, LOW G — the same instrument strung so it climbs like a guitar. Common
+// enough to be worth having, and the one to reach for if the inversion labels
+// in Harmony need to be exactly right.
+export const UKE_TENOR_LOW_G: Tuning = {
+  id: 'uke-tenor-low-g',
+  name: 'Low G',
+  instrumentId: 'uke-tenor',
+  openNotes: [
+    { letter: 'G', accidental: 0, octave: 3 },
+    { letter: 'C', accidental: 0, octave: 4 },
+    { letter: 'E', accidental: 0, octave: 4 },
+    { letter: 'A', accidental: 0, octave: 4 },
+  ],
+};
+
 // TENOR UKULELE — G4 C4 E4 A4, RE-ENTRANT, which is the standard tuning and
 // the one nearly every tenor arrives in.
 //
@@ -74,27 +89,14 @@ export const UKE_TENOR_STANDARD: Tuning = {
   ],
 };
 
-// TENOR, LOW G — the same instrument strung so it climbs like a guitar. Common
-// enough to be worth having, and the one to reach for if the inversion labels
-// in Harmony need to be exactly right.
-export const UKE_TENOR_LOW_G: Tuning = {
-  id: 'uke-tenor-low-g',
-  name: 'Low G',
-  instrumentId: 'uke-tenor',
-  openNotes: [
-    { letter: 'G', accidental: 0, octave: 3 },
-    { letter: 'C', accidental: 0, octave: 4 },
-    { letter: 'E', accidental: 0, octave: 4 },
-    { letter: 'A', accidental: 0, octave: 4 },
-  ],
-};
-
 // Lookup by tuning id.
 export const TUNINGS: Record<string, Tuning> = {
   [GUITAR_STANDARD.id]: GUITAR_STANDARD,
   [UKE_BARITONE_STANDARD.id]: UKE_BARITONE_STANDARD,
-  [UKE_TENOR_STANDARD.id]: UKE_TENOR_STANDARD,
+  // Low G first: it's the tenor's default here, and this order is the order
+  // the menu offers them in.
   [UKE_TENOR_LOW_G.id]: UKE_TENOR_LOW_G,
+  [UKE_TENOR_STANDARD.id]: UKE_TENOR_STANDARD,
 };
 
 /** Every tuning an instrument can be in, in the order they're offered. */

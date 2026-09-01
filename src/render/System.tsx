@@ -36,6 +36,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   Accidental,
+  Clef,
   Formatter,
   Metrics,
   MetricsDefaults,
@@ -241,6 +242,26 @@ export function System({
       // Ruled for THIS instrument: six lines for a guitar, four for a uke.
       const tab = new TabStave(0, TAB_TOP + top, staveWidth, { numLines: strings });
       tab.addClef('tab');
+      // ...AND THE "TAB" MARK RESIZED TO MATCH. VexFlow's `tab` clef is hard
+      // wired to the SIX-string glyph, so on a four-line ukulele stave the
+      // lettering was drawn at its full height from a centre meant for six
+      // lines — the B hung off the bottom of the stave entirely.
+      //
+      // SMuFL has a four-string version of the mark and Bravura carries it;
+      // VexFlow simply never wires it up. The codepoint is written out here
+      // because `Glyphs` isn't exported from the package — but SMuFL is a
+      // published standard and these numbers don't move.
+      //   U+E06D  6-string TAB clef   (VexFlow's default)
+      //   U+E06E  4-string TAB clef
+      if (strings !== 6) {
+        const clef = tab.getModifiers().find((m) => m instanceof Clef) as Clef | undefined;
+        if (clef) {
+          clef.code = strings <= 4 ? '\uE06E' : '\uE06D';
+          clef.setText(clef.code);
+          // Centre of the stave: line 2.5 of six, line 1.5 of four.
+          clef.line = (strings - 1) / 2;
+        }
+      }
       // The T A B letters are drawn tall and the formatter doesn't leave much
       // after them, so the first fret number lands against the A and the B. A
       // few pixels of air is all it needs.

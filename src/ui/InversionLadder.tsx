@@ -44,6 +44,7 @@ import { playChord } from '../audio/player';
 import { Fretboard } from '../render/Fretboard';
 import { NeckPanel } from './NeckPanel';
 import { SHOW_PLAY_BUTTONS } from './flags';
+import { placeScale } from '../theory/scale';
 import { DegreeLegend } from './DegreeLegend';
 import { useScrollFocus } from './useScrollFocus';
 import { LazySystem as System } from '../render/LazySystem';
@@ -130,6 +131,12 @@ export function InversionLadder({
     rows.sort((a, b) => loFret(a.shape) - loFret(b.shape));
     return { key: String(register), rows };
   });
+
+  // EVERY NOTE OF THE FRAME, ALL THE WAY UP THE NECK — faded, behind the
+  // voicings. See the same note in ChordScaleLadder. The frame here is
+  // GRAVITY's mode, which is exactly what the colour key beside the neck is
+  // already showing, so the faded constellation and the legend agree.
+  const wholeNeck = placeScale(instrument, tuning, gravity.root, gravity.scale);
 
   const flat = groups.flatMap((g) => g.rows);
   const shapes = flat.map((r) => r.shape);
@@ -259,6 +266,7 @@ export function InversionLadder({
             <Fretboard
               instrument={instrument}
               tuning={tuning}
+              highlights={wholeNeck}
               shapes={shapes}
               activeShapeIndex={pinned}
               activeShapeIndices={pinned === null ? litShapes : null}

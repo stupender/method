@@ -29,7 +29,7 @@ import type {
   VoicingStructure,
 } from '../theory/types';
 import { diatonicChords } from '../theory/harmony';
-import { relabelByScale } from '../theory/scale';
+import { placeScale, relabelByScale } from '../theory/scale';
 import {
   placeVoicingByStringSet,
   isStretch,
@@ -143,6 +143,19 @@ export function ChordScaleLadder({
     return { key, rows };
   });
 
+
+  // EVERY NOTE OF THE FRAME, ALL THE WAY UP THE NECK — faded, behind the
+  // voicings. A set of chord shapes occupies about an octave, so without this
+  // the neck went dark above and below them and the instrument looked like it
+  // stopped there. Scales mode has always drawn the whole constellation and lit
+  // a path through it; this is Harmony doing the same thing.
+  //
+  // The faded set is the SCALE the colour key is already showing, not just the
+  // chord's own three or four tones, so every colour on the neck means what the
+  // legend above it says it means — and the voicing reads as a path chosen
+  // through the key rather than as the only notes there are.
+  const wholeNeck = placeScale(instrument, tuning, root, scale);
+
   const flat = groups.flatMap((g) => g.rows);
   const shapes = flat.map((r) => r.shape);
   // These rows are numbered in the order they're built and never re-sorted, so
@@ -243,6 +256,7 @@ export function ChordScaleLadder({
             <Fretboard
               instrument={instrument}
               tuning={tuning}
+              highlights={wholeNeck}
               shapes={shapes}
               activeShapeIndex={pinned}
               activeShapeIndices={pinned === null ? litShapes : null}
