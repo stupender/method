@@ -24,6 +24,17 @@ import { realizeScale } from '../theory/scale';
 import { noteName } from '../theory/notes';
 
 /**
+ * COUNTING IN THIRDS — BUILT, AND NOT SWITCHED ON.
+ *
+ * Nothing passes `stacked` today. Stu's call: the row stays 1-7 everywhere
+ * until the app actually deals in 9ths, 11ths and 13ths, because numbering
+ * degrees as extensions before you can play any is a promise the rest of the
+ * app doesn't keep yet. When the chord data grows extensions, pass `stacked`
+ * from the two Harmony ladders and it's done.
+ *
+ * Kept rather than deleted for the reason CLAUDE.md gives: a flagged feature
+ * stays compiled and type-checked, a commented-out one rots.
+ *
  * HARMONY COUNTS IN THIRDS, so the legend does too when it's sitting over
  * chords. Stacked from the root a third at a time you get 1 3 5 7 9 11 13 —
  * the 9th, 11th and 13th being the 2nd, 4th and 6th an octave up. They aren't

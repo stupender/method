@@ -249,7 +249,7 @@ export function InversionLadder({
                  the one place on the page with room to say what a thing is,
                  and the abbreviations elsewhere are labels on cards. */
               name={`${noteName(root)} ${chord.name}`}
-              legend={<DegreeLegend root={gravity.root} scale={gravity.scale} stacked />}
+              legend={<DegreeLegend root={gravity.root} scale={gravity.scale} />}
               /* What's lit RIGHT NOW: the one voicing if you've picked one,
                  otherwise the set you've scrolled to. It follows the selection
                  rather than always naming the block, because when a single

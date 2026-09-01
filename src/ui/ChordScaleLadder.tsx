@@ -242,7 +242,7 @@ export function ChordScaleLadder({
           <div className="workbench" ref={viewRef}>
             <NeckPanel
               name={`${noteName(root)} ${scale.name}`}
-              legend={<DegreeLegend root={root} scale={scale} stacked />}
+              legend={<DegreeLegend root={root} scale={scale} />}
               /* The chord you've picked, spelled out in full, or the set
                  you've scrolled to. */
               aside={

@@ -362,6 +362,19 @@ that degree** to Play (the chord-on-a-degree machinery already exists in Harmony
 via `diatonicChords`). Now that notes are individually clickable (re-root), a
 modifier/secondary action could add that degree's chord. Its own step.
 
+### Harmony numbered in thirds — built, held back
+
+Stacked from the root a third at a time, the degree row reads 1 3 5 7 9 11 13:
+the 9th, 11th and 13th are the 2nd, 4th and 6th an octave up, which is how you
+name them while building a chord. It's implemented (`stacked` on
+`ui/DegreeLegend.tsx`, reordering the row into the stack rather than writing
+"2 / 9" pairs that read as fractions) and deliberately NOT switched on.
+
+Stu's call: the row stays 1-7 until the app actually deals in extensions.
+Numbering degrees as 9ths and 13ths before you can play one is a promise the
+rest of the app doesn't keep. Turn it on from the two Harmony ladders when the
+chord data grows 9/11/13 — see the data backlog.
+
 ### Fingering systems ✓ (rebuilt 2026-09-01 — CAGED, and the row cut to two)
 
 The row offered three systems and one of them wasn't real. **Positional and
