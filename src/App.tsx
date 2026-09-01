@@ -534,14 +534,20 @@ function App() {
             </a>
             {' '}— guitarist, composer and teacher.
           </p>
-          {/* STU'S OWN LINE, from the README's thesis and dated to the first
-              commit in this repo — written before any of this existed. The
-              placeholder that stood here ("see the shape, hear the sound, play
-              with it") was three verbs in a row saying nothing anyone could
-              disagree with, which is the shape bad copy takes when it's
-              written by someone with no opinion about the subject. This is an
-              actual claim about why the tool exists. */}
-          <p>The less you have to think, the more you can play.</p>
+          {/* STU'S WORDS. The first sentence is his framing from the v1 brief
+              — the fretboard understood as constellations — and the second is
+              the README thesis compressed ("the less you have to think, the
+              more you can play"). Both sentences have to be here rather than
+              the payoff alone: "So you can just play" needs the sentence it's
+              answering, or the "so" has nothing to point at.
+              The placeholder these replaced ("see the shape, hear the sound,
+              play with it") was three verbs in a row saying nothing anyone
+              could disagree with — the shape copy takes when whoever wrote it
+              has no opinion about the subject. */}
+          <p>
+            Scales, harmony and ear training, seen as constellations across the
+            whole neck. So you can just play.
+          </p>
           {/* One invitation, and only once there's somewhere to send people.
               See ui/links.ts — an unset address renders nothing at all rather
               than a link that goes nowhere. */}
