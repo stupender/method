@@ -57,7 +57,10 @@ export function ScaleExplorer({
   labelMode?: 'note' | 'degree';
 }) {
   // Show every position's box outlined at once (see the whole mode tile the neck).
-  const [showAll, setShowAll] = useState(false);
+  // STARTS ON, and comes back on whenever the system changes — see the effect
+  // below. Choosing a fingering is choosing a whole way of covering the neck,
+  // and the answer to "what did that get me" is all of it at once.
+  const [showAll, setShowAll] = useState(true);
   // A scale run goes UP AND BACK DOWN — that's how anyone actually practises
   // one, and it's how you hear the top note resolve. There used to be an
   // Ascending / Descending toggle here; it made you pick half the exercise.
@@ -134,6 +137,13 @@ export function ScaleExplorer({
   const modeKey = `${scale.id}:${root.letter}${root.accidental}:${fingering}`;
   useEffect(() => {
     setPinnedShape(null);
+    // AND SHOW THE WHOLE FIELD AGAIN. Picking CAGED or 3NPS lit every note on
+    // the neck but drew none of the lines between them, so the one thing the
+    // choice was supposed to answer — what this way of covering the neck
+    // actually looks like — needed a second click to see. Switching systems
+    // opens on the whole constellation; scrolling to a position still narrows
+    // it to that one.
+    setShowAll(true);
   }, [modeKey]);
 
   // When a note is clicked (focus.seq bumps), pin the position that sits at that

@@ -23,8 +23,60 @@ import type { Note, ScaleDefinition } from '../theory/types';
 import { realizeScale } from '../theory/scale';
 import { noteName } from '../theory/notes';
 
-export function DegreeLegend({ root, scale }: { root: Note; scale: ScaleDefinition }) {
+/**
+ * HARMONY COUNTS IN THIRDS, so the legend does too when it's sitting over
+ * chords. Stacked from the root a third at a time you get 1 3 5 7 9 11 13 —
+ * the 9th, 11th and 13th being the 2nd, 4th and 6th an octave up. They aren't
+ * different notes; they're the same seven degrees named the way you'd name
+ * them while building a chord out of them, which is what Harmony is for.
+ *
+ * The row is REORDERED into that stack rather than relabelled in place. Kept
+ * in scale order the numbers read 1, 9, 3, 11, 5, 13, 7, which looks scrambled
+ * and hides the thing worth seeing: in the stack, the first four dots are the
+ * seventh chord and the last three are its extensions, in the order you'd add
+ * them.
+ */
+const TERTIAN = [
+  { degree: 0, label: '1' },
+  { degree: 2, label: '3' },
+  { degree: 4, label: '5' },
+  { degree: 6, label: '7' },
+  { degree: 1, label: '9' },
+  { degree: 3, label: '11' },
+  { degree: 5, label: '13' },
+];
+
+export function DegreeLegend({
+  root,
+  scale,
+  stacked = false,
+}: {
+  root: Note;
+  scale: ScaleDefinition;
+  /** Count in thirds — 1 3 5 7 9 11 13 — rather than up the scale. */
+  stacked?: boolean;
+}) {
   const tones = realizeScale(root, scale);
+
+  // Only for seven-note scales: the stack is a statement about thirds, and a
+  // scale with a different number of degrees doesn't make it.
+  if (stacked && tones.length === TERTIAN.length) {
+    return (
+      <ol className="legend" aria-label="What each dot colour means">
+        {TERTIAN.map(({ degree, label }) => (
+          <li className="legend__item" key={degree}>
+            <span className="legend__degree">{label}</span>
+            {/* The COLOUR still says which degree of the scale it is — that
+                never changes, whatever the number in front of it reads. */}
+            <span className={`legend__dot legend__dot--deg${degree + 1}`}>
+              {noteName(tones[degree].note)}
+            </span>
+          </li>
+        ))}
+      </ol>
+    );
+  }
+
   return (
     <ol className="legend" aria-label="What each dot colour means">
       {tones.map((tone, i) => (
