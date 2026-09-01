@@ -49,7 +49,6 @@ import {
   Voice,
 } from 'vexflow';
 import type { PlacedNote } from '../theory/types';
-import { midiOf } from '../theory/notes';
 import { Beam } from 'vexflow';
 import './System.css';
 
@@ -75,9 +74,6 @@ Metrics.clear();
 // Eighths are beamed in fours — one beat of 4/4 twice over.
 const BEAM_GROUP = 4;
 
-const LABEL_FONT = "'Karla', system-ui, sans-serif";
-const LABEL_SIZE = 11;
-
 const STAFF_TOP = 0;
 const TAB_TOP = 76;
 // VexFlow's default gap between two TAB lines.
@@ -95,11 +91,8 @@ const TAB_MARGIN = 70;
  * and a fixed height would have left the difference as dead space under every
  * uke system on the page.
  */
-// Room above the first staff line for the Ascending / Descending label.
-const LABEL_ROOM = 16;
-
 const heightFor = (strings: number) =>
-  LABEL_ROOM + TAB_TOP + (strings - 1) * TAB_LINE + TAB_MARGIN;
+  TAB_TOP + (strings - 1) * TAB_LINE + TAB_MARGIN;
 /** Distance from one system to the next when the music wraps. */
 const lineHeightFor = (strings: number) => heightFor(strings) + 24;
 // The narrowest a note may sit from its neighbour before the music goes onto
@@ -273,24 +266,7 @@ export function System({
     const staveWidth = drawWidth - 2;
 
     lines.forEach((line, lineIndex) => {
-      const top = LABEL_ROOM + lineIndex * LINE_HEIGHT;
-
-      // WHICH WAY THIS LINE GOES, written above it. The run breaks at the
-      // turn, so a line is entirely one direction or the other and the label
-      // is simply true — read off the notes rather than assumed, so it stays
-      // right when a long run halves twice and gives two lines each way.
-      if (isRun && lines.length > 1) {
-        const lowestOf = (moment: PlacedNote[]) =>
-          Math.min(...moment.map((p) => midiOf(p.note)));
-        const first = lowestOf(line[0]);
-        const last = lowestOf(line[line.length - 1]);
-        if (first !== last) {
-          ctx.save();
-          ctx.setFont(LABEL_FONT, LABEL_SIZE, '600');
-          ctx.fillText(last > first ? 'Ascending' : 'Descending', 1, STAFF_TOP + top - 6);
-          ctx.restore();
-        }
-      }
+      const top = lineIndex * LINE_HEIGHT;
 
       const stave = new Stave(0, STAFF_TOP + top, staveWidth);
       // "8vb" is the little 8 under the clef: sounds an octave lower than

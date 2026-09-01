@@ -46,7 +46,7 @@ export function ScaleExplorer({
    *  string). Chosen in the CONTROLS panel, alongside key and scale, because
    *  it's that same kind of setting — and because a saved preset has to
    *  remember it. */
-  fingering: '3nps' | 'shapes';
+  fingering: '3nps' | '4nps' | '5nps' | 'caged';
   // Click a note on the neck to make it the new root (re-root the mode).
   onPickRoot?: (placed: PlacedNote) => void;
   // After a re-root, the fret the user clicked — pin the position covering it, so
@@ -70,10 +70,19 @@ export function ScaleExplorer({
   const [pinnedShape, setPinnedShape] = useState<number | null>(null);
   const activeShape = pinnedShape;
 
+  // CAGED is its own construction; the NPS family is one function with a
+  // different count. See theory/scalePositions.ts for why they're different
+  // kinds of thing rather than settings of one thing.
   const positions =
-    fingering === '3nps'
-      ? scalePositions(instrument, tuning, root, scale)
-      : fiveShapes(instrument, tuning, root, scale);
+    fingering === 'caged'
+      ? fiveShapes(instrument, tuning, root, scale)
+      : scalePositions(
+          instrument,
+          tuning,
+          root,
+          scale,
+          fingering === '5nps' ? 5 : fingering === '4nps' ? 4 : 3,
+        );
   const shapes = positions.map((p) => p.notes);
 
   // Reading down the page walks the positions: whichever card is under the

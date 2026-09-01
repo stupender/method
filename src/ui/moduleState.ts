@@ -39,7 +39,7 @@ export interface ModuleState {
    *  It lives here rather than inside the scale view because it's a SETTING —
    *  as much a part of "what this panel is showing" as the key is — and a
    *  preset that didn't remember it came back in the wrong fingering. */
-  fingering: '3nps' | 'shapes';
+  fingering: '3nps' | '4nps' | '5nps' | 'caged';
 
   /** Index into ROOT_CHOICES. */
   rootIndex: number;
@@ -156,10 +156,19 @@ export function loadBookmarks(): Bookmark[] {
         // five-shape system now. A bookmark saved under either opens in the
         // system that replaced it rather than falling back to 3nps, which
         // would silently change what you'd saved.
-        fingering:
-          b.state?.fingering === 'box' || b.state?.fingering === 'hybrid'
-            ? ('shapes' as const)
-            : ((b.state?.fingering as ModuleState['fingering']) ?? '3nps'),
+        // 'box' and 'hybrid' were the old seven-box Positional and Hybrid,
+        // which turned out to be the same thing as each other and the wrong
+        // count besides; 'shapes' was CAGED before it was called that. All
+        // three land on CAGED so a bookmark opens in the system that replaced
+        // what it was saved under.
+        fingering: (
+          {
+            box: 'caged',
+            hybrid: 'caged',
+            shapes: 'caged',
+          } as Record<string, ModuleState['fingering']>
+        )[b.state?.fingering ?? ''] ??
+          ((b.state?.fingering as ModuleState['fingering']) ?? '3nps'),
       } as ModuleState,
     }));
   } catch {

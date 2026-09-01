@@ -779,7 +779,7 @@ function Module({
   const setInversionIndex = (v: number) => set('inversionIndex', v);
   const setSeventhsInEar = (v: boolean) => set('seventhsInEar', v);
   const setQuiz = (v: 'quality' | 'inversion' | 'function') => set('quiz', v);
-  const setFingering = (v: '3nps' | 'shapes') => set('fingering', v);
+  const setFingering = (v: ModuleState['fingering']) => set('fingering', v);
 
   // EAR MODE'S SELECTIONS ARE SETS, not single values. On the neck a control
   // answers "what am I looking at", so exactly one; in Ear Training the same
@@ -1070,14 +1070,16 @@ function Module({
             <Segmented
               fill
               ariaLabel="Fingering"
-              /* TWO SYSTEMS, which is how they're actually taught. It offered
-                 three, and two of them ("Positional" and "Hybrid") returned
-                 byte-identical boxes for every major-7 scale — the same thing
-                 under two names in the app's default key. And "Positional"
-                 built SEVEN boxes where position playing has five. */
+              /* CAGED first — the five positions, the way scales are taught
+                 and the way every method book prints them. Then the notes-per-
+                 string family, which is one idea at three widths: three is the
+                 familiar one, four and five are deliberately unusual stretches
+                 that shake loose fingerings the standard shapes hide. */
               options={[
-                { value: '3nps' as const, label: '3 per string' },
-                { value: 'shapes' as const, label: '5 Shapes' },
+                { value: 'caged' as const, label: 'CAGED' },
+                { value: '3nps' as const, label: '3NPS' },
+                { value: '4nps' as const, label: '4NPS' },
+                { value: '5nps' as const, label: '5NPS' },
               ]}
               value={fingering}
               onChange={setFingering}
@@ -1243,7 +1245,7 @@ function ScaleView({
   scale: ScaleDefinition;
   degree: number;
   /** Chosen in the CONTROLS panel now, so it just passes through. */
-  fingering: '3nps' | 'shapes';
+  fingering: ModuleState['fingering'];
   focus: { fret: number; seq: number } | null;
   onPickNote: (degree: number, fret: number) => void;
 }) {

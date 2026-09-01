@@ -370,8 +370,10 @@ under two names in the app's own default key — because Hybrid diverges from
 Positional only on a ♭7. And Positional built SEVEN in-position boxes, which is
 3nps-shaped thinking; position playing has **five**.
 
-Now: **3 per string** (7 patterns) and **5 Shapes** (CAGED). Two systems, which
-is how they're taught, and how the printed sheets are drawn.
+Now four, in the order they're reached for: **CAGED** (5 positions), **3NPS**
+(7), **4NPS** (6) and **5NPS** (3) — the last two deliberately unusual
+stretches. CAGED is its own construction; the NPS family is one function with
+a different count.
 
 The five come out of the intervals rather than a lookup: drop the starts that
 sit a **semitone above their predecessor**, because one fret apart isn't a
@@ -384,8 +386,18 @@ A shape is also modelled differently: **a window, not a walk.** Put the hand at
 a fret and the shape is every scale note under it on every string. The old code
 stepped along a ladder crossing strings, which describes 3nps, not a position.
 
+A pattern runs ROOT TO ROOT, two octaves — fifteen tones for a seven-note
+scale — and the window is `[start-1, start+3]`: a hand at the start fret
+reaching one back and three forward. The reach back is what lets a position
+shift a fret or two, which is what's spent to keep any one string inside three
+frets (Stu's rule). Checked across all twelve keys: five shapes each, and no
+string anywhere spanning more than three frets.
+
 Still open: per-user **saved fingering preference**; **CAGED letter names**
-(C/A/G/E/D shape) as an alternative to the modal names the shapes carry now.
+(C/A/G/E/D shape) as an alternative to the modal names the shapes carry now —
+which is also why the list reads Phrygian, Mixolydian, Aeolian, Locrian,
+Dorian and appears to "skip" Lydian and Ionian: those two degrees start on a
+half step and share a shape rather than owning one.
 
 ### String sets are a first-class choice
 

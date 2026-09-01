@@ -100,12 +100,22 @@ function lowStringStartFrets(
   return starts;
 }
 
-// ---- System 1: three notes per string ------------------------------------
+// ---- System 1: N notes per string ----------------------------------------
+//
+// Three per string is the familiar one — even, wide, and what most modern
+// players learn. Four and five are the same idea pushed further: the same walk
+// up the ladder, just more of it before crossing. They're wide stretches and
+// deliberately unusual, which is the point of having them — a different set of
+// shapes over the same notes shakes loose fingerings the standard ones hide.
+//
+// One function for all three, because the only thing that differs is how many
+// tones you take before moving to the next string.
 export function scalePositions(
   instrument: Instrument,
   tuning: Tuning,
   root: Note,
   scale: ScaleDefinition,
+  perString = 3,
 ): ScalePosition[] {
   const byPitchClass = toneLookup(root, scale);
   const scalePcs = new Set(byPitchClass.keys());
@@ -118,17 +128,39 @@ export function scalePositions(
     if (scalePcs.has(((m % 12) + 12) % 12)) ladder.push(m);
   }
 
-  // A 3nps box: 3 consecutive ladder tones on each string. Null if it runs off.
+  // A box: `perString` consecutive ladder tones on each string, climbing.
+  //
+  // IT STOPS WHERE THE NECK STOPS, rather than failing. At three per string a
+  // full six-string box fits comfortably, and it used to return null the
+  // moment one didn't — fine for three, useless for four and five. Five tones
+  // on every string is about four and a half octaves, and a seventeen-fret
+  // neck holds three, so EVERY five-per-string box failed and the system came
+  // up empty. Now the pattern simply runs as far as the neck allows.
+  //
+  // Two octaves is the floor: below that it isn't a scale pattern, it's a
+  // fragment, and it's better to offer nothing than something unplayable.
+  //
+  // FIVE PER STRING NEVER COMPLETES SIX STRINGS, and that isn't a bug in the
+  // neck length — it's arithmetic. Five tones on each of six strings is about
+  // four and a half octaves; a guitar would need roughly twenty-five frets,
+  // and twenty-two and twenty-four were both checked and fall short. Nobody
+  // plays 5NPS across the whole neck for that reason; it's played over fewer
+  // strings. So stopping where the neck stops IS the right pattern, not a
+  // compromise.
+  const TWO_OCTAVES = 2 * scale.intervals.length + 1;
   const buildBox = (startIdx: number): PlacedNote[] | null => {
     const notes: PlacedNote[] = [];
     let idx = startIdx;
     for (let s = 0; s < instrument.stringCount; s++) {
       const open = midiOf(tuning.openNotes[s]);
-      for (let j = 0; j < 3; j++) {
+      for (let j = 0; j < perString; j++) {
         const m = ladder[idx];
-        if (m === undefined) return null;
+        if (m === undefined) return notes.length >= TWO_OCTAVES ? notes : null;
         const fret = m - open;
-        if (fret < 0 || fret > instrument.fretCount) return null;
+        if (fret < 0) return null; // can't reach behind the nut — not this box
+        if (fret > instrument.fretCount) {
+          return notes.length >= TWO_OCTAVES ? notes : null;
+        }
         notes.push(placeAt(tuning, s, fret, byPitchClass.get(((m % 12) + 12) % 12)!));
         idx++;
       }
