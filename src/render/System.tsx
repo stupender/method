@@ -197,18 +197,14 @@ export function System({
     // A single moment is a chord and gets a whole note; a run of them is read
     // as a line, and eighths beamed in fours are how a scale exercise is
     // written.
-    // HOW LONG EACH NOTE IS. A chord is a whole note; a run is eighths — with
-    // the LAST note of every line a quarter.
+    // A chord is a whole note; a run is eighths, all the way through.
     //
-    // That last part is what makes the bars come out even. A two-octave
-    // pattern is fifteen notes: fourteen eighths and a quarter is exactly two
-    // bars of four, so the ascent fills its bars and the descent fills its
-    // own. All eighths would leave each line half a beat short and every line
-    // would start mid-bar. It also reads the way the phrase is played — you
-    // arrive on the top note and sit on it before turning round.
+    // A quarter on the last note of each line was tried — it makes the bars
+    // come out even — and it read as fussier than it was worth. Even eighths
+    // are what a scale exercise looks like; the grouping below is what gives
+    // it shape.
     const isRun = moments.length > 1;
-    const durationAt = (indexInLine: number, lineLength: number) =>
-      !isRun ? 'w' : indexInLine === lineLength - 1 ? 'q' : '8';
+    const duration = isRun ? '8' : 'w';
 
     // A given width is a fixed engraving that CSS already fits to its column, so
     // zooming it would change nothing you could see. A MEASURED width is the
@@ -229,7 +225,35 @@ export function System({
     // not have to look back up at the first to find out what clef it's in.
     // Room for notes: the width less the clef column and a little air at the
     // end. Both staves reserve about the same, so one figure serves.
-    const HEIGHT = heightFor(strings);
+    // HEADROOM FOR NOTES ABOVE THE STAFF. The staff is drawn at a fixed top,
+    // so anything sitting on ledger lines above it is drawn ABOVE the SVG and
+    // simply cut off — which is what happens to the high end of a 4NPS or
+    // 5NPS run, where the pattern climbs much further than a three-per-string
+    // one does.
+    //
+    // So the drawing measures its own highest note first and pushes everything
+    // down by however far it reaches. Counted in STAFF STEPS (a line or a
+    // space) rather than semitones, because that's what the notation is spaced
+    // by: F on the top line is the last note that needs no help, and each step
+    // above it is half the gap between two lines.
+    const TOP_LINE_STEP = 3 + 7 * 5; // F5, in letter-steps from C0
+    const LETTER_STEP: Record<string, number> = {
+      C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6,
+    };
+    let highestStep = TOP_LINE_STEP;
+    for (const moment of moments) {
+      for (const p of moment) {
+        // Written pitch, an octave above where the guitar sounds — the same
+        // `octave + 1` the keys use.
+        const step = LETTER_STEP[p.note.letter] + 7 * ((p.note.octave ?? 4) + 1);
+        if (step > highestStep) highestStep = step;
+      }
+    }
+    // Half a line-gap per step, plus room for the ledger line itself.
+    const headroom =
+      highestStep > TOP_LINE_STEP ? (highestStep - TOP_LINE_STEP) * 5 + 8 : 0;
+
+    const HEIGHT = heightFor(strings) + headroom;
     const LINE_HEIGHT = lineHeightFor(strings);
 
     const room = Math.max(1, drawWidth - CLEF_COLUMN - TAIL);
@@ -266,7 +290,7 @@ export function System({
     const staveWidth = drawWidth - 2;
 
     lines.forEach((line, lineIndex) => {
-      const top = lineIndex * LINE_HEIGHT;
+      const top = headroom + lineIndex * LINE_HEIGHT;
 
       const stave = new Stave(0, STAFF_TOP + top, staveWidth);
       // "8vb" is the little 8 under the clef: sounds an octave lower than
@@ -311,14 +335,13 @@ export function System({
 
       const staveNotes: StaveNote[] = [];
       const tabNotes: TabNote[] = [];
-      let momentIndex = 0;
       for (const moment of line) {
         const low = [...moment].sort(
           (a, b) => a.position.stringIndex - b.position.stringIndex,
         );
         const note = new StaveNote({
           keys: low.map(vexKey),
-          duration: durationAt(momentIndex, line.length),
+          duration,
           clef: 'treble',
         });
         low.forEach((p, i) => {
@@ -337,10 +360,9 @@ export function System({
               str: strings - p.position.stringIndex,
               fret: p.position.fret,
             })),
-            duration: durationAt(momentIndex, line.length),
+            duration,
           }),
         );
-        momentIndex++;
       }
 
       // BEAMS BEFORE DRAWING. Generating them afterwards leaves every note
@@ -362,22 +384,42 @@ export function System({
       //
       // (Left entirely to itself VexFlow groups in twos, which for a scale run
       // draws a row of dashes rather than a line of music — hence fours.)
+      // FOURS, THEN PAIRS — and never a note left standing alone if a pair
+      // can take it.
+      //
+      // Fours are the shape of the beat. But a line rarely divides by four:
+      // fifteen eighths is three fours and a three, and a straight walk would
+      // leave that three as a beam of two plus a lone flagged note. So the
+      // TAIL is planned before it's drawn — whatever doesn't divide into fours
+      // is split into twos, and only a genuinely odd single is left flagged.
       const beams: Beam[] = [];
       if (isRun) {
-        let group: StaveNote[] = [];
-        const flush = () => {
-          if (group.length > 1) beams.push(new Beam(group));
-          group = [];
-        };
-        for (const note of staveNotes) {
-          if (note.getDuration() !== '8') {
-            flush(); // a quarter can't be beamed, and it ends the group
-            continue;
-          }
-          group.push(note);
-          if (group.length === BEAM_GROUP) flush();
+        const sizes: number[] = [];
+        let left = staveNotes.length;
+        while (left >= BEAM_GROUP + 2 || left === BEAM_GROUP) {
+          sizes.push(BEAM_GROUP);
+          left -= BEAM_GROUP;
         }
-        flush();
+        // What's left is 0, or too small for a four: pairs, then any odd one.
+        while (left >= 2) {
+          sizes.push(2);
+          left -= 2;
+        }
+        // A LONE NOTE JOINS ITS NEIGHBOUR rather than standing off on its own.
+        // Fifteen eighths can't divide into fours and twos at all — it's odd —
+        // so something has to give, and a beamed three reads far better than a
+        // flagged single hanging at the end of the line.
+        if (left === 1) {
+          if (sizes.length > 0) sizes[sizes.length - 1] += 1;
+          else sizes.push(1);
+        }
+
+        let at = 0;
+        for (const size of sizes) {
+          const group = staveNotes.slice(at, at + size);
+          if (group.length > 1) beams.push(new Beam(group));
+          at += size;
+        }
       }
 
       // The two staves are formatted TOGETHER so a note and its fret number

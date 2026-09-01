@@ -2356,10 +2356,19 @@ button.neckpanel__name {
   padding: 0;
   background: none;
   border: 0;
-  font: inherit;
   color: inherit;
   text-align: left;
   cursor: pointer;
+  /* NOT `font: inherit`. That was here to strip the button's own styling and
+     it stripped the NAME's with it — the display serif went, and the scale's
+     name stopped being the one distinct piece of type on the page. Only the
+     button's chrome is reset; `.neckpanel__name` above still says what this
+     is set in, which is the whole point of it being the centrepiece. */
+  font: inherit;
+  font-family: var(--serif);
+  font-size: 21px;
+  letter-spacing: -0.2px;
+  line-height: 1;
 }
 button.neckpanel__name:hover {
   opacity: 0.72;

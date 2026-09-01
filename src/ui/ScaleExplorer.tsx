@@ -97,15 +97,13 @@ export function ScaleExplorer({
     if (i !== null) setShowAll(false);
   });
 
-  // The run as it's read and played: up, then back down — and the top note is
-  // sounded at BOTH ends of the turn, so each half is a complete line of its
-  // own. Fifteen notes up and fifteen back, which with a quarter note at each
-  // end (see render/System.tsx) is two full bars each way. Sounding it once
-  // left the descent half a beat short and every line after it starting
-  // mid-bar.
+  // The run as it's read and played: up, then back down, with the top note
+  // sounded once rather than twice at the turn. (It was briefly sounded twice,
+  // to square the bars against a quarter note at each end; both went — see
+  // render/System.tsx.)
   const upAndDown = (notes: (typeof positions)[number]['notes']) => {
     const up = [...notes].sort((a, b) => midiOf(a.note) - midiOf(b.note));
-    return [...up, ...[...up].reverse()];
+    return [...up, ...up.slice(0, -1).reverse()];
   };
 
   // EVERY note of the scale that exists on the neck — open strings and the
