@@ -85,6 +85,9 @@ export function BookmarksMenu({
   onRename: (id: string, name: string) => void;
 }) {
   const [open, setOpen] = useState(false);
+  // Which row is being renamed, if any. Renaming is a mode now rather than the
+  // row's permanent state — see the note on the name button below.
+  const [editing, setEditing] = useState<string | null>(null);
 
   const restore = (b: Bookmark) => {
     onRestore(b.state);
@@ -99,11 +102,18 @@ export function BookmarksMenu({
     setOpen(false);
   };
 
+  // Closing the menu abandons any half-finished rename, so reopening it never
+  // shows a row still sitting in edit mode from last time.
+  const toggleOpen = () => {
+    setOpen((v) => !v);
+    setEditing(null);
+  };
+
   return (
     <div className="bookmarks">
       <button
         className={open ? 'sitebar__act sitebar__act--on' : 'sitebar__act'}
-        onClick={() => setOpen((v) => !v)}
+        onClick={toggleOpen}
         aria-expanded={open}
         aria-label={`Saved settings (${list.length})`}
         title="Saved settings"
@@ -136,26 +146,41 @@ export function BookmarksMenu({
             <ul>
               {[...list].reverse().map((b) => (
                 <li key={b.id} className="bookmarks__item">
-                  {/* The arrow goes there; the name is an editable field, so
-                      renaming needs no separate mode. */}
-                  <button
-                    className="bookmarks__go"
-                    onClick={() => restore(b)}
-                    aria-label={`Go to ${b.name}`}
-                    title="Go to this setting"
-                  >
-                    ↩
-                  </button>
-                  <input
-                    className="bookmarks__rename"
-                    value={b.name}
-                    aria-label="Rename"
-                    onChange={(e) => onRename(b.id, e.target.value)}
-                  />
+                  {/* THE NAME IS THE BUTTON. It used to be an editable field
+                      with a ↩ beside it, which got the priorities backwards
+                      twice over: clicking the obvious target — the name —
+                      dropped a text caret into it instead of taking you there,
+                      and the thing that DID take you there was an arrow that
+                      reads as "back". Going to a saved setting is what you want
+                      ninety-nine times in a hundred, so it's the whole row.
+                      Renaming is the rare one, so it's a double-click. */}
+                  {editing === b.id ? (
+                    <input
+                      className="bookmarks__rename"
+                      value={b.name}
+                      aria-label={`Rename ${b.name}`}
+                      autoFocus
+                      onChange={(e) => onRename(b.id, e.target.value)}
+                      onBlur={() => setEditing(null)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === 'Escape') setEditing(null);
+                      }}
+                    />
+                  ) : (
+                    <button
+                      className="bookmarks__go"
+                      onClick={() => restore(b)}
+                      onDoubleClick={() => setEditing(b.id)}
+                      title={`Go to ${b.name} — double-click to rename`}
+                    >
+                      {b.name}
+                    </button>
+                  )}
                   <button
                     className="bookmarks__remove"
                     onClick={() => onRemove(b.id)}
                     aria-label={`Remove ${b.name}`}
+                    title="Remove"
                   >
                     ×
                   </button>

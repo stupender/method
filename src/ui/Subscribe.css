@@ -118,9 +118,15 @@
   font-size: 15px;
 }
 
-.subscribe__input:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
+/* NO RING. A text field already says where you are — the caret is blinking in
+   it. A 2px outline snapping on around the box the instant you click is the
+   loudest thing on the page for something that isn't an event worth
+   announcing. The border simply firms up instead.
+   (`:focus`, not `:focus-visible`: a text input matches `:focus-visible` even
+   on a mouse click, so the ring appeared exactly where it wasn't wanted.) */
+.subscribe__input:focus {
+  outline: none;
+  border-color: var(--ink);
 }
 
 /* The honeypot. Taken out of the layout entirely rather than hidden with

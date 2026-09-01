@@ -799,6 +799,16 @@ function Module({
           key-centric section; re-add 'chord' to the list to show it.) */}
       <ControlPanel
         title="Controls"
+        /* What a folded panel says on a phone — the same facts the rows carry,
+           in the order they're read: key, then which degree is home, then what
+           you're looking at. `describe` already writes exactly this line for a
+           bookmark's default name, so the summary and the name you'd save
+           agree by construction rather than by being kept in step. */
+        summary={describe(state, {
+          root: noteName(root),
+          scale: scale.name,
+          roman: deg === ALL_DEGREES ? null : romanLabels[deg],
+        })}
         action={
           <div className="panel__actions">
             <SaveBookmark
@@ -841,7 +851,7 @@ function Module({
             />
           </ControlRow>
         )}
-        <ControlRow label="Key">
+        <ControlRow label="Key" tight>
           {studyMode === 'ear' ? (
             <MultiSelect
               fill
@@ -881,7 +891,7 @@ function Module({
         </ControlRow>
         {/* Degree persists across views: in Scales it picks the MODE, in
             Harmony the chord degree. */}
-        <ControlRow label="Gravity">
+        <ControlRow label="Gravity" tight>
           {studyMode === 'ear' ? (
             /* No "All" cell here — selecting every degree IS all of them, and
                a separate All would be a second way to say the same thing. */

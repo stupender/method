@@ -70,46 +70,58 @@
    that 999px reads as app chrome and a small radius reads as ink on a page —
    and circles are reserved for the things that MEAN circle: the mark, and the
    dots on the fretboard. */
+/* NO BOX. An icon button here is the ICON — no ring, no chip, no square that
+   fades in under the pointer. Those hover boxes were the weakest marks on the
+   page: a 1px hairline appearing behind a thin glyph reads as the interface
+   being unsure whether it's a button.
+   The fretboard dots are the standard to meet. A dot doesn't hover a box to
+   tell you it's there; it's simply a solid, confident mark, and it's either
+   lit or it isn't. So these are drawn strong at rest and go to FULL ink when
+   you point at them or when they're on. Weight, not decoration. */
 .sitebar__act,
 .themetoggle {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 5px;
   flex: none;
   width: 30px;
   height: 30px;
   padding: 0;
-  color: var(--muted);
+  color: var(--ink);
+  opacity: 0.58;
   background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius);
+  border: 0;
   cursor: pointer;
-  transition: color 0.12s ease, border-color 0.12s ease;
+  transition: opacity 0.12s ease;
 }
 /* The one that carries a count needs room for it, so it alone grows sideways. */
 .sitebar__act:has(.bookmarks__count) {
   width: auto;
-  padding: 0 7px;
+  padding: 0 4px;
 }
 .sitebar__act:hover,
-.themetoggle:hover {
-  color: var(--ink);
-  border-color: var(--line);
-}
-/* ON is the same lit state the rest of the app uses for a chosen thing: full
-   ink, and a visible edge so it reads as pressed rather than just hovered. */
+.themetoggle:hover,
 .sitebar__act--on {
-  color: var(--ink);
-  border-color: var(--line);
-  background: var(--tint-soft);
+  opacity: 1;
 }
 .sitebar__act svg,
 .themetoggle svg {
-  width: 17px;
-  height: 17px;
+  width: 18px;
+  height: 18px;
   display: block;
+}
+
+/* Keyboard focus still needs to be visible — it's the ONE case where a ring is
+   the right answer, because there's no pointer to say where you are.
+   `:focus-visible` (not `:focus`) is what keeps it off a mouse click. */
+.sitebar__act:focus-visible,
+.themetoggle:focus-visible,
+.panel__act:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  opacity: 1;
 }
 
 /* (The saved-bookmark mark's own colour lives with `.panel__act` further down.
@@ -309,15 +321,45 @@
   background: var(--surface);
   padding-right: 8px;
 }
+/* The whole title strip is the handle that folds the panel on a phone. On a
+   desktop it's still a button, but there's nothing to fold, so it's given no
+   pointer and no chevron and reads as the plain eyebrow it always was. */
+.panel__fold {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: default;
+}
 .panel__title {
   margin: 0;
-  flex: 1;
   padding: 9px 14px;
   color: var(--muted);
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
+  white-space: nowrap;
+}
+/* What the panel is set to, while it's folded. */
+.panel__summary {
+  min-width: 0;
+  flex: 1;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.panel__chevron {
+  display: none; /* only when there's something to fold — see the media query */
 }
 .panel__rows {
   display: flex;
@@ -346,7 +388,37 @@
 .panel__control {
   min-width: 0;
 }
+/* ==========================================================================
+   THE PANEL ON A PHONE
+   --------------------------------------------------------------------------
+   Two separate problems, and the second one is the one that was invisible.
+
+   1. THE PANEL PUSHED THE NECK OFF THE SCREEN. Six rows is ~580px, so on an
+      812px phone the fretboard began below the fold and had 77px to live in.
+      The app opens on its controls instead of on the thing it's for. Folded,
+      the neck is the first thing you see, and one line still says what you're
+      looking at.
+
+   2. THE ROWS DIDN'T WRAP, THEY SHRANK. `.seg--fill` divides its row into as
+      many equal columns as there are options, which is right on a desktop and
+      catastrophic at 375px: twelve keys got 28px each, so KEY rendered as a
+      line of bare punctuation with every note name ellipsed away, and the two
+      harmonic scales both read "Harmo…". Nothing overflowed, so no layout
+      check ever complained — it was quietly unusable rather than broken.
+      Below, the same cells wrap onto as many lines as they need.
+   ========================================================================== */
 @media (max-width: 640px) {
+  /* GIVE THE GUTTER BACK. Nothing was lopsided — 39px each side, evenly — but
+     two paddings were stacking: the page's 24px and then a panel's own 14px
+     inside it. That's 78px of a 375px phone spent on margins before anything
+     is drawn, and it's why the content read as over-indented rather than
+     off-centre. The page's own padding is the one to give up: the panels have
+     borders, so they show you where the edge is without needing air outside
+     them too. */
+  .page {
+    padding: 16px 14px 56px;
+  }
+
   .panel__row {
     grid-template-columns: 1fr;
     gap: 2px;
@@ -355,6 +427,110 @@
   .panel__label {
     padding: 0;
     text-align: left;
+  }
+
+  /* WRAP, don't shrink. `auto-fit` + a floor wide enough for "Harmonic Major"
+     to survive means twelve keys become three comfortable rows instead of one
+     illegible one.
+
+     `!important` is doing real work here and isn't laziness: Segmented sets
+     `gridTemplateColumns` as an INLINE style (it counts the options at render
+     time), and an inline style beats any stylesheet rule on specificity alone.
+     A declaration marked important is the one thing that outranks it. */
+  .seg--fill {
+    grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)) !important;
+  }
+  /* A key or a Roman numeral is short — pack more of them per line. */
+  .panel__row--tight .seg--fill {
+    grid-template-columns: repeat(auto-fit, minmax(62px, 1fr)) !important;
+  }
+  /* (The rest of the small-screen segmented-control rules live down with the
+     `.seg` block itself — they have to override `.seg--fill .seg__btn`, and
+     putting them next to what they override is the only way that stays true
+     when either one is edited.) */
+
+  /* The fold. */
+  .panel__fold {
+    cursor: pointer;
+    align-items: center;
+  }
+  /* Anchored at the left end of the strip, in the same place open or shut.
+     `margin-left` matches the title's old padding so the strip keeps its
+     left edge; the title then sheds its own left padding to sit beside it. */
+  .panel__chevron {
+    display: block;
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin-left: 14px;
+    color: var(--ink);
+    opacity: 0.58;
+    transition: transform 0.18s ease;
+  }
+  .panel__chevron svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .panel__title {
+    padding-left: 0;
+  }
+  /* Down when open (press to close), right when shut (press to open). Only the
+     direction changes — the arrow itself never moves. */
+  .panel--folded .panel__chevron {
+    transform: rotate(-90deg);
+  }
+  .panel--folded .panel__rows {
+    display: none;
+  }
+  /* Folded, the strip is the whole panel, so it shouldn't also draw the line
+     that separates it from rows that aren't there. */
+  .panel--folded .panel__head {
+    border-bottom: 0;
+  }
+  /* The title shrinks to make room for the summary beside it. */
+  .panel--folded .panel__title {
+    padding-right: 0;
+  }
+}
+
+/* Above the breakpoint there is nothing to fold, so the fold state means
+   nothing: the rows show whatever React thinks. This is the guard that makes
+   it impossible to get stuck with a shut panel on a desktop. */
+@media (min-width: 641px) {
+  .panel--folded .panel__rows {
+    display: flex;
+  }
+}
+
+/* ==========================================================================
+   THE NECK ON A PHONE — big enough to read, and you swipe along it
+   --------------------------------------------------------------------------
+   A neck is 17 frets and 6 strings. Fitting all of that into 375px gave 19px
+   a fret and 13px between strings — about two millimetres of real screen per
+   string. It was on screen and it was useless, which is the worse failure of
+   the two, because it looks like it works.
+
+   So on a phone the neck stops trying to fit. It's drawn at a size a person
+   can actually read and the board scrolls sideways under your thumb, which is
+   also how you move along a real neck. The whole-neck-at-a-glance view is
+   what a desktop is for; a phone gets a legible neck and a swipe.
+   ========================================================================== */
+@media (max-width: 640px) {
+  .neckpanel__board {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    /* Momentum stops at the ends of the neck instead of dragging the page. */
+    overscroll-behavior-x: contain;
+  }
+  .neckpanel__board .fretboard {
+    /* Height first, width follows from the viewBox. 168px over six strings is
+       ~28px a string, which is a comfortable target for a fingertip and big
+       enough for the note letter inside each dot to be read at arm's length. */
+    height: 168px;
+    width: auto;
+    max-width: none;
   }
 }
 
@@ -401,6 +577,33 @@
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
+/* SEVEN DEGREES, ONE LINE, on a phone too. Wrapped, the seventh dropped onto
+   a line of its own and the key stopped reading as a set — the whole point of
+   the row is that you take in all seven at a glance, the way you do the
+   spectrum. So on a narrow screen it stops wrapping and tightens instead:
+   the gaps close, the dots lose two pixels, and the row spreads to the full
+   width. Nothing is dropped and nothing is truncated — a dot is legible at
+   21px, and the numeral beside it is doing the labelling anyway. */
+@media (max-width: 640px) {
+  .legend {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 0 6px;
+    width: 100%;
+  }
+  .legend__item {
+    gap: 3px;
+  }
+  .legend__dot {
+    width: 21px;
+    height: 21px;
+    font-size: 10.5px;
+  }
+  .legend__degree {
+    font-size: 10px;
+  }
+}
+
 .legend__dot--deg1 { background: var(--deg-1); color: var(--deg-1-ink); }
 .legend__dot--deg2 { background: var(--deg-2); color: var(--deg-2-ink); }
 .legend__dot--deg3 { background: var(--deg-3); color: var(--deg-3-ink); }
@@ -446,6 +649,13 @@
    fretboard instead of giving it a scrollbar. */
 .module > * {
   flex: none;
+  /* AND LET THEM BE NARROWER THAN THEIR CONTENTS. A flex child defaults to
+     `min-width: auto`, meaning "never smaller than what's inside me" — so the
+     moment the neck was drawn at a readable size on a phone, its 713px pushed
+     the module, the page and every notation system out past the viewport
+     instead of scrolling inside its own box. This is the line that lets the
+     board scroll and the page stay put. */
+  min-width: 0;
 }
 /* The closing note sits further off than the gap, as it did before — it's an
    aside after the work, not another part of it. */
@@ -526,6 +736,36 @@
      dot sits far enough from this edge that the halo clears it. */
   overflow: hidden;
 }
+/* ON A PHONE, WRAP THE WORDS RATHER THAN CUT THEM.
+   Wrapping costs nothing here: the cell is already as wide as the row allows
+   and there is vertical room to spare. Ellipsing cost a great deal — these
+   four scales differ in their LAST word, so "Harmonic Minor" and "Harmonic
+   Major" both truncated to "Harmo…" and became the same button.
+   These sit here, beside the rules they override, rather than up with the
+   other small-screen panel rules: `.seg--fill .seg__btn` is a two-class
+   selector, so a one-class override in a media query earlier in the file
+   loses on specificity AND on order. Next to what it overrides, it just
+   works — and stays working if either is edited. */
+@media (max-width: 640px) {
+  .seg--fill .seg__btn {
+    white-space: normal;
+    padding: 6px 8px;
+  }
+  .seg--fill .seg__text {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+  .seg--fill .seg__label {
+    align-items: flex-start;
+  }
+  /* The dot rides the FIRST line of a wrapped label instead of centring itself
+     against two. */
+  .seg--fill .seg__tick {
+    margin-top: 5px;
+  }
+}
+
 .seg__btn:hover {
   color: var(--ink);
 }
@@ -1829,56 +2069,68 @@
   gap: 4px;
   padding: 1px 0;
 }
-/* The arrow restores the setting; the name beside it is an editable field, so
-   renaming needs no separate mode and the row stays one line. */
+/* THE NAME IS THE TARGET, and it takes the whole row — a big, obvious thing to
+   hit rather than a 24px circle beside a text field. It reads as text until
+   you point at it, which is the right weight for a list: the row you want
+   lights, the rest stay quiet. */
 .bookmarks__go {
-  flex: none;
-  width: 24px;
-  height: 24px;
-  color: var(--muted);
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  color: var(--ink);
   background: transparent;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  font-size: 12px;
-  line-height: 1;
+  border: 0;
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   cursor: pointer;
 }
 .bookmarks__go:hover {
-  color: var(--ink);
-  border-color: var(--ink);
+  background: var(--tint-soft);
 }
+.bookmarks__go:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+/* Only while renaming, so the field's box is a MODE you entered rather than
+   the row's resting appearance. */
 .bookmarks__rename {
   flex: 1;
   min-width: 0;
   padding: 5px 7px;
   color: var(--ink);
   font: inherit;
-  font-size: 12.5px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 3px;
-}
-.bookmarks__rename:hover {
-  border-color: var(--line);
+  font-size: 13px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
 }
 .bookmarks__rename:focus {
   outline: none;
   border-color: var(--ink);
 }
+/* The icon is the button — no circle behind it. Quiet until you want it, so a
+   list of saved settings doesn't read as a row of delete buttons. */
 .bookmarks__remove {
   flex: none;
   width: 22px;
   height: 22px;
-  color: var(--muted);
+  color: var(--ink);
+  opacity: 0.4;
   background: transparent;
   border: 0;
-  border-radius: 50%;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1;
   cursor: pointer;
+  transition: opacity 0.12s ease;
 }
-.bookmarks__remove:hover {
-  color: var(--ink);
+.bookmarks__remove:hover,
+.bookmarks__remove:focus-visible {
+  opacity: 1;
 }
 
 /* ==========================================================================
@@ -1892,6 +2144,13 @@
 .modules {
   display: grid;
   gap: 26px;
+}
+/* A grid item defaults to `min-width: auto` exactly as a flex item does, so
+   this is the same fix one level up: without it, a neck drawn wider than the
+   phone pushes its whole column out rather than scrolling inside itself. Both
+   levels need saying — the chain is only as narrow as its widest link. */
+.modules > * {
+  min-width: 0;
 }
 .modules--two {
   grid-template-columns: 1fr 1fr;
@@ -1946,6 +2205,7 @@
   gap: 2px;
   flex: none;
 }
+/* Same rule as the bar's controls: the icon IS the button. See the note there. */
 .panel__act {
   display: inline-flex;
   align-items: center;
@@ -1953,20 +2213,17 @@
   width: 26px;
   height: 26px;
   padding: 0;
-  color: var(--muted);
+  color: var(--ink);
+  opacity: 0.58;
   background: transparent;
-  border: 1px solid transparent;
-  /* Square, like the site bar's controls — same kind of thing, same shape.
-     Circles in this app mean the mark and the fretboard dots. */
-  border-radius: var(--radius);
-  font-size: 14px;
+  border: 0;
+  font-size: 16px;
   line-height: 1;
   cursor: pointer;
-  transition: color 0.12s ease, border-color 0.12s ease;
+  transition: opacity 0.12s ease;
 }
 .panel__act:hover {
-  color: var(--ink);
-  border-color: var(--line);
+  opacity: 1;
 }
 
 /* SAVED IS RED. The bookmark is filled AND takes the 1st degree's red — the
@@ -1979,6 +2236,7 @@
 .panel__act--on,
 .panel__act--on:hover {
   color: var(--deg-1);
+  opacity: 1;
 }
 .panel__act svg {
   width: 15px;

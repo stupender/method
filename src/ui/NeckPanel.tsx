@@ -49,7 +49,12 @@ export function NeckPanel({
         </div>
         {legend && <div className="neckpanel__legend">{legend}</div>}
       </header>
-      {children}
+      {/* The board gets its own box so that on a phone it can SCROLL SIDEWAYS
+          inside the panel — the neck is drawn at a readable size there and you
+          swipe along it, rather than seventeen frets being squeezed into a
+          phone's width and becoming unreadable. On a desktop this box does
+          nothing at all. See the note in App.css. */}
+      <div className="neckpanel__board">{children}</div>
     </section>
   );
 }
