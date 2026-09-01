@@ -21,6 +21,8 @@
 
 import { useId, useState } from 'react';
 import type { Instrument, Tuning } from '../theory/types';
+import { noteName } from '../theory/notes';
+import { TUNINGS } from '../data/tunings';
 
 /**
  * THE SOUND HOLE, WITH THE STRINGS CROSSING IT — a detail crop rather than a
@@ -45,21 +47,32 @@ import type { Instrument, Tuning } from '../theory/types';
  * is what they are when you look into a sound hole.
  */
 /**
- * The strings, as gaps across the hole: EVENLY SPACED, and thick to thin left
- * to right. The taper is the whole thing — evenly weighted gaps would be a
- * barcode, and the gauges are what say "guitar" without drawing one. Same rule
- * the neck itself is drawn with (see stringWidth in render/Fretboard.tsx).
+ * THE SOUND HOLE, WITH SIX STRINGS ACROSS IT — the same mark whatever
+ * instrument is selected.
  *
- * FOUR, NOT SIX. Six is the honest number and it doesn't survive: at 3 units
- * apart on a 24-unit grid the gaps land 2.2px apart at the size this actually
- * renders, and six thin slivers that close up into grey is a worse lie about a
- * guitar than four clear ones. Four reads as strings; six reads as hatching.
+ * It was briefly drawn from the tuning: six gaps for a guitar, four for a
+ * ukulele, and the weights taken from the actual open PITCHES so that a
+ * high-G tenor came out with a thin string on the left, the way one really
+ * looks. It worked, and it's the wrong idea — Stu's call, and he's right. This
+ * icon isn't a picture of the current instrument, it's the DOOR to the
+ * instrument menu, and a door that changes shape depending on what's behind it
+ * is a worse door. Six strings is what "guitar" looks like, the app is called
+ * Fretboard Constellations, and the name on the button is the instrument's
+ * name anyway.
+ *
+ * The gauges are a real guitar's, thick to thin left to right — the same rule
+ * the neck itself is drawn with (see stringWidth in render/Fretboard.tsx). The
+ * taper is the whole thing: evenly weighted gaps would be a barcode, and the
+ * gauges are what say "guitar" without drawing one.
  */
+const HOLE_R = 9.4;
 const ICON_STRINGS = [
-  { x: 5.7, w: 1.45 },
-  { x: 9.9, w: 1.2 },
-  { x: 14.1, w: 0.98 },
-  { x: 18.3, w: 0.8 },
+  { x: 4.75, w: 1.3 },
+  { x: 7.65, w: 1.17 },
+  { x: 10.55, w: 1.04 },
+  { x: 13.45, w: 0.91 },
+  { x: 16.35, w: 0.81 },
+  { x: 19.25, w: 0.68 },
 ];
 
 export function InstrumentIcon() {
@@ -71,13 +84,13 @@ export function InstrumentIcon() {
           The first version laid the string rectangles over the disc in one
           path and let `evenodd` cancel them out. Inside the disc that gives
           the gaps; OUTSIDE it, where there's nothing to cancel against, each
-          rectangle paints itself — so the mark grew four solid bars sticking
-          out of the top and bottom of the circle, and read as a barcode.
-          A mask says what was actually meant: the disc is the shape, and the
-          strings take away from it. Nothing exists outside the circle. */}
+          rectangle paints itself — so the mark grew solid bars sticking out of
+          the top and bottom of the circle, and read as a barcode.
+          A mask says what was actually meant: the disc is the shape, the
+          strings take away from it, and nothing exists outside the circle. */}
       <mask id={maskId}>
         {/* White is kept, black is cut away. */}
-        <circle cx="12" cy="12" r="9" fill="#fff" />
+        <circle cx="12" cy="12" r={HOLE_R} fill="#fff" />
         {ICON_STRINGS.map((s) => (
           <rect
             key={s.x}
@@ -89,9 +102,20 @@ export function InstrumentIcon() {
           />
         ))}
       </mask>
-      <circle cx="12" cy="12" r="9" fill="currentColor" mask={`url(#${maskId})`} />
+      <circle
+        cx="12"
+        cy="12"
+        r={HOLE_R}
+        fill="currentColor"
+        mask={`url(#${maskId})`}
+      />
     </svg>
   );
+}
+
+/** An instrument's open strings, low to high — "E A D G B E". */
+function openNotes(t: Tuning | undefined): string {
+  return t ? t.openNotes.map(noteName).join(' ') : '';
 }
 
 export function InstrumentMenu({
@@ -145,7 +169,18 @@ export function InstrumentMenu({
                 >
                   <span className="seg__tick" aria-hidden="true" />
                   <span className="instrumentmenu__name">{i.name}</span>
-                  <span className="instrumentmenu__strings">{i.stringCount}</span>
+                  {/* WHAT IT'S TUNED TO, not how many strings it has. The
+                      count was a number you had to translate — 6 means guitar,
+                      which you already read on the line beside it. The open
+                      notes are the fact you'd actually want: they say what the
+                      instrument IS, they tell a baritone ukulele from a tenor
+                      at a glance, and they're what changes under you when you
+                      pick one. The instrument you're on shows the tuning
+                      you're actually in; the others show the one they'd
+                      open in. */}
+                  <span className="instrumentmenu__strings">
+                    {openNotes(i.id === instrument.id ? tuning : TUNINGS[i.defaultTuningId])}
+                  </span>
                 </button>
               </li>
             ))}

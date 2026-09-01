@@ -2407,13 +2407,16 @@
   flex: 1;
   min-width: 0;
 }
-/* How many strings — a quiet fact, right-aligned, that tells you what's about
-   to change about the drawing below. */
+/* WHAT IT'S TUNED TO — a quiet fact, right-aligned, that tells you what's
+   about to change about the drawing below. Letterspaced because it's a run of
+   single letters rather than a word, and they need the air to read as a list
+   of notes instead of as one long string of capitals. */
 .instrumentmenu__strings {
   flex: none;
   color: var(--muted);
   font-size: 11px;
-  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
 }
 
 
