@@ -146,6 +146,56 @@ export function Fretboard({
   // The same notes keyed by WHERE they are, for the case below.
   const prevByPlace = useRef(new Map<string, string>());
   const freshId = useRef(0);
+
+  // KEEP EACH LINE'S ANGLE CONTINUOUS ACROSS RENDERS.
+  //
+  // `Math.atan2` answers in -180..180, so a line lying almost flat can report
+  // 170 one moment and -170 the next — a real swing of twenty degrees that CSS
+  // dutifully animates as a THREE HUNDRED AND FORTY degree sweep the other
+  // way. Switching fingering systems is full of those small crossings, which
+  // is why the constellation looked like it was spinning rather than adjusting.
+  //
+  // The fix is to stop wrapping: remember the angle each line was last drawn
+  // at and express the new one as the nearest equivalent to it, adding or
+  // subtracting whole turns as needed. 170 -> -170 becomes 170 -> 190, and the
+  // line moves the twenty degrees it actually moved. Nothing about the drawing
+  // changes — 190 and -170 point the same way — only the path taken to get
+  // there.
+  // AND A LINE THAT TURNS TOO FAR ISN'T THE SAME LINE.
+  //
+  // Unwrapping fixes the false spins, but not the true ones: switching between
+  // fingering systems genuinely reverses some segments — a line that ran up to
+  // the right in CAGED runs down to the left in 3NPS — and a real 170-degree
+  // turn animates as a sweep because it IS one. Swinging a line through a half
+  // circle to say "the hand goes a different way now" is the wrong picture; it
+  // reads as spinning rather than as a change of direction.
+  //
+  // So past a limit the segment is given a fresh key, React mounts a new
+  // element, and it simply takes its new heading. Same rule the dots already
+  // follow: things that moved a little travel, things that changed entirely
+  // arrive. Below the limit — which is nearly everything, since most segments
+  // only tilt as a fingering shifts a fret or two — it still swings, and that
+  // small tilt is exactly the change of path worth watching.
+  const LINE_TURN_LIMIT = 90; // degrees a segment may swing before it's new
+
+  const lineAngles = useRef(new Map<string, number>());
+  const lineEpoch = useRef(new Map<string, number>());
+  const placeLine = (key: string, raw: number) => {
+    const previous = lineAngles.current.get(key);
+    // The nearest equivalent heading to where this line was last drawn, so a
+    // 170 -> -170 crossing reads as 170 -> 190 and moves twenty degrees.
+    let angle =
+      previous === undefined ? raw : raw + 360 * Math.round((previous - raw) / 360);
+    let epoch = lineEpoch.current.get(key) ?? 0;
+    if (previous !== undefined && Math.abs(angle - previous) > LINE_TURN_LIMIT) {
+      epoch += 1; // too far to swing through — this is a different line
+      angle = raw;
+      lineEpoch.current.set(key, epoch);
+    }
+    lineAngles.current.set(key, angle);
+    return { angle, elementKey: `${key}#${epoch}` };
+  };
+
   const identityOf = new Map<PlacedNote, string>();
   const arrivals = new Set<PlacedNote>();
   const nextGroups = new Map<string, { id: string; x: number }[]>();
@@ -568,11 +618,13 @@ export function Fretboard({
               const from = ordered[n];
               const dx = to.x - from.x;
               const dy = to.y - from.y;
+              const key = `${identityOf.get(from.h) ?? n}~${identityOf.get(to.h) ?? n + 1}`;
+              const placed = placeLine(key, (Math.atan2(dy, dx) * 180) / Math.PI);
               return {
-                key: `${identityOf.get(from.h) ?? n}~${identityOf.get(to.h) ?? n + 1}`,
+                key: placed.elementKey,
                 x: from.x,
                 y: from.y,
-                angle: (Math.atan2(dy, dx) * 180) / Math.PI,
+                angle: placed.angle,
                 length: Math.hypot(dx, dy),
               };
             });

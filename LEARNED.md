@@ -1917,3 +1917,14 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   returned identical results for every major-7 scale, so in the app's default
   key a third of that row did nothing. Worth checking that options actually
   differ in the common case, not just the case they were designed for.
+- **`atan2` wraps, and CSS believes it.** An angle reported in -180..180 flips
+  sign when a line passes horizontal, so a real twenty-degree change is
+  animated as a 340-degree sweep the other way. Remembering each line's last
+  angle and expressing the new one as the nearest equivalent — adding whole
+  turns — fixes it without changing anything about how the line is drawn.
+- **Two different problems can look like one.** The spinning constellation was
+  half wrap artifact and half real geometry: switching fingering systems
+  genuinely reverses some segments. The first wants unwrapping, the second
+  wants the element REPLACED, because animating a true half-turn reads as
+  spinning however smooth it is. Same rule the dots follow — things that moved
+  a little travel, things that changed entirely arrive.
