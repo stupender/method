@@ -589,7 +589,13 @@ function App() {
           {/* ALL THREE PARTS ARE STU'S, and each has a source:
                 "a living textbook" — the founding idea, in the first commit
                   in this repo (2026-06-15) and still at the top of README.md;
-                "constellations across the whole neck" — the v1 brief;
+                "constellations ... across the whole neck" — the v1 brief, and
+                  "of possibility" from Stu's own word for what a chosen
+                  fingering shows you: the field you're now in. POSSIBILITY
+                  rather than his first draft's "potentiality" — the same idea
+                  with one less layer of abstraction, and it's already the name
+                  of the app's main area, so the page and the nav say the same
+                  word;
                 "so you can just play" — the README thesis, compressed.
               A previous pass replaced this whole line because the tail of it
               was mine — three verbs saying nothing anyone could disagree with
@@ -600,8 +606,8 @@ function App() {
               it's answering. */}
           <p>
             A living textbook for the fretboard: scales, harmony and ear
-            training, seen as constellations across the whole neck. So you can
-            just play.
+            training, seen as constellations of possibility across the whole
+            neck. So you can just play.
           </p>
           {/* One invitation, and only once there's somewhere to send people.
               See ui/links.ts — an unset address renders nothing at all rather
