@@ -383,24 +383,12 @@ function App() {
       <header className="sitebar">
         <Mark className="sitebar__mark" variant="triad" press />
         <h1 className="sitebar__name">Fretboard Constellations</h1>
-        {/* BETA, AND A WAY TO SAY SO. The footer is the right home for the
-            feedback link but it's at the end of a very long page, and the one
-            thing worth having in beta is people telling you WHY something
-            confused them.
-            A word rather than a fourth icon, deliberately: the cluster at the
-            other end is for OPERATING the app — what you've saved, one panel
-            or two, the light — and reaching the person who made it isn't that.
-            It also earns its place by carrying information the reader wants
-            anyway: this is unfinished, things will move, that's expected. */}
-        {FEEDBACK_EMAIL && (
-          <a
-            className="sitebar__beta"
-            href={`mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(FEEDBACK_SUBJECT)}`}
-            title="In beta — tell Stu what's confusing or broken"
-          >
-            Beta
-          </a>
-        )}
+        {/* BETA — a LABEL, not a control. It was a mailto and it grew a
+            pointer under the cursor, which promised something a one-word note
+            shouldn't: you don't click a status. It says the true and useful
+            thing (this is unfinished, things will move) and the way to write
+            in lives in the footer, where a link belongs. */}
+        <span className="sitebar__beta">Beta</span>
         {/* Top-level areas: a higher separation than the modes within Study. */}
         {AREAS.length > 1 && (
           <nav className="topnav" role="group" aria-label="Area">

@@ -156,42 +156,36 @@ export function scalePositions(
 
 // ---- System 2: the FIVE SHAPES (CAGED / position playing) -----------------
 //
-// WHY FIVE AND NOT SEVEN, which is the thing the old "Positional" got wrong.
+// WHY FIVE AND NOT SEVEN. A seven-note scale offers seven notes to start a
+// position on, so it's tempting to build seven boxes. Players don't. A major
+// scale runs W W H W W W H, and a box starting on the UPPER note of a half
+// step sits one fret from the box below it — which is not a different hand
+// position, it's the same one. Those collapse, and seven starts become FIVE.
+// In C major the half steps are 3->4 and 7->1, so the F and C starts fall away
+// and the shapes begin on E, G, A, B and D.
 //
-// A seven-note scale offers seven notes to start a position on, so it's
-// tempting to build seven boxes. Players don't, and the reason is in the
-// intervals. A major scale runs W W H W W W H: two of its steps are HALF
-// steps. A box starting on the upper note of a half step sits in essentially
-// the same place on the neck as the box starting on the lower note — one fret
-// apart is not a different hand position. So those two collapse, and seven
-// starts become FIVE SHAPES. That's the CAGED system, and it's what every
-// printed position sheet shows.
+// ROOT TO ROOT, TWO OCTAVES. This is the rule that makes a pattern a pattern:
+// it starts on a note and ends on that same note two octaves up — fifteen
+// tones for a seven-note scale. An earlier version collected every scale note
+// inside a fret window instead, which begins and ends wherever the window
+// happens to fall and is a picture of the neck rather than a thing you play.
 //
-// Concretely in C major the half steps are 3->4 and 7->1, so the starts on F
-// and C fall away and the shapes begin on D, E, G, A and B. It cross-checks
-// against a Phrygian sheet: E Phrygian is the same seven notes, E is the 3rd
-// of C major, and it survives — so Phrygian's first pattern starts on its own
-// root, which is exactly how those sheets are drawn.
+// THE WINDOW IS [start - 1, start + 3]. A hand at the starting fret reaches one
+// fret back and three forward. Both halves matter and each was checked against
+// a fingering Stu gave:
 //
-// A SHAPE IS A WINDOW, not a walk. The old code built a box by stepping along
-// a ladder of scale tones and crossing strings when one climbed too high,
-// which is how you'd describe 3-notes-per-string. An in-position shape is
-// simpler and more honest than that: put your hand at a fret, and the shape is
-// EVERY scale note under it, on every string. That's what the diagrams draw
-// and it's what the hand actually does.
-// A HAND COVERS FOUR FRETS, so the window is the start fret plus three.
+//   Open position (start 0, so the window clamps to 0..3)
+//     E 0 1 3 | A 0 2 3 | D 0 2 3 | G 0 2 | B 0 1 3 | e 0
+//   The G string stops at 2 because B sits at fret 4, outside the window; and
+//   it ends on the open high E, two octaves above where it began.
 //
-// This was 4 — a five-fret window — and the extra fret is what broke the open
-// position. In C major it reached fret 4 and picked up the B on the G string,
-// which isn't in open position; the de-duplication below then dropped the OPEN
-// B to compensate, so the G string read 0-2-4 and the B string 1-3 where every
-// method book has 0-2 and 0-1-3. One fret too wide, and then a second wrong
-// answer covering for the first.
-//
-// Four frets also makes the shapes naturally duplicate-free: the G/B pair is
-// the one that can sound a pitch twice, and at this width the two occurrences
-// no longer fall in the same window.
-const SHAPE_SPAN = 3;
+//   Mixolydian (start 3, window 2..6)
+//     E 3 5 | A 2 3 5 | D 2 3 5 | G 2 4 5 | B 3 5 6 | e 3
+//   The reach BACK is what puts B on the A string at fret 2, below the fret
+//   the pattern started on — a five-fret window anchored at the start can't
+//   produce this, and that's how the shape was found to be wrong.
+const REACH_BACK = 1; // frets below the start the hand can still reach
+const REACH_UP = 3; // ...and above it
 
 export function fiveShapes(
   instrument: Instrument,
@@ -200,96 +194,73 @@ export function fiveShapes(
   scale: ScaleDefinition,
 ): ScalePosition[] {
   const byPitchClass = toneLookup(root, scale);
+  const scalePcs = new Set(byPitchClass.keys());
   const { stringCount, fretCount } = instrument;
   const lowOpen = midiOf(tuning.openNotes[0]);
   const degreeCount = scale.intervals.length;
 
-  // WHICH DEGREES SURVIVE. A degree is dropped when it sits a semitone above
-  // the one before it — that's the collapse described above. Derived from the
-  // scale's own intervals rather than hard-coded, so it gives five for any
-  // seven-note scale with two half steps and does the right thing for scales
-  // shaped differently (harmonic minor's augmented second keeps all seven).
-  const semis = scale.intervals.map((iv) => iv.semitones);
-  const startDegrees: number[] = [];
-  for (let d = 0; d < degreeCount; d++) {
-    const prev = (d - 1 + degreeCount) % degreeCount;
-    const step = ((semis[d] - semis[prev]) % 12 + 12) % 12;
-    if (step !== 1) startDegrees.push(d); // 1 semitone = same hand position
+  // Every scale tone on the neck, ascending — the path a run walks.
+  const topReach = midiOf(tuning.openNotes[stringCount - 1]) + fretCount;
+  const ladder: number[] = [];
+  for (let m = lowOpen; m <= topReach; m++) {
+    if (scalePcs.has(((m % 12) + 12) % 12)) ladder.push(m);
   }
 
-  const positions: ScalePosition[] = [];
-  for (const degree of startDegrees) {
-    // Where this degree first sits on the lowest string.
-    let startFret = -1;
-    for (let f = 0; f <= fretCount; f++) {
-      const tone = byPitchClass.get((((lowOpen + f) % 12) + 12) % 12);
-      if (tone && tone.degreeIndex === degree) {
-        startFret = f;
-        break;
-      }
+  // WHICH DEGREES START A SHAPE. Drop the ones sitting a semitone above the
+  // degree before them — see the note above. Derived from the scale's own
+  // intervals, so a scale shaped differently (harmonic minor's augmented
+  // second) keeps the starts it should.
+  const semis = scale.intervals.map((iv) => iv.semitones);
+  const startDegrees = new Set<number>();
+  for (let d = 0; d < degreeCount; d++) {
+    const prev = (d - 1 + degreeCount) % degreeCount;
+    const step = (((semis[d] - semis[prev]) % 12) + 12) % 12;
+    if (step !== 1) startDegrees.add(d);
+  }
+
+  // Walk `count` tones up from `startIdx`, staying under one hand.
+  const buildBox = (startIdx: number, count: number): PlacedNote[] | null => {
+    const base = ladder[startIdx] - lowOpen; // the start fret on the low string
+    const winLo = Math.max(0, base - REACH_BACK);
+    const winHi = base + REACH_UP;
+    const notes: PlacedNote[] = [];
+    let s = 0;
+    for (let k = 0; k < count; k++) {
+      const m = ladder[startIdx + k];
+      if (m === undefined) return null; // ran off the end of the neck
+      // Climb a string until the next tone passes the hand, then cross.
+      while (s < stringCount && m - midiOf(tuning.openNotes[s]) > winHi) s++;
+      if (s >= stringCount) return null; // ran off the top string
+      const fret = m - midiOf(tuning.openNotes[s]);
+      if (fret < winLo || fret > fretCount) return null;
+      notes.push(placeAt(tuning, s, fret, byPitchClass.get(((m % 12) + 12) % 12)!));
     }
-    if (startFret < 0) continue;
+    return notes;
+  };
 
-    // HOW WIDE THE HAND GOES. Four frets first, five if four won't reach.
-    //
-    // Open position is genuinely narrower than the rest, because the open
-    // strings do the work a fret would otherwise have to: four frets there
-    // gives a full two octaves. Higher up there are no open strings to lean
-    // on and the same four frets came up short — thirteen notes, well under
-    // the two octaves a position is supposed to cover — so the hand stretches
-    // to a fifth fret, which is what a hand actually does.
-    //
-    // Written as "reach further only when you must" rather than a per-shape
-    // table, so it stays true in every key rather than just this one.
-    const TWO_OCTAVES = 2 * degreeCount + 1;
+  const positions: ScalePosition[] = [];
+  for (let i = 0; i < ladder.length; i++) {
+    const fret = ladder[i] - lowOpen;
+    if (fret < 0 || fret > fretCount) continue;
+    const tone = byPitchClass.get(((ladder[i] % 12) + 12) % 12)!;
+    if (!startDegrees.has(tone.degreeIndex)) continue;
+    if (positions.some((p) => p.degreeIndex === tone.degreeIndex)) continue;
 
-    // The window, and every scale note inside it on every string —
-    // BUT EACH PITCH ONLY ONCE.
-    //
-    // A scale doesn't repeat a note, and a guitar will happily offer you the
-    // same one twice: G to B is a major 3rd where every other pair is a 4th,
-    // so in most windows one pitch sits on BOTH strings. Taking the window
-    // literally put B3 at G-string fret 4 and again at B-string fret 0, and
-    // the run played it twice in a row.
-    //
-    // The duplicate to keep is the one on the LOWER string, which is what
-    // "in position" means: climb a string as far as the window reaches, then
-    // cross. Strings are walked low to high here, so the first sighting of a
-    // pitch is already the right one and the rest are skipped.
-    const gather = (span: number): PlacedNote[] => {
-      const hi = Math.min(fretCount, startFret + span);
-      const found: PlacedNote[] = [];
-      const sounded = new Set<number>();
-      for (let s = 0; s < stringCount; s++) {
-        const open = midiOf(tuning.openNotes[s]);
-        for (let f = startFret; f <= hi; f++) {
-          const tone = byPitchClass.get((((open + f) % 12) + 12) % 12);
-          if (!tone) continue;
-          const midi = open + f;
-          if (sounded.has(midi)) continue; // already fingered, lower down
-          sounded.add(midi);
-          found.push(placeAt(tuning, s, f, tone));
-        }
-      }
-      return found;
-    };
-    let notes = gather(SHAPE_SPAN);
-    if (notes.length < TWO_OCTAVES) notes = gather(SHAPE_SPAN + 1);
-    // A shape with a string missing isn't a hand position, it's a fragment.
-    const stringsCovered = new Set(notes.map((n) => n.position.stringIndex)).size;
-    if (stringsCovered < stringCount) continue;
+    // Two octaves if the instrument has the strings for it, otherwise one —
+    // still root to root, which is the part that matters. Four strings can't
+    // hold fifteen tones under one hand, so a ukulele gets the octave.
+    const notes =
+      buildBox(i, 2 * degreeCount + 1) ?? buildBox(i, degreeCount + 1);
+    if (!notes) continue;
 
     positions.push({
       notes,
-      name: scale.modeNames?.[degree] ?? `Shape ${degree + 1}`,
-      lowestFret: startFret,
-      degreeIndex: degree,
+      name: scale.modeNames?.[tone.degreeIndex] ?? `Shape ${tone.degreeIndex + 1}`,
+      lowestFret: Math.min(...notes.map((p) => p.position.fret)),
+      degreeIndex: tone.degreeIndex,
     });
   }
-  // UP THE NECK, in the order you'd read them. They're built in DEGREE order,
-  // which for C major puts the D shape (fret 10) first and the E shape (open)
-  // second — so the page would start you halfway up the neck and send you back
-  // to the nut. Reading down a page walks up the neck everywhere else here.
+  // Up the neck, in the order you'd read down a page.
   return positions.sort((a, b) => a.lowestFret - b.lowestFret);
 }
 

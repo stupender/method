@@ -26,6 +26,8 @@ export function NeckPanel({
   name,
   legend,
   aside,
+  onPickAll,
+  allShowing,
   children,
 }: {
   // What you're in — "C Major", "D Dorian", "Dm7".
@@ -34,6 +36,17 @@ export function NeckPanel({
   legend?: ReactNode;
   // What's lit right now, from whatever you've scrolled to.
   aside?: ReactNode;
+  /**
+   * THE NAME IS THE WAY BACK TO THE WHOLE SCALE. There used to be an "All
+   * notes" card above the positions doing this job, which meant the list of
+   * positions began with something that wasn't a position. The scale's name is
+   * already sitting at the top of the neck saying what the whole thing is, so
+   * pressing it to SEE the whole thing needs no new control and no explaining.
+   * Omit the handler and the name is plain text, as it is in Harmony.
+   */
+  onPickAll?: () => void;
+  /** True while the whole scale is showing, so the name can read as chosen. */
+  allShowing?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -44,7 +57,23 @@ export function NeckPanel({
           rather than at a width someone guessed. */}
       <header className="neckpanel__head">
         <div className="neckpanel__titles">
-          {name && <span className="neckpanel__name">{name}</span>}
+          {name &&
+            (onPickAll ? (
+              <button
+                className={
+                  allShowing
+                    ? 'neckpanel__name neckpanel__name--all'
+                    : 'neckpanel__name'
+                }
+                onClick={onPickAll}
+                aria-pressed={allShowing}
+                title="Show the whole scale across the neck"
+              >
+                {name}
+              </button>
+            ) : (
+              <span className="neckpanel__name">{name}</span>
+            ))}
           {aside && <span className="neckpanel__aside">{aside}</span>}
         </div>
         {legend && <div className="neckpanel__legend">{legend}</div>}

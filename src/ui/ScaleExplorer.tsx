@@ -210,6 +210,11 @@ export function ScaleExplorer({
       <div className="workbench" ref={viewRef}>
         <NeckPanel
           name={`${noteName(root)} ${scale.name}`}
+          onPickAll={() => {
+            setShowAll(true);
+            setPinnedShape(null);
+          }}
+          allShowing={showAll}
           legend={<DegreeLegend root={root} scale={scale} />}
           aside={activeShape != null ? positionLabel(activeShape) : undefined}
         >
@@ -243,18 +248,9 @@ export function ScaleExplorer({
             rather than a loose button above the neck. It belongs here: it's the
             same kind of choice as the positions under it, one step wider, and
             it sits where Harmony puts its string-set heading. */}
-        <div
-          className={showAll ? 'tab-allnotes tab-allnotes--on' : 'tab-allnotes'}
-          onClick={() => {
-            setShowAll(true);
-            setPinnedShape(null);
-          }}
-        >
-          <div className="tab-row-head">
-            <span className="tab-row-mark" aria-hidden="true" />
-            <span className="tab-row-title">All notes</span>
-          </div>
-        </div>
+        {/* The "All notes" card that used to sit here is gone — the scale's
+            name on the neck does that job now, so the list below is nothing
+            but positions. See NeckPanel. */}
         {positions.map((pos, i) => (
           <div
             key={i}

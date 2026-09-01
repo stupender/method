@@ -60,11 +60,13 @@
   white-space: nowrap;
 }
 
-/* The beta mark beside the title: a label first, a link second. Quiet enough
-   not to compete with the name it sits against, underlined so it's plainly
-   something you can press. */
+/* The beta mark beside the title. A LABEL — no pointer, no hover, nothing to
+   press. It reports a fact about the app; the way to write in is in the
+   footer. */
 .sitebar__beta {
   flex: none;
+  cursor: default;
+  user-select: none;
   align-self: center;
   padding: 2px 7px;
   border: 1px solid var(--line);
@@ -2343,4 +2345,32 @@
   color: var(--muted);
   font-size: 11px;
   font-variant-numeric: tabular-nums;
+}
+
+
+/* THE SCALE'S NAME IS ALSO THE SWITCH that shows the whole scale across the
+   neck (see ui/NeckPanel.tsx). It has to read as the heading it already was,
+   so it takes no button chrome at all — the only sign it does anything is the
+   pointer, and the fact that it goes full-ink when the whole scale is up. */
+button.neckpanel__name {
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+button.neckpanel__name:hover {
+  opacity: 0.72;
+}
+.neckpanel__name--all {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--line);
+}
+button.neckpanel__name:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
