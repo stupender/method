@@ -13,12 +13,10 @@
 export const BEING_SOUND = 'https://beingsound.studio';
 
 /**
- * The Substack. FILL THIS IN and the footer's invitation appears; leave it
- * empty and there's simply no invitation, which is the right failure — better
- * a quiet footer than a link that goes nowhere in front of the masterclass
- * group.
+ * The Substack. Empty would mean no invitation is rendered at all — better a
+ * quiet footer than a link that goes nowhere.
  */
-export const SUBSTACK = '';
+export const SUBSTACK = 'https://beingsound.substack.com';
 
 /** Shown beside the copyright. */
 export const AUTHOR = 'Stu Pender';

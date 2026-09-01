@@ -25,12 +25,23 @@ createRoot(document.getElementById('root')!).render(
 // A failure here is not worth surfacing — it means no offline and no install
 // prompt, and the app itself works exactly as before. Common in a private
 // window, and over plain http, where service workers aren't allowed at all.
-if ('serviceWorker' in navigator) {
+// PRODUCTION ONLY. A cache that serves the last thing it saw is exactly wrong
+// while you're editing: the dev server pushes a change, the worker answers
+// from its cache, and you're looking at code you already replaced. It cost an
+// afternoon's confusion the first time. In development the app simply runs
+// without one; nothing else differs.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register(`${import.meta.env.BASE_URL}sw.js`)
       .catch(() => {
         /* no offline support here; the app is unaffected */
       })
+  })
+} else if ('serviceWorker' in navigator) {
+  // And clean up after any worker a previous run of the dev server registered,
+  // which would otherwise keep answering from its cache forever.
+  navigator.serviceWorker.getRegistrations?.().then((rs) => {
+    rs.forEach((r) => r.unregister())
   })
 }
