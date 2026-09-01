@@ -1928,3 +1928,8 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   wants the element REPLACED, because animating a true half-turn reads as
   spinning however smooth it is. Same rule the dots follow — things that moved
   a little travel, things that changed entirely arrive.
+- **Two filenames differing only in case is a trap on macOS.** `earProgress.ts`
+  beside `EarProgress.tsx` meant `import './EarProgress'` resolved to the
+  WRONG one — the store instead of the component. It failed at run time only;
+  the type-checker was perfectly happy, because TypeScript resolved the name it
+  was given and the filesystem resolved a different one.

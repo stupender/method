@@ -13,6 +13,8 @@
 // ============================================================================
 
 import { useState } from 'react';
+import { EarProgress } from './EarProgress';
+import { loadProgress, recordAnswer } from './earStats';
 import { CHORDS } from '../data/chords';
 import { spellNoteFromInterval, midiOf, noteName } from '../theory/notes';
 import { playChord } from '../audio/player';
@@ -86,6 +88,11 @@ function QualityQuiz({ material }: { material: EarMaterial }) {
   const [guess, setGuess] = useState<string | null>(null); // the chosen quality id
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState({ correct: 0, total: 0 });
+  // WHAT YOUR EAR HAS LEARNED, as opposed to how this sitting is going. The
+  // score above resets when you close the tab; this doesn't. Held in state as
+  // well as in storage so the readout moves the moment you answer. See
+  // ui/earStats.ts.
+  const [progress, setProgress] = useState(loadProgress);
 
   // Pose a new question: one of the chords actually in play, then sound it.
   const newQuestion = () => {
@@ -103,10 +110,15 @@ function QualityQuiz({ material }: { material: EarMaterial }) {
     if (!question || revealed) return;
     setGuess(id);
     setRevealed(true);
+    const right = id === question.chord.id;
     setScore((s) => ({
-      correct: s.correct + (id === question.chord.id ? 1 : 0),
+      correct: s.correct + (right ? 1 : 0),
       total: s.total + 1,
     }));
+    // Tallied against the QUALITY that was played, not the one you guessed —
+    // the question is how well you know that sound, and a wrong answer is
+    // evidence about the sound you were played.
+    setProgress(recordAnswer('quality', question.chord.id, right));
   };
 
   return (
@@ -166,6 +178,13 @@ function QualityQuiz({ material }: { material: EarMaterial }) {
           )}
         </>
       )}
+
+      <EarProgress
+        progress={progress}
+        quiz="quality"
+        nameOf={(id) => CHORDS[id]?.name ?? id}
+        onCleared={() => setProgress({})}
+      />
 
       <footer className="footnote">
         The chords come from whatever you put in play in the CONTROLS above —

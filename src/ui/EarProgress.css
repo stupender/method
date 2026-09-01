@@ -1,0 +1,135 @@
+/* ==========================================================================
+   EarProgress.css — the standing of your ear
+   --------------------------------------------------------------------------
+   Quiet until opened. The figure is the one thing set large, because it's the
+   one thing being said; everything else is annotation on it.
+   ========================================================================== */
+
+.earprogress {
+  margin-top: 18px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.earprogress__head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* The hero number, in the display face — it's a statement, not a readout. */
+.earprogress__figure {
+  font-family: var(--serif);
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.earprogress__of {
+  flex: 1;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.earprogress__more {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.earprogress__head:hover .earprogress__more {
+  color: var(--ink);
+}
+
+/* ---- The breakdown ------------------------------------------------------ */
+.earprogress__list {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.earprogress__row {
+  display: grid;
+  grid-template-columns: minmax(96px, 1.2fr) 2fr auto auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.earprogress__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.earprogress__bar {
+  display: block;
+  height: 6px;
+  background: var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+/* Ink, not colour. The seven degree hues mean scale degree everywhere else in
+   this app, and a bar that borrowed one would be saying something it doesn't
+   mean. */
+.earprogress__bar span {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+  opacity: 0.55;
+}
+
+.earprogress__pct,
+.earprogress__count {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.earprogress__pct {
+  font-weight: 600;
+}
+.earprogress__count {
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.earprogress__clear {
+  margin-top: 14px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.earprogress__clear:hover {
+  color: var(--ink);
+}
+
+@media (max-width: 640px) {
+  .earprogress__row {
+    grid-template-columns: minmax(80px, 1fr) 1.4fr auto;
+  }
+  /* The raw count is the first thing to go when there isn't room — the
+     percentage and the bar already say it. */
+  .earprogress__count {
+    display: none;
+  }
+}
