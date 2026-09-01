@@ -1,7 +1,7 @@
 {
   "name": "Fretboard Constellations",
   "short_name": "Constellations",
-  "description": "See the fretboard, hear the sound, play with it. A living textbook for the guitar.",
+  "description": "The fretboard as constellations — scales, harmony and ear training across the whole neck.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

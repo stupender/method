@@ -534,10 +534,14 @@ function App() {
             </a>
             {' '}— guitarist, composer and teacher.
           </p>
-          <p>
-            A living textbook for the fretboard: see the shape, hear the sound,
-            play with it.
-          </p>
+          {/* STU'S OWN LINE, from the README's thesis and dated to the first
+              commit in this repo — written before any of this existed. The
+              placeholder that stood here ("see the shape, hear the sound, play
+              with it") was three verbs in a row saying nothing anyone could
+              disagree with, which is the shape bad copy takes when it's
+              written by someone with no opinion about the subject. This is an
+              actual claim about why the tool exists. */}
+          <p>The less you have to think, the more you can play.</p>
           {/* One invitation, and only once there's somewhere to send people.
               See ui/links.ts — an unset address renders nothing at all rather
               than a link that goes nowhere. */}
