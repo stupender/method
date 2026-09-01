@@ -1933,3 +1933,25 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   WRONG one — the store instead of the component. It failed at run time only;
   the type-checker was perfectly happy, because TypeScript resolved the name it
   was given and the filesystem resolved a different one.
+- **`tsc --noEmit` checks NOTHING in this repo.** The root `tsconfig.json` is a
+  project-references stub with `"files": []`, so the command exits 0 no matter
+  what is broken. `npm run build` (which runs `tsc -b`) is the type check.
+- **A keyboard is a one-string instrument.** A fret is a semitone, and so is
+  the gap between two keys — so "string 0, fret 7" means the same thing on
+  both, and every pure function in `theory/` worked on a keyboard with no
+  changes at all. The whole feature was a picture and the questions that stop
+  applying (which fingering, which string set).
+- **An instrument's notation conventions travel with the instrument.** Guitar
+  is written an octave above where it sounds (the little 8 under the clef);
+  a keyboard is written where it sounds. One number, and getting it wrong puts
+  every note on the wrong line while looking entirely plausible.
+- **A grand staff is right for two hands and wrong for one.** A one-octave
+  scale printed across a braced pair comes out as a line of music with a
+  matching line of RESTS. Choosing the staff by counting how far the music
+  falls outside each one — a stand-in for ledger lines — puts a run where a
+  scale book would put it, and keeps the brace for music that really does
+  reach across both hands.
+- **`:has()` makes a rule say what it meant.** A container query hiding
+  `.seg__text` so a short name could take its place blanked every row whose
+  options have no short name. `.seg__label:has(.seg__short) .seg__text` swaps
+  only where there is something to swap in.

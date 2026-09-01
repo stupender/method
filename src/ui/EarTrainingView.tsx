@@ -17,15 +17,20 @@ import { EarProgress } from './EarProgress';
 import { loadProgress, recordAnswer } from './earStats';
 import './EarTest.css';
 import { CHORDS } from '../data/chords';
-import { spellNoteFromInterval, midiOf, noteName } from '../theory/notes';
+import { noteName } from '../theory/notes';
+import { voicingName, structureName } from '../theory/chord';
 import { playChord } from '../audio/player';
 import { FunctionQuizView } from './FunctionQuizView';
 import {
   earMaterial,
   pickOne,
+  pickVoicing,
+  voicingMidis,
   type EarSelection,
   type EarMaterial,
   type EarChord,
+  type EarDifficulty,
+  type EarVoicing,
 } from '../theory/earMaterial';
 import { InversionQuizView } from './InversionQuizView';
 
@@ -36,8 +41,13 @@ import { InversionQuizView } from './InversionQuizView';
 export function EarTrainingView({
   selection,
   quiz,
+  difficulty,
 }: {
   selection: EarSelection;
+  /** How much the chord is allowed to hide behind its arrangement — root
+   *  position and close, any inversion, or any inversion and any spacing.
+   *  Chosen in the CONTROLS panel like everything else. */
+  difficulty: EarDifficulty;
   // Which drill — chosen in the CONTROLS panel, like everything else.
   quiz: 'quality' | 'inversion' | 'function';
 }) {
@@ -66,7 +76,7 @@ export function EarTrainingView({
             <FunctionQuizView />
           ) : (
             /* The default, and today the only one the panel can ask for. */
-            <QualityQuiz material={material} />
+            <QualityQuiz material={material} difficulty={difficulty} />
           )}
         </div>
       </section>
@@ -74,19 +84,51 @@ export function EarTrainingView({
   );
 }
 
-// The MIDI notes of a chord in root position (root + its chord tones).
-function chordMidis(c: EarChord): number[] {
-  return c.chord.intervals.map((iv) => midiOf(spellNoteFromInterval(c.root, iv)));
+/**
+ * How this one was voiced, in words — or nothing at all when it was the plain
+ * root-position close chord, which needs no saying.
+ *
+ * Two names, joined: which tone was in the bass, and how far apart the voices
+ * were. `voicingName` already picks the more useful of the two true names for
+ * the bass (an inversion number for a close voicing, the bass note itself for
+ * a dropped one — see theory/chord.ts), and the spacing is added only when it
+ * isn't close.
+ */
+function arrangement(q: Question): string | null {
+  const { structure, inversion } = q.voicing;
+  const close = structure.id === 'close';
+  if (close && inversion === 0) return null;
+  const bass = voicingName(q.chord.chord, structure, inversion).toLowerCase();
+  if (close) return bass;
+  const spacing = structureName(
+    structure,
+    q.chord.chord.intervals.length,
+  ).toLowerCase();
+  return `${spacing}, ${bass}`;
 }
 
-function QualityQuiz({ material }: { material: EarMaterial }) {
+// ONE QUESTION: a chord, and the arrangement it's being played in. The two
+// travel together because "hear it again" has to play the same thing — see
+// pickVoicing in theory/earMaterial.ts.
+interface Question {
+  chord: EarChord;
+  voicing: EarVoicing;
+}
+
+function QualityQuiz({
+  material,
+  difficulty,
+}: {
+  material: EarMaterial;
+  difficulty: EarDifficulty;
+}) {
   // The qualities that actually occur in the chosen material — no invented
   // pool. Narrowing the CONTROLS above narrows these, so the answers on offer
   // are always the answers that are possible.
   const qualities = [...new Set(material.chords.map((c) => c.chord.id))].map(
     (id) => CHORDS[id],
   );
-  const [question, setQuestion] = useState<EarChord | null>(null);
+  const [question, setQuestion] = useState<Question | null>(null);
   const [guess, setGuess] = useState<string | null>(null); // the chosen quality id
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState({ correct: 0, total: 0 });
@@ -105,20 +147,22 @@ function QualityQuiz({ material }: { material: EarMaterial }) {
     window.setTimeout(() => setSounding(false), 700);
   };
 
-  // Pose a new question: one of the chords actually in play, then sound it.
+  // Pose a new question: one of the chords actually in play, arranged as the
+  // chosen difficulty allows, then sound it.
   const newQuestion = () => {
     const c = pickOne(material.chords);
     if (!c) return;
-    setQuestion(c);
+    const q = { chord: c, voicing: pickVoicing(c.chord, difficulty) };
+    setQuestion(q);
     setGuess(null);
     setRevealed(false);
-    playChord(chordMidis(c));
+    playChord(voicingMidis(q.chord.root, q.chord.chord, q.voicing));
     bloom();
   };
 
   const replay = () => {
     if (!question) return;
-    playChord(chordMidis(question));
+    playChord(voicingMidis(question.chord.root, question.chord.chord, question.voicing));
     bloom();
   };
 
@@ -126,7 +170,7 @@ function QualityQuiz({ material }: { material: EarMaterial }) {
     if (!question || revealed) return;
     setGuess(id);
     setRevealed(true);
-    const right = id === question.chord.id;
+    const right = id === question.chord.chord.id;
     setScore((s) => ({
       correct: s.correct + (right ? 1 : 0),
       total: s.total + 1,
@@ -134,7 +178,7 @@ function QualityQuiz({ material }: { material: EarMaterial }) {
     // Tallied against the QUALITY that was played, not the one you guessed —
     // the question is how well you know that sound, and a wrong answer is
     // evidence about the sound you were played.
-    setProgress(recordAnswer('quality', question.chord.id, right));
+    setProgress(recordAnswer('quality', question.chord.chord.id, right));
   };
 
   return (
@@ -201,7 +245,7 @@ function QualityQuiz({ material }: { material: EarMaterial }) {
               aria-label="Your answer"
             >
               {qualities.map((c) => {
-                const isAnswer = c.id === question.chord.id;
+                const isAnswer = c.id === question.chord.chord.id;
                 const isGuess = c.id === guess;
                 let cls = 'eartest__answer';
                 if (revealed && isAnswer) cls += ' eartest__answer--right';
@@ -226,13 +270,21 @@ function QualityQuiz({ material }: { material: EarMaterial }) {
             {revealed && (
               <div className="eartest__verdict">
                 <p className="eartest__said">
-                  {guess === question.chord.id ? 'Correct — ' : 'Not quite — '}
+                  {guess === question.chord.chord.id
+                    ? 'Correct — '
+                    : 'Not quite — '}
                   that was{' '}
                   <strong>
-                    {noteName(question.root)} {question.chord.name}
+                    {noteName(question.chord.root)} {question.chord.chord.name}
                   </strong>
-                  , the <strong>{question.roman}</strong> of{' '}
-                  {noteName(question.tonic)} {question.scale.name}.
+                  , the <strong>{question.chord.roman}</strong> of{' '}
+                  {noteName(question.chord.tonic)} {question.chord.scale.name}.
+                  {/* AND HOW IT WAS ARRANGED, when the arrangement is what made
+                      it hard. On Easy every chord is root position and close,
+                      so saying so every time would be noise; anything else is
+                      the thing you were probably hearing and couldn't place,
+                      and naming it is where the learning is. */}
+                  {arrangement(question) && <> Played {arrangement(question)}.</>}
                 </p>
                 <button className="eartest__next" onClick={newQuestion}>
                   Next chord →
@@ -254,7 +306,12 @@ function QualityQuiz({ material }: { material: EarMaterial }) {
         The chords come from whatever you put in play in the CONTROLS above —
         keys, scales and degrees. Narrow them to drill one sound; widen them to
         stretch. The answers on offer are only ever the qualities that can
-        actually occur in what you selected.
+        actually occur in what you selected.{' '}
+        {difficulty === 'easy'
+          ? 'On Easy every chord arrives in root position, close — the shape you learned it in.'
+          : difficulty === 'medium'
+            ? 'On Medium any chord tone can be in the bass, so the interval you lean on may not be at the bottom.'
+            : 'On Hard the voices are spread as well as inverted — the same notes, much further apart.'}
       </footer>
     </>
   );

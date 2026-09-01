@@ -767,7 +767,7 @@ function Module({
     setState((s) => ({ ...s, [key]: value }));
 
   const { studyMode, rootIndex, scaleId, degree, seventh, structureId } = state;
-  const { inversionIndex, quiz, fingering } = state;
+  const { inversionIndex, quiz, fingering, earDifficulty } = state;
   const mode: Mode = state.view;
 
   // WHICH NECK THIS MODULE DRAWS. Resolved from ids rather than held as
@@ -793,6 +793,8 @@ function Module({
   // Quality is offered. `quiz` still travels in a module's state so the other
   // two stay compiled and one row brings them back.
   const setFingering = (v: ModuleState['fingering']) => set('fingering', v);
+  const setEarDifficulty = (v: ModuleState['earDifficulty']) =>
+    set('earDifficulty', v);
 
   // EAR MODE'S SELECTIONS ARE SETS, not single values. On the neck a control
   // answers "what am I looking at", so exactly one; in Ear Training the same
@@ -1107,6 +1109,30 @@ function Module({
             />
           </ControlRow>
         )}
+        {/* HOW HARD, which is a different question from WHAT — the two rows
+            above say which sounds you're being played, and this says what the
+            chord is allowed to do to hide them. Last in the panel, because
+            it's the setting you change least: you pick your pool, then you
+            pick how much punishment you want. See theory/earMaterial.ts. */}
+        {studyMode === 'ear' && (
+          <ControlRow label="Difficulty">
+            <Segmented
+              fill
+              ariaLabel="Difficulty"
+              options={[
+                /* Only Medium gets a short form, because only Medium has one
+                   — the swap is per option (see `.seg__short` in App.css), so
+                   Easy and Hard simply keep their names at every width. */
+                { value: 'easy' as const, label: 'Easy' },
+                { value: 'medium' as const, label: 'Medium', short: 'Med' },
+                { value: 'hard' as const, label: 'Hard' },
+              ]}
+              value={earDifficulty}
+              onChange={setEarDifficulty}
+            />
+          </ControlRow>
+        )}
+
         {/* SCALES' ONE, in the same place Harmony's three sit: at the end of
             the panel, under the View row that summons it. It used to float in
             the gap between the panel and the neck, which made it read as a
@@ -1198,6 +1224,7 @@ function Module({
       {studyMode === 'ear' && (
         <EarTrainingView
           quiz={quiz}
+          difficulty={earDifficulty}
           selection={{
             roots: earRoots,
             scaleIds: earScaleIds,

@@ -66,6 +66,12 @@ export interface ModuleState {
   /** Which drill. Only 'quality' is offered today; the other two are built and
    *  reachable in code, so this stays rather than being deleted. */
   quiz: 'quality' | 'inversion' | 'function';
+  /** HOW THE CHORD IS ARRANGED before you're played it — root position and
+   *  close (easy), any inversion (medium), or any inversion and any spacing
+   *  (hard). See the note in theory/earMaterial.ts. It's a setting of the
+   *  panel like everything else here, so a preset remembers what you were
+   *  drilling AT, not just what you were drilling. */
+  earDifficulty: 'easy' | 'medium' | 'hard';
 
   /** Roughly where you were on the page. See the note in Bookmarks.tsx. */
   scrollY?: number;
@@ -94,6 +100,7 @@ export function defaultModuleState(scaleId: string): ModuleState {
     earScaleIds: [scaleId],
     earQualities: ['major-triad', 'minor-triad', 'diminished-triad'],
     quiz: 'quality',
+    earDifficulty: 'easy',
   };
 }
 
@@ -154,6 +161,9 @@ export function loadBookmarks(): Bookmark[] {
         // views instead of qualities; the three major-scale triads are the
         // sensible landing place rather than an empty pool.
         earQualities: ['major-triad', 'minor-triad', 'diminished-triad'],
+        // A bookmark saved before difficulty existed was made when every
+        // chord was played in root position and close — which is Easy.
+        earDifficulty: 'easy',
         ...b.state,
         // AND RETIRED VALUES BECOME THEIR SUCCESSOR. 'box' and 'hybrid' were
         // the old seven-box Positional and Hybrid, which turned out to be the

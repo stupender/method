@@ -12,10 +12,18 @@
 // always something you asked for, and the controls above them tell the truth.
 // ============================================================================
 
-import type { Note, ScaleDefinition, ChordDefinition } from './types';
+import type {
+  Note,
+  ScaleDefinition,
+  ChordDefinition,
+  VoicingStructure,
+} from './types';
 import { SCALES } from '../data/scales';
+import { STRUCTURES } from '../data/voicings';
 import { ROOT_CHOICES } from '../data/roots';
 import { diatonicChords } from './harmony';
+import { buildVoices, inversionCount, structuresForChord } from './chord';
+import { midiOf } from './notes';
 
 // One chord you could be played, and everything the quizzes need to ask about
 // it: what it is, and where it came from.
@@ -140,4 +148,68 @@ export function earMaterial(sel: EarSelection): EarMaterial {
 export function pickOne<T>(items: readonly T[]): T | null {
   if (items.length === 0) return null;
   return items[Math.floor(Math.random() * items.length)];
+}
+
+// ============================================================================
+// HOW HARD IT IS — the arrangement of the chord you're played
+// ----------------------------------------------------------------------------
+// The QUESTION never changes: what quality was that? What changes is how much
+// the chord is doing to hide it, and there are exactly two dials.
+//
+//   ROOT POSITION vs ANY INVERSION. Root position gives you the quality's
+//   interval stack in order, bottom to top, which is the shape most people
+//   actually memorise. Invert it and the same four notes arrive in a different
+//   order over a different bass, and the interval you were leaning on isn't at
+//   the bottom any more.
+//
+//   CLOSE vs ANY SPACING. A close voicing packs the tones into the smallest
+//   space they fit in. Drop one an octave and the chord opens out: the same
+//   notes, much further apart, and a m7 spread over two octaves does not sound
+//   like the m7 you learned in a box.
+//
+// Easy turns both off. Medium turns on inversions. Hard turns on both. That's
+// Stu's ladder, and the order is right — inversion is the harder ear skill of
+// the two but the more familiar sound, so it comes first.
+// ============================================================================
+
+export type EarDifficulty = 'easy' | 'medium' | 'hard';
+
+/** How one question's chord is arranged: which spacing, which tone in the bass. */
+export interface EarVoicing {
+  structure: VoicingStructure;
+  inversion: number;
+}
+
+/**
+ * Choose an arrangement for this chord at this difficulty.
+ *
+ * DECIDED ONCE, WHEN THE QUESTION IS POSED, and carried with the question —
+ * which is why this returns a choice rather than a sound. Rolling the dice
+ * inside playback instead would mean pressing "hear it again" played you a
+ * DIFFERENT voicing, so the thing you were straining to place changed under
+ * you every time you asked to hear it.
+ */
+export function pickVoicing(
+  chord: ChordDefinition,
+  difficulty: EarDifficulty,
+): EarVoicing {
+  const close = STRUCTURES[0]; // 'close' — see data/voicings.ts
+  if (difficulty === 'easy') return { structure: close, inversion: 0 };
+
+  const inversion = Math.floor(Math.random() * inversionCount(chord));
+  if (difficulty === 'medium') return { structure: close, inversion };
+
+  const structure = pickOne(structuresForChord(chord, STRUCTURES)) ?? close;
+  return { structure, inversion };
+}
+
+/** The MIDI notes of a chord arranged that way — what actually gets played. */
+export function voicingMidis(
+  root: Note,
+  chord: ChordDefinition,
+  voicing: EarVoicing,
+): number[] {
+  return buildVoices(root, chord, voicing.structure, voicing.inversion).map((v) =>
+    midiOf(v.note),
+  );
 }
