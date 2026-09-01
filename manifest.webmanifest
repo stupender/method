@@ -1,7 +1,7 @@
 {
   "name": "Fretboard Constellations",
   "short_name": "Constellations",
-  "description": "The fretboard as constellations — scales, harmony and ear training across the whole neck.",
+  "description": "A living textbook for the fretboard: scales, harmony and ear training, seen as constellations across the whole neck.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
