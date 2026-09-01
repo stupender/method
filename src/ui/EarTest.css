@@ -1,0 +1,333 @@
+/* ==========================================================================
+   EarTest.css — the listening drill
+   --------------------------------------------------------------------------
+   THE SOUND IS THE SUBJECT, so it gets the middle of the box and the only
+   large thing on it. Everything that was there before was a row of pills that
+   changed shape as you answered — Replay, then Replay and Next, with a score
+   wedged on the end — so the eye had to find the controls again after every
+   question. Now there's one thing to press to hear it, one set of answers, and
+   one way onward, each in a fixed place.
+
+   THE GLOW IS THE UNKNOWN, and it's the seven degree colours because the
+   thing you're being asked is which of them you just heard. Every other use of
+   that palette in this app names ONE degree; here all seven drift through each
+   other at once, which is the honest picture of a sound you haven't placed
+   yet. When you answer it stills and drains — it isn't a mystery any more.
+
+   Two conic gradients turning at different speeds in opposite directions, one
+   of them in a shuffled order, so the colours genuinely re-mix as they pass
+   rather than a single wheel going round. Blurred far enough that no edge
+   between hues is ever visible: light, airy, nothing you could point at.
+   ========================================================================== */
+
+.eartest {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  padding: 10px 18px 8px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* (A wide gradient wash across the panel was tried here too. Even at eight
+   percent it read as a lighter RECTANGLE rather than as atmosphere — the box
+   has edges and a blurred fill finds them. The orbit is the whole idea now.) */
+
+/* ---- The orb ------------------------------------------------------------ */
+.eartest__orb {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  /* The dots orbit outside the disc, so the button can't clip them — and the
+     margin is the room that orbit needs, or a dot crosses the caption below. */
+  overflow: visible;
+  margin: 42px 0 40px;
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 50%;
+  cursor: pointer;
+  flex: none;
+}
+
+/* (There WAS a conic-gradient aura here as well, and a spectrum-filled play
+   triangle. Three rainbow effects stacked on one small box read as chaos —
+   Stu's word was "insane", and he was right. The orbiting dots say the same
+   thing better and in the app's own vocabulary, so they're the only place the
+   spectrum appears now.) */
+
+/* ==========================================================================
+   SEVEN DOTS, ORBITING — the app's own vocabulary rather than a borrowed one.
+   --------------------------------------------------------------------------
+   Everything in this app is dots: the fretboard's, the colour key's, the three
+   in the mark. So the picture of "which of the seven did you just hear" is the
+   seven of them circling, each at its own radius and its own speed, which
+   makes a spiral rather than a wheel — they never line up twice.
+
+   RISO BLEND. Where two pass over each other they mix like ink: multiply on
+   paper, screen on the night field, which is the same overlap rule the logo is
+   built from. That's what makes the crossings worth watching.
+
+   They slow and fade the moment you answer. Seven possibilities become one.
+   ========================================================================== */
+.eartest__ring {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+/* TWO ELEMENTS PER DOT, because two things are moving at once and a single
+   element has only one transform. The outer one carries it around its orbit;
+   the inner one is the body, breathing slowly in and out of size — near and
+   far, which is what makes it read as an orbit in depth rather than a ring of
+   lights on a wheel. */
+.eartest__spark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  animation: eartest-orbit var(--dur) linear infinite;
+}
+.eartest__spark i {
+  display: block;
+  width: var(--size);
+  height: var(--size);
+  margin: calc(var(--size) / -2);
+  border-radius: 50%;
+  background: var(--hue);
+  /* Just enough softness to bloom into its neighbours where they cross —
+     these are the app's dots, not fog. */
+  filter: blur(1.5px);
+  opacity: 0.85;
+  mix-blend-mode: multiply;
+  animation: eartest-breathe var(--breath) ease-in-out infinite alternate;
+  /* THE GENTLE RETURN. The swell on a played chord arrives fast and leaves
+     slowly — it snaps bright on the attack and eases back over the best part
+     of a second, the way a note does. Done as a transition rather than a
+     keyframe so there's no end-of-animation snap back to normal. */
+  transition: filter 900ms ease-out, opacity 900ms ease-out;
+}
+
+@keyframes eartest-breathe {
+  from {
+    transform: scale(0.72);
+  }
+  to {
+    transform: scale(1.28);
+  }
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='paper']) .eartest__spark i {
+    mix-blend-mode: screen;
+  }
+}
+:root[data-theme='night'] .eartest__spark i {
+  mix-blend-mode: screen;
+}
+
+@keyframes eartest-orbit {
+  from {
+    transform: rotate(var(--from)) translateX(var(--r));
+  }
+  to {
+    transform: rotate(calc(var(--from) + 360deg)) translateX(var(--r));
+  }
+}
+
+/* Seven dots, seven radii, seven speeds — a spiral, and never the same
+   arrangement twice. */
+/* Seven of them, and no two alike: its own orbit, its own year, its own size,
+   its own slow breath. The numbers are deliberately not multiples of each
+   other, so the arrangement never repeats. */
+.eartest__spark:nth-child(1) { --from: 0deg;   --r: 84px;  --dur: 15s; --size: 18px; --breath: 6.5s; --hue: var(--deg-1); }
+.eartest__spark:nth-child(2) { --from: 51deg;  --r: 96px;  --dur: 19s; --size: 12px; --breath: 8.3s; --hue: var(--deg-2); }
+.eartest__spark:nth-child(3) { --from: 103deg; --r: 88px;  --dur: 23s; --size: 21px; --breath: 5.7s; --hue: var(--deg-3); }
+.eartest__spark:nth-child(4) { --from: 154deg; --r: 101px; --dur: 17s; --size: 14px; --breath: 9.1s; --hue: var(--deg-4); }
+.eartest__spark:nth-child(5) { --from: 206deg; --r: 92px;  --dur: 27s; --size: 19px; --breath: 7.2s; --hue: var(--deg-5); }
+.eartest__spark:nth-child(6) { --from: 257deg; --r: 105px; --dur: 21s; --size: 11px; --breath: 6.1s; --hue: var(--deg-6); }
+.eartest__spark:nth-child(7) { --from: 309deg; --r: 86px;  --dur: 25s; --size: 16px; --breath: 8.8s; --hue: var(--deg-7); }
+
+.eartest__orb--settled .eartest__spark,
+.eartest__orb--settled .eartest__spark i {
+  animation-play-state: paused;
+}
+.eartest__orb--settled .eartest__spark i {
+  opacity: 0.14;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eartest__spark,
+  .eartest__spark i {
+    animation: none;
+  }
+}
+
+/* IT BLOOMS WHEN THE CHORD SOUNDS. A short swell on the note being played —
+   the one moment the picture is tied to the audio rather than to the state of
+   the question, and the thing that makes the panel feel alive rather than
+   decorated. */
+.eartest__orb--sounding .eartest__spark i {
+  filter: blur(0.5px) saturate(1.3);
+  opacity: 1;
+  transition-duration: 110ms; /* in fast, out slow — see the base rule */
+}
+
+/* The disc itself sits over the glow and carries the mark you press. */
+.eartest__face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  line-height: 1;
+  transition: transform 0.14s ease;
+}
+/* Plain ink. The colour lives in the orbit, not here. */
+.eartest__face svg {
+  width: 30px;
+  height: 30px;
+  display: block;
+  margin-left: 3px; /* a triangle looks off-centre when it's centred */
+}
+.eartest__orb:hover .eartest__face {
+  transform: scale(0.97);
+}
+.eartest__orb:active .eartest__face {
+  transform: scale(0.94);
+}
+.eartest__orb:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 5px;
+}
+
+/* What pressing it does, under it — so the orb needs no label inside. */
+.eartest__hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+/* ---- The question and the answers --------------------------------------- */
+.eartest__ask {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 19px;
+  text-align: center;
+}
+
+.eartest__answers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 8px;
+  width: 100%;
+  max-width: 470px;
+}
+
+.eartest__answer {
+  padding: 11px 12px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.eartest__answer:hover:not(:disabled) {
+  border-color: var(--ink);
+}
+.eartest__answer:disabled {
+  cursor: default;
+}
+/* Right and wrong are the one place colour means true/false rather than
+   distance — the same two tokens the quizzes have always used. */
+.eartest__answer--right {
+  border-color: var(--correct);
+  background: color-mix(in srgb, var(--correct) 14%, var(--surface));
+  font-weight: 600;
+}
+.eartest__answer--wrong {
+  border-color: var(--wrong);
+  background: color-mix(in srgb, var(--wrong) 12%, var(--surface));
+}
+/* The ones you didn't pick recede once the answer is known. */
+.eartest__answer--quiet {
+  opacity: 0.45;
+}
+
+/* ---- The verdict, and the way onward ------------------------------------ */
+.eartest__verdict {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 470px;
+  padding-top: 4px;
+  border-top: 1px solid var(--line);
+}
+
+.eartest__said {
+  margin: 14px 0 0;
+  text-align: center;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.eartest__said strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* One way onward, in one place, whether you were right or wrong. */
+.eartest__next {
+  padding: 10px 22px;
+  color: var(--on-ink);
+  background: var(--accent);
+  border: 0;
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.eartest__next:hover {
+  opacity: 0.88;
+}
+
+/* The sitting's tally — quiet, because the standing below is the real number. */
+.eartest__tally {
+  color: var(--muted);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.1em;
+}
+
+@media (max-width: 640px) {
+  .eartest {
+    padding: 20px 12px 4px;
+    gap: 18px;
+  }
+  .eartest__orb {
+    width: 104px;
+    height: 104px;
+  }
+  /* Pulled in with the disc so the orbit still clears it. */
+  .eartest__spark {
+    --r: 78px !important;
+    width: 14px;
+    height: 14px;
+    margin: -7px;
+  }
+  .eartest__answers {
+    grid-template-columns: 1fr 1fr;
+  }
+}

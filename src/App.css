@@ -711,7 +711,7 @@
   border-radius: 0;
   padding: 5px 10px;
   cursor: pointer;
-  white-space: nowrap;
+  white-space: normal;
   text-align: center;
   transition: color 0.12s ease;
 }
@@ -722,8 +722,13 @@
    to argue about. */
 .seg__label {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 7px;
+}
+/* The dot rides the FIRST line of a wrapped label rather than centring itself
+   against two. */
+.seg__tick {
+  margin-top: 5px;
 }
 /* IN THE PANEL, THE MARK IS A DOT. One kind of switch for the whole box: the
    underline that used to mark a pick-one row is gone from here, because a
@@ -740,11 +745,18 @@
   /* No overflow clipping here: this box contains the dot, and a clipped box
      cuts the dot's glow off flat on one side. Truncation is .seg__text's job. */
 }
+/* WRAP, DON'T CUT. A label that runs out of room takes another line; it never
+   loses its end. This was mobile-only and the desktop kept ellipsing, which is
+   where it did the most damage — "Half-Diminished (m7♭5)" arrived as
+   "Half-Diminished (m7♭5" with the closing bracket gone, and two harmonic
+   scales both became "Harmo…". Losing the END of a label is the truncation you
+   can't recover from, since that's where these names differ.
+   Short labels (a key, a Roman numeral) never wrap anyway, so nothing that
+   fitted before moves. */
 .seg__text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   min-width: 0;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 .seg--fill .seg__btn {
   padding-left: 4px;
@@ -767,21 +779,7 @@
    works — and stays working if either is edited. */
 @media (max-width: 640px) {
   .seg--fill .seg__btn {
-    white-space: normal;
     padding: 6px 8px;
-  }
-  .seg--fill .seg__text {
-    overflow: visible;
-    text-overflow: clip;
-    white-space: normal;
-  }
-  .seg--fill .seg__label {
-    align-items: flex-start;
-  }
-  /* The dot rides the FIRST line of a wrapped label instead of centring itself
-     against two. */
-  .seg--fill .seg__tick {
-    margin-top: 5px;
   }
 }
 

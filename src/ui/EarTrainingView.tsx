@@ -15,6 +15,7 @@
 import { useState } from 'react';
 import { EarProgress } from './EarProgress';
 import { loadProgress, recordAnswer } from './earStats';
+import './EarTest.css';
 import { CHORDS } from '../data/chords';
 import { spellNoteFromInterval, midiOf, noteName } from '../theory/notes';
 import { playChord } from '../audio/player';
@@ -51,7 +52,7 @@ export function EarTrainingView({
           now comes from the CONTROLS panel like every other choice. */}
       <section className="quizpanel">
         <header className="quizpanel__head">
-          <span className="quizpanel__title">Ear test</span>
+          <span className="quizpanel__title">Ear Training Test</span>
         </header>
         <div className="quizpanel__body">
           {material.chords.length === 0 ? (
@@ -94,6 +95,15 @@ function QualityQuiz({ material }: { material: EarMaterial }) {
   // well as in storage so the readout moves the moment you answer. See
   // ui/earStats.ts.
   const [progress, setProgress] = useState(loadProgress);
+  // True for the moment a chord is sounding, so the glow can bloom with it.
+  // A timer rather than an audio callback: the swell is a flourish on the
+  // attack, not a meter, and tying it to playback state would mean threading
+  // one through for no visible gain.
+  const [sounding, setSounding] = useState(false);
+  const bloom = () => {
+    setSounding(true);
+    window.setTimeout(() => setSounding(false), 700);
+  };
 
   // Pose a new question: one of the chords actually in play, then sound it.
   const newQuestion = () => {
@@ -103,9 +113,14 @@ function QualityQuiz({ material }: { material: EarMaterial }) {
     setGuess(null);
     setRevealed(false);
     playChord(chordMidis(c));
+    bloom();
   };
 
-  const replay = () => question && playChord(chordMidis(question));
+  const replay = () => {
+    if (!question) return;
+    playChord(chordMidis(question));
+    bloom();
+  };
 
   const answer = (id: string) => {
     if (!question || revealed) return;
@@ -124,61 +139,98 @@ function QualityQuiz({ material }: { material: EarMaterial }) {
 
   return (
     <>
-      <p className="tagline">Ear training — name the chord quality you hear.</p>
-
-      {question === null ? (
-        <button className="pill pill--play" onClick={newQuestion}>
-          ▶ Start
+      <div className={revealed ? 'eartest eartest--settled' : 'eartest'}>
+        {/* THE ORB IS THE SOUND. Press it to hear the chord — first time, or
+            again. One thing to press, in one place, rather than a Start button
+            that becomes a Replay button somewhere else. Its glow drifts while
+            the chord is unnamed and stills when you've answered. */}
+        <button
+          className={
+            'eartest__orb' +
+            (revealed ? ' eartest__orb--settled' : '') +
+            (sounding ? ' eartest__orb--sounding' : '')
+          }
+          onClick={question === null ? newQuestion : replay}
+          aria-label={question === null ? 'Play the first chord' : 'Play it again'}
+        >
+          {/* The seven degrees, orbiting — see EarTest.css. */}
+          <span className="eartest__ring" aria-hidden="true">
+            {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+              <span key={n} className="eartest__spark">
+                <i />
+              </span>
+            ))}
+          </span>
+          <span className="eartest__face" aria-hidden="true">
+            {/* Plain ink — the colour is in the orbit around it. */}
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5.2v13.6L19 12z" />
+            </svg>
+          </span>
         </button>
-      ) : (
-        <>
-          <div className="controls-row">
-            <button className="pill pill--play" onClick={replay}>
-              ▶ Replay
-            </button>
-            {revealed && (
-              <button className="pill" onClick={newQuestion}>
-                Next →
-              </button>
-            )}
-            <span className="quiz-score">
-              {score.correct} / {score.total}
-            </span>
-          </div>
 
-          <p className="control-hint">What quality did you hear?</p>
-          <div className="control-group control-group--wrap" role="group" aria-label="Your answer">
-            {qualities.map((c) => {
-              const isAnswer = c.id === question.chord.id;
-              const isGuess = c.id === guess;
-              let cls = 'pill';
-              if (revealed && isAnswer) cls += ' pill--correct';
-              else if (revealed && isGuess) cls += ' pill--wrong';
-              return (
-                <button
-                  key={c.id}
-                  className={cls}
-                  disabled={revealed}
-                  onClick={() => answer(c.id)}
-                >
-                  {c.name}
-                </button>
-              );
-            })}
-          </div>
-
-          {revealed && (
-            <p className="tagline">
-              {guess === question.chord.id ? 'Correct — ' : 'Not quite — '}that was{' '}
-              <strong>
-                {noteName(question.root)} {question.chord.name}
-              </strong>{' '}
-              — the <strong>{question.roman}</strong> of {noteName(question.tonic)}{' '}
-              {question.scale.name}.
+        {question === null ? (
+          <p className="eartest__hint">Press to hear a chord.</p>
+        ) : (
+          <>
+            <p className="eartest__hint">
+              Press again to hear it{' '}
+              {score.total > 0 && (
+                <span className="eartest__tally">
+                  · {score.correct}/{score.total} this sitting
+                </span>
+              )}
             </p>
-          )}
-        </>
-      )}
+
+            <p className="eartest__ask">What quality did you hear?</p>
+
+            <div
+              className="eartest__answers"
+              role="group"
+              aria-label="Your answer"
+            >
+              {qualities.map((c) => {
+                const isAnswer = c.id === question.chord.id;
+                const isGuess = c.id === guess;
+                let cls = 'eartest__answer';
+                if (revealed && isAnswer) cls += ' eartest__answer--right';
+                else if (revealed && isGuess) cls += ' eartest__answer--wrong';
+                else if (revealed) cls += ' eartest__answer--quiet';
+                return (
+                  <button
+                    key={c.id}
+                    className={cls}
+                    disabled={revealed}
+                    onClick={() => answer(c.id)}
+                  >
+                    {c.name}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* The answer and the way onward together, below a rule — so
+                "what was it" and "go again" are one moment rather than two
+                controls in different corners. */}
+            {revealed && (
+              <div className="eartest__verdict">
+                <p className="eartest__said">
+                  {guess === question.chord.id ? 'Correct — ' : 'Not quite — '}
+                  that was{' '}
+                  <strong>
+                    {noteName(question.root)} {question.chord.name}
+                  </strong>
+                  , the <strong>{question.roman}</strong> of{' '}
+                  {noteName(question.tonic)} {question.scale.name}.
+                </p>
+                <button className="eartest__next" onClick={newQuestion}>
+                  Next chord →
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
       <EarProgress
         progress={progress}
