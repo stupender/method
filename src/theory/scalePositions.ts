@@ -174,7 +174,28 @@ function positionScan(
   const scalePcs = new Set(byPitchClass.keys());
   const lowOpen = midiOf(tuning.openNotes[0]);
   const { stringCount, fretCount } = instrument;
-  const boxNotes = 2 * scale.intervals.length + 1; // two octaves (15 for a 7-note scale)
+  // HOW MANY NOTES A BOX HOLDS — which depends on how many strings there are.
+  //
+  // This asked for two octaves flat, 15 tones for a 7-note scale, and two
+  // octaves is a SIX-STRING ambition. A four-fret hand position holds about
+  // two and a half scale tones per string, so fifteen needs six strings to
+  // land on. On a ukulele's four, `buildBox` ran off the top string on every
+  // single attempt and returned null — which is why Positional and Hybrid
+  // came up completely empty there rather than merely cramped.
+  //
+  // So the box is measured in STRINGS now, not octaves: as much as the hand
+  // can actually reach across the neck it's on. A guitar still gets exactly
+  // fifteen and nothing about it changes; a ukulele gets ten, which is an
+  // octave and a half and fills all four strings. The floor of one octave
+  // keeps a box a box on any smaller instrument that turns up later.
+  const REACH_PER_STRING = 2.5; // scale tones under one hand, per string
+  const boxNotes = Math.min(
+    2 * scale.intervals.length + 1,
+    Math.max(
+      scale.intervals.length + 1,
+      Math.round(stringCount * REACH_PER_STRING),
+    ),
+  );
   const toneAt = (m: number) => byPitchClass.get(((m % 12) + 12) % 12)!;
 
   // An ascending ladder of every scale-tone MIDI reachable on the neck.
