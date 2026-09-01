@@ -777,10 +777,15 @@
 }
 
 @container panel (max-width: 620px) {
-  .seg__text {
+  /* ONLY WHERE THERE IS A SHORT NAME TO SWAP IN. Hiding `.seg__text`
+     unconditionally blanked every row whose options have no short form — Key,
+     Scale, Mode, Gravity — because there was nothing rendered to take its
+     place. `:has()` makes the rule say what it meant: replace the full name
+     when a short one exists, and otherwise leave it alone. */
+  .seg__label:has(.seg__short) .seg__text {
     display: none;
   }
-  .seg__short {
+  .seg__label:has(.seg__short) .seg__short {
     display: inline;
   }
 }
@@ -1169,8 +1174,27 @@
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
+/* NO PADDING OF ITS OWN. The ear test's colour field has to reach the panel's
+   border — a wash that stops 14px short reads as a picture hung on a wall
+   rather than as the room's own light — and the rules that divide the test
+   from the readout below it have to span the whole width for the same reason.
+   So the body gives up its padding and each block inside pads itself. */
 .quizpanel__body {
-  padding: 16px 14px 18px;
+  padding: 0;
+}
+/* Everything that ISN'T one of those blocks keeps the inset it always had —
+   the older inversion and function drills, and the "nothing to quiz yet" note.
+   Margins rather than padding, so nothing fights the vertical rhythm those
+   elements already carry. */
+.quizpanel__body > *:not(.eartest):not(.earprogress):not(.footnote) {
+  margin-left: 14px;
+  margin-right: 14px;
+}
+.quizpanel__body > *:first-child:not(.eartest) {
+  margin-top: 16px;
+}
+.quizpanel__body > *:last-child:not(.footnote):not(.earprogress) {
+  margin-bottom: 18px;
 }
 /* Inside the block the drill's own rows sit closer together, and its first
    line doesn't need the margin it carries when it's floating loose. */
@@ -1181,7 +1205,9 @@
   margin-bottom: 12px;
 }
 .quizpanel .footnote {
-  margin-bottom: 0;
+  margin: 0;
+  padding: 14px 16px 18px;
+  border-top: 1px solid var(--line);
 }
 
 /* ==========================================================================

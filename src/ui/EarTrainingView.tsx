@@ -164,6 +164,14 @@ function QualityQuiz({ material }: { material: EarMaterial }) {
           onClick={question === null ? newQuestion : replay}
           aria-label={question === null ? 'Play the first chord' : 'Play it again'}
         >
+          {/* The close orbit — the small dots, over the weather behind. */}
+          <span className="eartest__ring eartest__ring--near" aria-hidden="true">
+            {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+              <span key={n} className="eartest__spark">
+                <i />
+              </span>
+            ))}
+          </span>
           <span className="eartest__face" aria-hidden="true">
             {/* Plain ink — the colour is in the orbit around it. */}
             <svg viewBox="0 0 24 24" fill="currentColor">

@@ -69,9 +69,6 @@ export function MultiSelect<T extends string | number>({
               {o.short !== undefined && (
                 <span className="seg__short">{o.short}</span>
               )}
-            {o.short !== undefined && (
-              <span className="seg__short">{o.short}</span>
-            )}
             </span>
           </button>
         );

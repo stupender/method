@@ -30,7 +30,6 @@
   overflow: hidden;
   isolation: isolate;
 }
-
 /* (A wide gradient wash across the panel was tried here too. Even at eight
    percent it read as a lighter RECTANGLE rather than as atmosphere — the box
    has edges and a blurred fill finds them. The orbit is the whole idea now.) */
@@ -148,13 +147,13 @@
 /* Seven of them, and no two alike: its own orbit, its own year, its own size,
    its own slow breath. The numbers are deliberately not multiples of each
    other, so the arrangement never repeats. */
-.eartest__spark:nth-child(1) { --from: 0deg; --r: 118px; --dur: 210s; --size: 300px; --breath: 64s; --hue: var(--deg-1); }
-.eartest__spark:nth-child(2) { --from: 148deg; --r: 166px; --dur: 260s; --size: 210px; --breath: 81s; --hue: var(--deg-2); }
-.eartest__spark:nth-child(3) { --from: 74deg; --r: 96px; --dur: 185s; --size: 340px; --breath: 57s; --hue: var(--deg-3); }
-.eartest__spark:nth-child(4) { --from: 233deg; --r: 188px; --dur: 305s; --size: 240px; --breath: 92s; --hue: var(--deg-4); }
-.eartest__spark:nth-child(5) { --from: 300deg; --r: 134px; --dur: 240s; --size: 320px; --breath: 70s; --hue: var(--deg-5); }
-.eartest__spark:nth-child(6) { --from: 41deg; --r: 205px; --dur: 330s; --size: 195px; --breath: 48s; --hue: var(--deg-6); }
-.eartest__spark:nth-child(7) { --from: 192deg; --r: 152px; --dur: 275s; --size: 270px; --breath: 86s; --hue: var(--deg-7); }
+.eartest__spark:nth-child(1) { --from: 0deg; --r: 104px; --dur: 240s; --size: 300px; --breath: 64s; --hue: var(--deg-1); }
+.eartest__spark:nth-child(2) { --from: 148deg; --r: 206px; --dur: 300s; --size: 210px; --breath: 81s; --hue: var(--deg-2); }
+.eartest__spark:nth-child(3) { --from: 74deg; --r: 152px; --dur: 215s; --size: 340px; --breath: 57s; --hue: var(--deg-3); }
+.eartest__spark:nth-child(4) { --from: 233deg; --r: 248px; --dur: 350s; --size: 240px; --breath: 92s; --hue: var(--deg-4); }
+.eartest__spark:nth-child(5) { --from: 300deg; --r: 178px; --dur: 275s; --size: 320px; --breath: 70s; --hue: var(--deg-5); }
+.eartest__spark:nth-child(6) { --from: 41deg; --r: 272px; --dur: 380s; --size: 195px; --breath: 48s; --hue: var(--deg-6); }
+.eartest__spark:nth-child(7) { --from: 192deg; --r: 224px; --dur: 320s; --size: 270px; --breath: 86s; --hue: var(--deg-7); }
 
 .eartest--settled .eartest__spark,
 .eartest--settled .eartest__spark i {
@@ -169,6 +168,45 @@
   .eartest__spark i {
     animation: none;
   }
+}
+
+/* AND THE SMALL ONES COME BACK, over the top. Two scales of the same idea: the
+   weather behind the whole box, and a close orbit around the sound itself.
+   The near ones are the ones you watch; the far ones are the ones you feel. */
+/* CENTRED ON THE ORB, not on the box. The far ring fills the whole panel, so
+   inset:0 puts its centre in the middle of the box — which is right for
+   weather and wrong for an orbit around the button, because the button sits at
+   the TOP of the column. This ring is a zero-height line pinned at the disc's
+   centre (34px of padding + half of a 128px disc), and the dots hang off that.
+   Radii stay under 98 so nothing is clipped by the panel's top edge. */
+.eartest__ring--near {
+  position: absolute;
+  top: 98px;
+  left: 0;
+  right: 0;
+  height: 0;
+  z-index: 0;
+}
+/* Soft, but readable as dots — that's the difference from the weather behind,
+   which is never anything you could point at. */
+.eartest__ring--near .eartest__spark i {
+  filter: blur(2px);
+  opacity: 0.55;
+}
+.eartest__ring--near .eartest__spark:nth-child(1) { --from: 18deg;  --r: 78px; --dur: 34s; --size: 8px;  --breath: 9s;    --hue: var(--deg-1); }
+.eartest__ring--near .eartest__spark:nth-child(2) { --from: 69deg;  --r: 90px; --dur: 41s; --size: 5px;  --breath: 12s;   --hue: var(--deg-2); }
+.eartest__ring--near .eartest__spark:nth-child(3) { --from: 121deg; --r: 82px; --dur: 47s; --size: 9px;  --breath: 8s;    --hue: var(--deg-3); }
+.eartest__ring--near .eartest__spark:nth-child(4) { --from: 172deg; --r: 94px; --dur: 37s; --size: 6px;  --breath: 13.5s; --hue: var(--deg-4); }
+.eartest__ring--near .eartest__spark:nth-child(5) { --from: 224deg; --r: 85px; --dur: 53s; --size: 9px;  --breath: 10s;   --hue: var(--deg-5); }
+.eartest__ring--near .eartest__spark:nth-child(6) { --from: 275deg; --r: 96px; --dur: 44s; --size: 5px;  --breath: 11s;   --hue: var(--deg-6); }
+.eartest__ring--near .eartest__spark:nth-child(7) { --from: 327deg; --r: 80px; --dur: 50s; --size: 7px;  --breath: 12.5s; --hue: var(--deg-7); }
+
+.eartest--sounding .eartest__ring--near .eartest__spark i {
+  filter: blur(1px) saturate(1.35);
+  opacity: 0.92;
+}
+.eartest--settled .eartest__ring--near .eartest__spark i {
+  opacity: 0.16;
 }
 
 /* IT BLOOMS WHEN THE CHORD SOUNDS. A short swell on the note being played —
@@ -330,9 +368,23 @@
     height: 104px;
   }
   /* Pulled in with the disc so the orbit still clears it. */
-  /* Smaller box, smaller weather — still about a third of it across. */
-  .eartest__spark i {
+  /* Smaller box, smaller weather — still about a third of it across. Scoped
+     away from the near ring, whose dots have their own sizes and would
+     otherwise inherit this one and swallow the button. */
+  .eartest__ring:not(.eartest__ring--near) .eartest__spark i {
     --size: 200px;
+  }
+  /* 20px of padding and half of a 104px disc. */
+  .eartest__ring--near {
+    top: 72px;
+  }
+  .eartest__ring--near .eartest__spark {
+    --r: 66px;
+  }
+  .eartest__ring--near .eartest__spark:nth-child(2),
+  .eartest__ring--near .eartest__spark:nth-child(4),
+  .eartest__ring--near .eartest__spark:nth-child(6) {
+    --r: 58px;
   }
   .eartest__answers {
     grid-template-columns: 1fr 1fr;

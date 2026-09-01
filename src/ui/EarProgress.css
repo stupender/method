@@ -5,10 +5,12 @@
    one thing being said; everything else is annotation on it.
    ========================================================================== */
 
+/* Full width inside the panel, so the rule above it meets both borders. The
+   quiz panel's body carries no padding now (see App.css) — each block pads
+   itself, and this one's rule is the width of the box. */
 .earprogress {
-  margin-top: 18px;
   border-top: 1px solid var(--line);
-  padding-top: 14px;
+  padding: 14px 16px 4px;
 }
 
 .earprogress__head {
