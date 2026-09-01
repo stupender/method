@@ -534,19 +534,22 @@ function App() {
             </a>
             {' '}— guitarist, composer and teacher.
           </p>
-          {/* STU'S WORDS. The first sentence is his framing from the v1 brief
-              — the fretboard understood as constellations — and the second is
-              the README thesis compressed ("the less you have to think, the
-              more you can play"). Both sentences have to be here rather than
-              the payoff alone: "So you can just play" needs the sentence it's
-              answering, or the "so" has nothing to point at.
-              The placeholder these replaced ("see the shape, hear the sound,
-              play with it") was three verbs in a row saying nothing anyone
-              could disagree with — the shape copy takes when whoever wrote it
-              has no opinion about the subject. */}
+          {/* ALL THREE PARTS ARE STU'S, and each has a source:
+                "a living textbook" — the founding idea, in the first commit
+                  in this repo (2026-06-15) and still at the top of README.md;
+                "constellations across the whole neck" — the v1 brief;
+                "so you can just play" — the README thesis, compressed.
+              A previous pass replaced this whole line because the tail of it
+              was mine — three verbs saying nothing anyone could disagree with
+              — and threw away the living-textbook opening with it. Worth a
+              note: the bad half was attached to a good half, and only the bad
+              half needed going.
+              The payoff can't stand alone, either: "so" needs the sentence
+              it's answering. */}
           <p>
-            Scales, harmony and ear training, seen as constellations across the
-            whole neck. So you can just play.
+            A living textbook for the fretboard: scales, harmony and ear
+            training, seen as constellations across the whole neck. So you can
+            just play.
           </p>
           {/* One invitation, and only once there's somewhere to send people.
               See ui/links.ts — an unset address renders nothing at all rather
