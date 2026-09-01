@@ -240,12 +240,12 @@ export function ScaleExplorer({
           aside={activeShape != null ? positionLabel(activeShape) : undefined}
         >
         <Fretboard
+          animate={false}
           instrument={instrument}
           tuning={tuning}
           highlights={wholeNeck}
           shapes={shapes}
           activeShapeIndex={activeShape}
-          onShapeTap={selectShape}
           onBackgroundClick={() => setPinnedShape(null)}
           onNoteTap={
             onPickRoot

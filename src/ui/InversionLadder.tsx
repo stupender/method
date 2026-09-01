@@ -270,7 +270,6 @@ export function InversionLadder({
               shapes={shapes}
               activeShapeIndex={pinned}
               activeShapeIndices={pinned === null ? litShapes : null}
-              onShapeTap={selectRow}
               onBackgroundClick={() => setPinned(null)}
               labelMode={labelMode}
             />
@@ -327,7 +326,6 @@ export function InversionLadder({
                         'tab-card' +
                         (indexOf.get(r) === pinned ? ' tab-card--on' : '')
                       }
-                      onClick={() => selectRow(indexOf.get(r)!)}
                     >
                       <div className="tab-row-head">
                         {/* The selected mark is a lit dot in front of the

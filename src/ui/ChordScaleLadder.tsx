@@ -31,7 +31,8 @@ import type {
 import { diatonicChords } from '../theory/harmony';
 import { placeScale, relabelByScale } from '../theory/scale';
 import {
-  placeVoicingByStringSet,
+  candidateStringSets,
+  placeVoicingOnSet,
   isStretch,
 } from '../theory/chord';
 import { midiOf, noteName } from '../theory/notes';
@@ -46,8 +47,6 @@ import { LazySystem as System } from '../render/LazySystem';
 import { useStepper } from './ShapeStepper';
 
 // A stable key for a shape's string set, e.g. "0-1-2-3".
-const stringSetKey = (shape: PlacedNote[]) =>
-  shape.map((p) => p.position.stringIndex).sort((a, b) => a - b).join('-');
 const loFret = (shape: PlacedNote[]) =>
   shape.length ? Math.min(...shape.map((p) => p.position.fret)) : 0;
 const hiFret = (shape: PlacedNote[]) =>
@@ -61,6 +60,12 @@ const octaveUp = (shape: PlacedNote[]): PlacedNote[] =>
 
 // How long between chords when a set plays through.
 const STEP_MS = 520;
+
+// The widest a single grip may be, in frets. Matches REACH_SPAN in
+// theory/chord.ts: what a hand can genuinely do, as opposed to what's
+// comfortable. A chord scale is allowed its stretches — it isn't allowed
+// sprawls.
+const HAND_REACH = 6;
 
 export function ChordScaleLadder({
   instrument,
@@ -104,37 +109,133 @@ export function ChordScaleLadder({
   // and the harmony's movement through the key would be invisible. (Frame one
   // chord instead — GRAVITY: ii — and the centre moves to it; that's
   // InversionLadder, where the chord's own labels are the right ones.)
-  const placedPerChord = degrees.map((d) =>
-    placeVoicingByStringSet(instrument, tuning, d.chordRoot, d.chord, structure, inversion).map(
-      (shape) => relabelByScale(root, scale, shape),
-    ),
-  );
-  const setsPerChord = placedPerChord.map((shapes) => new Set(shapes.map(stringSetKey)));
+  // EVERY CHORD ON THE SAME STRINGS. A chord scale is one shape climbing the
+  // key, so the string set is chosen FIRST and every chord is asked to sit on
+  // it — rather than each chord picking its own best home and the ladder
+  // keeping whatever they happened to agree on.
+  //
+  // That agreement was the bug. Open triads with the 5th in the bass sit on
+  // E-D-G as majors and E-A-G as minors, so nothing was common to all seven
+  // and the page came up empty — even though all seven fit E-D-G perfectly
+  // well, at spans of three and four frets. Asked directly, they place.
+  //
+  // Stretches are accepted here on purpose. Holding the shape is worth more
+  // than every grip being comfortable, and a stretched one is marked as such.
+  //
+  // ...and RELABELLED against the key. A chord scale frames the whole key, so
+  // every note's colour should be its degree of the SCALE — in C major the Dm
+  // chord is orange-green-indigo (2, 4, 6), not red-yellow-blue. Left as the
+  // engine produces them, all seven chords would come out identically coloured
+  // and the harmony's movement through the key would be invisible.
+  const voiceCount = degrees[0]
+    ? (seventh ? 4 : 3)
+    : 3;
+  const sets = candidateStringSets(voiceCount, instrument.stringCount)
+    .map((strings) => ({
+      key: strings.join('-'),
+      strings,
+      shapes: degrees.map((d) =>
+        placeVoicingOnSet(
+          instrument,
+          tuning,
+          d.chordRoot,
+          d.chord,
+          structure,
+          inversion,
+          strings,
+        ),
+      ),
+    }))
+    // Only sets that hold the WHOLE key — which is what the fix above buys.
+    .filter((s) => s.shapes.every((sh) => sh !== null))
+    // ...AND THAT A HAND CAN ACTUALLY HOLD. Asking for a set by name means no
+    // span check happens on the way in, so an open triad would also "fit" the
+    // adjacent E-A-D — as a seven-fret reach. Stretches are allowed here and
+    // wanted; sprawls aren't. Six frets is the limit used everywhere else in
+    // the voicing engine for what a hand can genuinely do, and it's measured
+    // against the WORST chord in the set, since all seven have to be playable
+    // for the set to be worth offering.
+    .filter((s) => {
+      const worst = Math.max(
+        ...s.shapes.map((sh) => {
+          const frets = (sh as PlacedNote[]).map((p) => p.position.fret);
+          return Math.max(...frets) - Math.min(...frets);
+        }),
+      );
+      return worst <= HAND_REACH;
+    })
+    .map((s) => ({
+      key: s.key,
+      shapes: s.shapes.map((sh) => relabelByScale(root, scale, sh as PlacedNote[])),
+    }))
+    .sort((a, b) => Number(a.key.split('-')[0]) - Number(b.key.split('-')[0]));
 
-  // WHICH STRING SETS HOLD THE WHOLE KEY — and what to do when none of them do.
+  // ONE SET PER BASS STRING. With a skipped string there's more than one way to
+  // lay a voicing out from the same bass — an open triad on the low E can put
+  // the gap after the bass (E-D-G) or after the middle voice (E-A-G) — and
+  // showing both makes a page of near-duplicates where the useful question is
+  // just "where's the bass". So the sets are grouped by their lowest string and
+  // the most comfortable one wins, which is Stu's "E string bass, A string
+  // bass, D string bass" exactly.
   //
-  // Ideally a set holds all seven chords, and reading down it is the key
-  // climbing one shape. But that isn't always possible, and OPEN TRIADS WITH
-  // THE 5TH IN THE BASS are the case that proves it: a major one spans a major
-  // 6th then a minor 6th, a minor one spans them the other way round, and the
-  // two want different string gaps. In C major the majors sit on E-D-G and the
-  // minors on E-A-G, and no set takes all seven.
-  //
-  // That used to filter down to nothing and leave an empty page under a
-  // message about seventh chords, which was neither true nor useful. So: take
-  // the sets that hold the whole key when there are any, and otherwise take
-  // the ones that hold the MOST of it. A chord scale with two chords missing
-  // is still worth seeing — and the gap is the interesting part, because it's
-  // telling you the voicing changes shape between major and minor.
-  const everySet = new Set(placedPerChord.flatMap((shapes) => shapes.map(stringSetKey)));
-  const coverage = (key: string) => setsPerChord.filter((s) => s.has(key)).length;
-  const bestCoverage = Math.max(0, ...[...everySet].map(coverage));
-  const wanted = bestCoverage === setsPerChord.length ? setsPerChord.length : bestCoverage;
-  const sets = [...everySet]
-    .filter((key) => coverage(key) === wanted)
-    .sort((a, b) => Number(a.split('-')[0]) - Number(b.split('-')[0]));
-  /** True when no single set could hold the key — see above. */
-  const partial = wanted > 0 && wanted < setsPerChord.length;
+  // It also picks the RIGHT gap by itself rather than by a rule that would have
+  // to be wrong somewhere. The skip belongs on the voicing's widest interval,
+  // and that's simply the layout that ends up narrowest: root in bass takes
+  // E-A-G at a 2-fret span, 3rd in bass takes E-D-G at 2, and 5th in bass —
+  // where both intervals are sixths and neither layout is comfortable — ties at
+  // 4 and breaks toward the earlier skip, which is the bass-skip-3rd-root shape
+  // Stu described.
+  const spanOf = (set: (typeof sets)[number]) =>
+    Math.max(
+      ...set.shapes.map((sh) => {
+        const frets = sh.map((p) => p.position.fret);
+        return Math.max(...frets) - Math.min(...frets);
+      }),
+    );
+  // WHICH LAYOUT WINS, in order:
+  //   1. adjacent strings, when the voicing sits on them COMFORTABLY — that's
+  //      a close grip, and a close voicing shouldn't be sprawled over a skipped
+  //      string. "Comfortably" is the point: merely REACHABLE isn't enough,
+  //      because an open triad will technically reach three adjacent strings at
+  //      a six-fret span, and preferring that put a sprawl ahead of a two-fret
+  //      skip grip;
+  //   2. otherwise the gap goes RIGHT AFTER THE BASS — bass, skip, then the
+  //      rest. Stu's rule, and the reason it beats "whichever is narrowest" is
+  //      that it holds across all three bass strings and all three bass notes,
+  //      so the shape you learn on the low E is the shape you play on the A.
+  //      Ranking by comfort instead picked a different gap for the 5th in the
+  //      bass than for the 3rd, and the set moved under you as you changed
+  //      inversion;
+  //   3. and only then the narrowest, to settle anything still tied.
+  const gapAfter = (key: string) => {
+    const strings = key.split('-').map(Number);
+    for (let i = 1; i < strings.length; i++) {
+      if (strings[i] - strings[i - 1] > 1) return i - 1;
+    }
+    return Infinity; // adjacent all the way — no gap at all
+  };
+  const COMFORTABLE = 4; // frets under one hand without reaching
+  const rank = (set: (typeof sets)[number]): [number, number, number] => {
+    const gap = gapAfter(set.key);
+    const span = spanOf(set);
+    const adjacentAndEasy = gap === Infinity && span <= COMFORTABLE;
+    return [adjacentAndEasy ? 0 : 1, adjacentAndEasy ? 0 : gap, span];
+  };
+  const better = (a: (typeof sets)[number], b: (typeof sets)[number]) => {
+    const ra = rank(a);
+    const rb = rank(b);
+    for (let i = 0; i < ra.length; i++) if (ra[i] !== rb[i]) return ra[i] < rb[i];
+    return false;
+  };
+  const byBass = new Map<number, (typeof sets)[number]>();
+  for (const set of sets) {
+    const bass = Number(set.key.split('-')[0]);
+    const held = byBass.get(bass);
+    if (!held || better(set, held)) byBass.set(bass, set);
+  }
+  const chosen = [...byBass.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([, set]) => set);
 
   // One block per string set. Within a block the key CLIMBS: start from the
   // lowest chord on the neck and octave-shift each following chord up when it
@@ -144,10 +245,7 @@ export function ChordScaleLadder({
   // below it — in C major on the top set that meant beginning at fret 5 and
   // running off the neck while V, vi and vii° sat unseen down at frets 0–3.
   let counter = 0;
-  const groups = sets.map((key) => {
-    const base = placedPerChord.map(
-      (shapes) => shapes.find((x) => stringSetKey(x) === key) ?? [],
-    );
+  const groups = chosen.map(({ key, shapes: base }) => {
     const startAt = base.reduce(
       (best, s, i) => (s.length && (!base[best].length || loFret(s) < loFret(base[best])) ? i : best),
       0,
@@ -162,9 +260,7 @@ export function ChordScaleLadder({
       if (s.length) prevLo = loFret(s);
       return { degree: degrees[i], shape: s, index: counter++ };
     });
-    // A chord that can't be voiced on this set leaves no card behind — an
-    // empty one would be a staff with nothing on it and no way to tell why.
-    return { key, rows: rows.filter((r) => r.shape.length > 0) };
+    return { key, rows };
   });
 
 
@@ -258,10 +354,8 @@ export function ChordScaleLadder({
           element that IS this view. */}
       {groups.length === 0 ? (
         <p className="control-hint control-hint--warn">
-          {/* It said "these close-voiced seventh chords" whatever you were
-              actually looking at, which was wrong most of the time it appeared
-              — and by the time it appeared the real answer was usually the
-              partial fallback above, not an apology. */}
+          {/* It used to say "these close-voiced seventh chords" whatever you
+              were actually looking at. */}
           {structure.name} {seventh ? 'seventh chords' : 'triads'} with this bass
           note don't lay out on the neck in this key — try another bass note, or
           a different voicing.
@@ -289,7 +383,6 @@ export function ChordScaleLadder({
               shapes={shapes}
               activeShapeIndex={pinned}
               activeShapeIndices={pinned === null ? litShapes : null}
-              onShapeTap={selectRow}
               onBackgroundClick={() => setPinned(null)}
               labelMode={labelMode}
             />
@@ -330,14 +423,7 @@ export function ChordScaleLadder({
                     </button>
                   )}
                   <span className="voicing-set__name">{setLabel(g.key)}</span>
-                  <span className="voicing-set__note">
-                    strings
-                    {/* When no set could hold all seven, say which are here
-                        rather than letting a short list look like a bug. The
-                        gap is the point: this voicing changes shape between
-                        major and minor, so the two want different strings. */}
-                    {partial && ` — ${g.rows.length} of ${degrees.length}`}
-                  </span>
+                  <span className="voicing-set__note">strings</span>
                 </header>
 
                 <div className="tab-shelf">
@@ -347,7 +433,6 @@ export function ChordScaleLadder({
                       className={
                         'tab-card' + (r.index === pinned ? ' tab-card--on' : '')
                       }
-                      onClick={() => selectRow(r.index)}
                     >
                       {/* Both of the chord's names: what it IS, then what it's
                           DOING in the key. */}

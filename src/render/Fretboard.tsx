@@ -74,9 +74,21 @@ interface FretboardProps {
   onNoteTap?: (placed: PlacedNote) => void;
   // Draw EVERY shape's constellation at once (none dimmed) — "see all the boxes".
   showAllShapes?: boolean;
+  /**
+   * Slide the dots and swing the lines when what's on the neck changes.
+   *
+   * ON FOR CHORDS, OFF FOR SCALES. Moving between voicings of one chord is a
+   * small, related change and watching it travel shows you the voice leading —
+   * that's the whole reason the animation exists. Moving between scale
+   * positions isn't like that: sixty dots rearrange at once into a shape that
+   * shares almost nothing with the last one, and animating it is a lot of
+   * motion illustrating nothing you could follow.
+   */
+  animate?: boolean;
 }
 
 export function Fretboard({
+  animate = true,
   instrument,
   tuning,
   highlights = [],
@@ -343,7 +355,7 @@ export function Fretboard({
 
   return (
     <svg
-      className="fretboard"
+      className={animate ? 'fretboard' : 'fretboard fretboard--still'}
       viewBox={`0 0 ${width} ${height}`}
       onClick={onBackgroundClick}
       role="img"

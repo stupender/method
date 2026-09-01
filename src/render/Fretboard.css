@@ -216,3 +216,15 @@
   font-weight: 700;
   pointer-events: none;
 }
+
+/* STILL. Scales pass `animate={false}` — see the note in Fretboard.tsx for why
+   a chord's small, followable change is worth animating and a scale position's
+   wholesale rearrangement isn't. Everything still LANDS in the right place;
+   it just doesn't travel there. */
+.fretboard--still .note__at,
+.fretboard--still .constellation {
+  transition: none;
+}
+.fretboard--still .note {
+  animation: none;
+}

@@ -301,6 +301,48 @@ function leastStretchPerRegister(shapes: PlacedNote[][]): PlacedNote[][] {
 // So when nothing fits comfortably we show the best grip on every contiguous
 // set and let the UI say it's a stretch. Six frets is a real voicing that real
 // guitarists really play — it just isn't a comfortable one.
+/**
+ * The voicing on ONE named string set, or null if the neck can't hold it there.
+ *
+ * `placeVoicingByStringSet` below answers "where can this chord live", and to
+ * do that it keeps one grip per register — the best of the sets that could
+ * hold it. That's right for a single chord and wrong for a CHORD SCALE, where
+ * the whole point is that every chord takes the SAME shape on the SAME strings
+ * as you climb the key. Asked that way it dropped chords: an open triad with
+ * the 5th in the bass sat on E-D-G as a major and E-A-G as a minor, so no set
+ * held all seven and the page came up empty — even though all seven fit E-D-G
+ * with spans of three and four frets.
+ *
+ * So this asks the narrow question instead: put it HERE. No span limit, because
+ * a chord scale is allowed its stretches — the shape holding is worth more than
+ * every grip being comfortable, and the UI already says when one is a reach.
+ */
+export function placeVoicingOnSet(
+  instrument: Instrument,
+  tuning: Tuning,
+  root: Note,
+  chord: ChordDefinition,
+  structure: VoicingStructure,
+  inversion: number,
+  strings: number[],
+): PlacedNote[] | null {
+  const voices = buildVoices(root, chord, structure, inversion);
+  if (voices.length !== strings.length) return null;
+  const [shape] = placeOnStringSets(instrument, tuning, voices, [strings], Infinity);
+  return shape ?? null;
+}
+
+/** Every string set a voicing of this many voices could use, widest first. */
+export function candidateStringSets(
+  voiceCount: number,
+  stringCount: number,
+): number[][] {
+  return [
+    ...contiguousStringSets(voiceCount, stringCount),
+    ...skipStringSets(voiceCount, stringCount),
+  ];
+}
+
 export function placeVoicingByStringSet(
   instrument: Instrument,
   tuning: Tuning,
