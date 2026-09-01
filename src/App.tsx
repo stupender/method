@@ -1260,11 +1260,27 @@ function ScaleView({
   const { modeRoot, modeScale } = isAll
     ? { modeRoot: root, modeScale: scale }
     : modeAt(root, scale, degree);
-  // Click a note on the neck -> make it the new tonic. Map the note's pitch class
-  // back to which degree of the PARENT scale it is, select that degree, and pass
-  // the clicked fret so the mode lands in the position you clicked.
+  // CLICKING A NOTE DOES ONE OF TWO THINGS, and which one depends on whether
+  // GRAVITY is holding a degree.
+  //
+  // It used to always re-root: whatever you clicked became the new tonic. In
+  // ALL — where you're looking at the whole key across every position — that
+  // made moving up the neck impossible. You'd tap a dot higher up to go there,
+  // and instead of travelling, the ground moved: gravity jumped to that
+  // degree, the key re-framed around it, and you had to find your way back.
+  // Two different intentions were sharing one gesture, and the wrong one won
+  // in the mode you spend most of your time in.
+  //
+  // So: in ALL, a click is NAVIGATION — go to the position under this fret,
+  // and leave the framing alone. With a degree already chosen you've said you
+  // care about where home is, and a click still moves it, which is the
+  // re-rooting this was built for.
   const parentTones = realizeScale(root, scale);
   const pickRoot = (placed: PlacedNote) => {
+    if (isAll) {
+      onPickNote(ALL_DEGREES, placed.position.fret);
+      return;
+    }
     const pc = pitchClassOf(placed.note);
     const d = parentTones.findIndex((t) => pitchClassOf(t.note) === pc);
     if (d >= 0) onPickNote(d, placed.position.fret);
@@ -1285,9 +1301,23 @@ function ScaleView({
         labelMode="note"
       />
 
+      {/* The note says what a click actually does, which now depends on
+          Gravity — so it says both, rather than describing only the half that
+          applies when a degree is chosen. */}
       <footer className="footnote">
-        Each box is a position (a fingering). Click any note to make it the new
-        tonic — the mode shifts to start there, in that position.
+        {isAll ? (
+          <>
+            Each box is a position (a fingering). Click any note to move to the
+            position it sits in. Choose a degree under Gravity and clicking will
+            re-root the mode there instead.
+          </>
+        ) : (
+          <>
+            Each box is a position (a fingering). Click any note to make it the
+            new tonic — the mode shifts to start there, in that position. Set
+            Gravity back to All and clicking simply moves you up the neck.
+          </>
+        )}
       </footer>
     </>
   );
