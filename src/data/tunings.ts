@@ -42,9 +42,9 @@ export const UKE_BARITONE_STANDARD: Tuning = {
   ],
 };
 
-// TENOR, LOW G — the same instrument strung so it climbs like a guitar. Common
-// enough to be worth having, and the one to reach for if the inversion labels
-// in Harmony need to be exactly right.
+// TENOR, LOW G — the same instrument strung so it climbs like a guitar, which
+// is the ONLY tenor tuning the app offers. See NOT_OFFERED at the foot of this
+// file for why the commoner high-G tuning isn't in the menu.
 export const UKE_TENOR_LOW_G: Tuning = {
   id: 'uke-tenor-low-g',
   name: 'Low G',
@@ -124,7 +124,32 @@ export const TUNINGS: Record<string, Tuning> = {
   [KEYBOARD_C3.id]: KEYBOARD_C3,
 };
 
+/**
+ * TUNINGS THAT EXIST BUT AREN'T OFFERED.
+ *
+ * High-G tenor is real, correct data and it stays in TUNINGS so that anything
+ * ever saved in it still opens. It just isn't in the menu, because it TRICKS
+ * THE SYSTEM: it's re-entrant, so the string nearest your face sounds above
+ * the one next to it, and every part of this app that assumes a higher string
+ * index means a higher pitch quietly stops being true — the inversion labels
+ * in Harmony most visibly, but the scale positions read oddly too. Rather than
+ * ship a choice that makes the app subtly wrong, the tenor opens in low G and
+ * a player holding a high-G uke reads the same shapes and adjusts for the one
+ * string, which is what they already do everywhere else.
+ *
+ * (It also removes the Tuning row from the menu entirely, since the tenor was
+ * the only instrument with more than one — and a row that can only say one
+ * thing isn't a control.)
+ *
+ * Taking an id out of this set puts it back in the menu; nothing else changes.
+ * Making the engine genuinely re-entrant-aware is the real fix, and it's a
+ * bigger job than a menu entry.
+ */
+const NOT_OFFERED = new Set([UKE_TENOR_STANDARD.id]);
+
 /** Every tuning an instrument can be in, in the order they're offered. */
 export function tuningsFor(instrumentId: string): Tuning[] {
-  return Object.values(TUNINGS).filter((t) => t.instrumentId === instrumentId);
+  return Object.values(TUNINGS).filter(
+    (t) => t.instrumentId === instrumentId && !NOT_OFFERED.has(t.id),
+  );
 }
