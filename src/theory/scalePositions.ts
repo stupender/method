@@ -179,8 +179,19 @@ export function scalePositions(
 // simpler and more honest than that: put your hand at a fret, and the shape is
 // EVERY scale note under it, on every string. That's what the diagrams draw
 // and it's what the hand actually does.
-const SHAPE_SPAN = 4; // frets beyond the start — a five-fret window, with the
-                      // stretch note the half steps ask for included
+// A HAND COVERS FOUR FRETS, so the window is the start fret plus three.
+//
+// This was 4 — a five-fret window — and the extra fret is what broke the open
+// position. In C major it reached fret 4 and picked up the B on the G string,
+// which isn't in open position; the de-duplication below then dropped the OPEN
+// B to compensate, so the G string read 0-2-4 and the B string 1-3 where every
+// method book has 0-2 and 0-1-3. One fret too wide, and then a second wrong
+// answer covering for the first.
+//
+// Four frets also makes the shapes naturally duplicate-free: the G/B pair is
+// the one that can sound a pitch twice, and at this width the two occurrences
+// no longer fall in the same window.
+const SHAPE_SPAN = 3;
 
 export function fiveShapes(
   instrument: Instrument,
@@ -219,6 +230,19 @@ export function fiveShapes(
     }
     if (startFret < 0) continue;
 
+    // HOW WIDE THE HAND GOES. Four frets first, five if four won't reach.
+    //
+    // Open position is genuinely narrower than the rest, because the open
+    // strings do the work a fret would otherwise have to: four frets there
+    // gives a full two octaves. Higher up there are no open strings to lean
+    // on and the same four frets came up short — thirteen notes, well under
+    // the two octaves a position is supposed to cover — so the hand stretches
+    // to a fifth fret, which is what a hand actually does.
+    //
+    // Written as "reach further only when you must" rather than a per-shape
+    // table, so it stays true in every key rather than just this one.
+    const TWO_OCTAVES = 2 * degreeCount + 1;
+
     // The window, and every scale note inside it on every string —
     // BUT EACH PITCH ONLY ONCE.
     //
@@ -232,20 +256,25 @@ export function fiveShapes(
     // "in position" means: climb a string as far as the window reaches, then
     // cross. Strings are walked low to high here, so the first sighting of a
     // pitch is already the right one and the rest are skipped.
-    const hi = Math.min(fretCount, startFret + SHAPE_SPAN);
-    const notes: PlacedNote[] = [];
-    const sounded = new Set<number>();
-    for (let s = 0; s < stringCount; s++) {
-      const open = midiOf(tuning.openNotes[s]);
-      for (let f = startFret; f <= hi; f++) {
-        const tone = byPitchClass.get((((open + f) % 12) + 12) % 12);
-        if (!tone) continue;
-        const midi = open + f;
-        if (sounded.has(midi)) continue; // already fingered, lower down
-        sounded.add(midi);
-        notes.push(placeAt(tuning, s, f, tone));
+    const gather = (span: number): PlacedNote[] => {
+      const hi = Math.min(fretCount, startFret + span);
+      const found: PlacedNote[] = [];
+      const sounded = new Set<number>();
+      for (let s = 0; s < stringCount; s++) {
+        const open = midiOf(tuning.openNotes[s]);
+        for (let f = startFret; f <= hi; f++) {
+          const tone = byPitchClass.get((((open + f) % 12) + 12) % 12);
+          if (!tone) continue;
+          const midi = open + f;
+          if (sounded.has(midi)) continue; // already fingered, lower down
+          sounded.add(midi);
+          found.push(placeAt(tuning, s, f, tone));
+        }
       }
-    }
+      return found;
+    };
+    let notes = gather(SHAPE_SPAN);
+    if (notes.length < TWO_OCTAVES) notes = gather(SHAPE_SPAN + 1);
     // A shape with a string missing isn't a hand position, it's a fragment.
     const stringsCovered = new Set(notes.map((n) => n.position.stringIndex)).size;
     if (stringsCovered < stringCount) continue;
