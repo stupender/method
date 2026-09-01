@@ -842,6 +842,36 @@ function Module({
     setter(next);
   };
 
+  // EVERY KEY AT ONCE — the widest the pool goes, in one press.
+  //
+  // Twelve keys is a lot of clicking to say "any of them", which is a
+  // perfectly ordinary thing to want: drilling a sound in every key is the
+  // whole point of drilling it. So the row leads with All.
+  //
+  // A REAL TOGGLE, not a one-way shortcut. Pressing All widens to twelve and
+  // remembers what was there; pressing it again puts that back. The
+  // alternative — All collapsing to some arbitrary single key — makes the
+  // second press a thing you'd learn to avoid, and a control you avoid
+  // pressing twice isn't a toggle. What it remembers is deliberately NOT part
+  // of the module's state: it's the last thing you did, not what the panel is
+  // set to, and a preset that restored it would be restoring a gesture.
+  const ALL_KEYS = -1;
+  const narrowKeys = useRef<number[] | null>(null);
+  const everyKey = earRoots.size === ROOT_CHOICES.length;
+  const toggleEarRoot = (i: number) => {
+    if (i !== ALL_KEYS) {
+      toggleIn(earRoots, setEarRoots)(i);
+      return;
+    }
+    if (everyKey) {
+      const back = narrowKeys.current;
+      setEarRoots(new Set(back && back.length ? back : [0]));
+    } else {
+      narrowKeys.current = [...earRoots];
+      setEarRoots(new Set(ROOT_CHOICES.map((_, n) => n)));
+    }
+  };
+
   // A setting arriving from the bookmarks menu.
   const lastRestore = useRef(0);
   useEffect(() => {
@@ -1001,9 +1031,16 @@ function Module({
             <MultiSelect
               fill
               ariaLabel="Keys in play"
-              options={ROOT_CHOICES.map((note, i) => ({ value: i, label: noteName(note) }))}
-              values={earRoots}
-              onToggle={toggleIn(earRoots, setEarRoots)}
+              /* All leads the row, the way it leads Gravity's — the widest
+                 answer first, then the particular ones. It lights along with
+                 the twelve rather than instead of them, because when every key
+                 is in play that IS true of every key. */
+              options={[
+                { value: ALL_KEYS, label: 'All' },
+                ...ROOT_CHOICES.map((note, i) => ({ value: i, label: noteName(note) })),
+              ]}
+              values={everyKey ? new Set([ALL_KEYS, ...earRoots]) : earRoots}
+              onToggle={toggleEarRoot}
             />
           ) : (
             <Segmented
