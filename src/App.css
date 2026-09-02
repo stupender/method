@@ -273,7 +273,6 @@
    app's structure, and the name is the app. Still the display face: these are
    proper nouns, and they belong to the same voice as "C Major". */
 .topnav-item {
-  position: relative;
   font-family: var(--serif);
   font-size: 17px;
   line-height: 1.1;
@@ -288,29 +287,26 @@
    the box and nothing to the top, so the word sat a pixel high of centre — the
    sort of thing you feel before you can name it. As a pseudo-element it's
    outside the box model entirely and the centring is exact. */
-/* A HAIRLINE, like every other rule in this app. At 2px it was heavier than
-   the panel borders, the row dividers and the neck's own frets — the boldest
-   line on the page, marking the smallest thing. 1px puts it in the same
-   family as everything else, and dropping it a little further from the word
-   lets it read as an underline rather than as part of the letterforms. */
-.topnav-item::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -2px;
-  height: 1px;
-  background: transparent;
-  transition: background-color 0.12s ease;
-}
+/* THE UNDERLINE THIS APP ALREADY HAD. The scale's name above the fretboard is
+   a switch too — press it and the whole scale lights across the neck — and
+   when it's on it wears a 1px rule in `--line`, sitting 4px under the word.
+   That's the standard, and it was set before this row existed; a second,
+   heavier rule in the accent colour was this row inventing its own answer to a
+   question already answered.
+   `text-decoration` rather than a pseudo-element, which also happens to be the
+   thing that keeps the item vertically centred: a decoration is PAINTED, so
+   unlike a border it adds nothing to the bottom of the box.
+   The colour change carries the weight — muted to ink — and the rule confirms
+   it, exactly as it does on the neck. */
 .topnav-item:hover {
   color: var(--ink);
 }
 .topnav-item--on {
   color: var(--ink);
-}
-.topnav-item--on::after {
-  background: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--line);
 }
 
 /* --- Controls ------------------------------------------------------------ */

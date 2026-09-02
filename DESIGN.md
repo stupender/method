@@ -170,6 +170,14 @@ Four scopes, and each now sits at its own level:
 
 1. **The room** — the light. That's all: the site bar's cluster once held four
    marks and three of them were about a PANEL, not the app.
+**One underline, one meaning.** A chosen nav item wears the same rule the
+scale's name above the fretboard wears when it's showing the whole scale: 1px,
+`--line`, 4px under the word. That underline was set once, for a switch, and a
+second heavier one in the accent colour was the nav inventing its own answer to
+a question already answered. (It's `text-decoration`, not a border or a
+pseudo-element — a decoration is painted rather than laid out, so it adds
+nothing to the bottom of a box that has to stay vertically centred.)
+
 2. **What you're doing** — `Fretboard | Ear Training` in the nav, at the FAR
    END of the bar with the light. The bar reads left to right as identity then
    instruments-of-use: the mark and the name are who this is, everything you
