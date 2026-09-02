@@ -14,26 +14,26 @@
 // half, a LABEL WRITTEN IN THE MARGIN. So: one outlined block, a fixed label
 // column, and rows whose options divide the remaining measure evenly.
 //
-// ON A PHONE IT FOLDS. Six rows of controls is 580px, which on an 812px screen
-// left the fretboard — the thing the app is FOR — as a 77px sliver below the
-// fold. The audience for this release taps a link inside WhatsApp on a phone,
-// so that's the first screen they get, and it has to open on the neck.
+// IT FOLDS, AT ANY WIDTH, BY CHOICE. Six rows of controls is 580px, which on
+// an 812px phone left the fretboard — the thing the app is FOR — as a 77px
+// sliver below the fold, so on a small screen it starts CLOSED, showing one
+// line of what it's set to.
 //
-// So on a small screen the panel starts CLOSED, showing one line of what it's
-// set to, and opens when you ask. It's the same panel either way — nothing is
-// hidden from the desktop, and nothing is a different component. The desktop
-// stylesheet simply ignores the closed state (see App.css), so there is no
-// width at which this can get stuck shut.
+// But room was never the only reason to shut it. Once you've set a key and a
+// fingering you're looking at the NECK, and six rows of settings you're no
+// longer touching sit between you and it — which is just as true on a desktop.
+// So the strip is a handle at every width now; the viewport only decides which
+// way it OPENS, not whether it can close.
 // ============================================================================
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useId, useState, type ReactNode } from 'react';
 
-/** Below this the panel folds. Matches the breakpoint the rows already use. */
+/** Below this the panel STARTS folded. See the note on `open` below. */
 const NARROW = '(max-width: 640px)';
 
 // The outlined block. `title` is the eyebrow printed at its top left.
 export function ControlPanel({
-  title = 'Controls',
+  title = 'Control Panel',
   action,
   summary,
   children,
@@ -54,12 +54,18 @@ export function ControlPanel({
   summary?: ReactNode;
   children: ReactNode;
 }) {
-  // Starts closed on a phone, open everywhere else. Read once, then kept in
-  // step with the viewport — turning a phone sideways past the breakpoint
-  // should give you the desktop layout, not a folded version of it.
+  // Starts closed on a phone, open everywhere else, and after that it's
+  // yours. The listener below only fires when the viewport CROSSES the
+  // breakpoint — turning a phone sideways should give you the desktop layout,
+  // not a folded version of it — so a deliberate fold survives everything
+  // short of that.
   const [open, setOpen] = useState(
     () => !window.matchMedia?.(NARROW).matches,
   );
+  // The rows' id, for `aria-controls`. Generated rather than built from the
+  // title, which has a space in it now ("Control Panel") and wouldn't make a
+  // valid id.
+  const rowsId = useId();
   useEffect(() => {
     const mq = window.matchMedia?.(NARROW);
     if (!mq) return;
@@ -82,7 +88,7 @@ export function ControlPanel({
           className="panel__fold"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          aria-controls={`${title}-rows`}
+          aria-controls={rowsId}
         >
           {/* THE ARROW LEADS. It sits at the far left of the strip and stays
               exactly there whether the panel is open or shut — only its
@@ -106,7 +112,7 @@ export function ControlPanel({
         </button>
         {action}
       </div>
-      <div className="panel__rows" id={`${title}-rows`}>
+      <div className="panel__rows" id={rowsId}>
         {children}
       </div>
     </section>

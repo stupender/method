@@ -224,74 +224,81 @@ function QualityQuiz({
           </span>
         </button>
 
-        {question === null ? (
-          <p className="eartest__hint">Press to hear a chord.</p>
-        ) : (
-          <>
-            <p className="eartest__hint">
+        <p className="eartest__hint">
+          {question === null ? (
+            'Press to hear a chord.'
+          ) : (
+            <>
               Press again to hear it{' '}
               {score.total > 0 && (
                 <span className="eartest__tally">
                   · {score.correct}/{score.total} this sitting
                 </span>
               )}
+            </>
+          )}
+        </p>
+      </div>
+
+      {/* THE QUESTION HAS ITS OWN SECTION, and it is ALWAYS THERE.
+          Everything below used to live inside the colour field, appearing the
+          moment you first pressed play — so the box you were looking at grew
+          by half its height under your eyes, which is a jolt in the middle of
+          the one screen that's meant to be calm.
+          Two fixes in one: the answers move out of the weather and onto plain
+          ground, and they're drawn from the start, disabled until there's a
+          chord to name. Nothing appears when you press play; something simply
+          becomes live. It's better before the first press too — you can see
+          the pool you're about to be tested on, which is a fair thing to
+          know. */}
+      <div className="eartest__quiz">
+        <p className="eartest__ask">What quality did you hear?</p>
+
+        <div className="eartest__answers" role="group" aria-label="Your answer">
+          {qualities.map((c) => {
+            const isAnswer = question !== null && c.id === question.chord.chord.id;
+            const isGuess = c.id === guess;
+            let cls = 'eartest__answer';
+            if (revealed && isAnswer) cls += ' eartest__answer--right';
+            else if (revealed && isGuess) cls += ' eartest__answer--wrong';
+            else if (revealed) cls += ' eartest__answer--quiet';
+            return (
+              <button
+                key={c.id}
+                className={cls}
+                disabled={revealed || question === null}
+                onClick={() => answer(c.id)}
+              >
+                {c.name}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* The answer and the way onward together, below a rule — so
+            "what was it" and "go again" are one moment rather than two
+            controls in different corners. */}
+        {revealed && question && (
+          <div className="eartest__verdict">
+            <p className="eartest__said">
+              {guess === question.chord.chord.id ? 'Correct — ' : 'Not quite — '}
+              that was{' '}
+              <strong>
+                {noteName(question.chord.root)} {question.chord.chord.name}
+              </strong>
+              , the <strong>{question.chord.roman}</strong> of{' '}
+              {noteName(question.chord.tonic)} {question.chord.scale.name}.
+              {/* AND HOW IT WAS ARRANGED, when the arrangement is what made
+                  it hard. On Easy every chord is root position and close,
+                  so saying so every time would be noise; anything else is
+                  the thing you were probably hearing and couldn't place,
+                  and naming it is where the learning is. */}
+              {arrangement(question) && <> Played {arrangement(question)}.</>}
             </p>
-
-            <p className="eartest__ask">What quality did you hear?</p>
-
-            <div
-              className="eartest__answers"
-              role="group"
-              aria-label="Your answer"
-            >
-              {qualities.map((c) => {
-                const isAnswer = c.id === question.chord.chord.id;
-                const isGuess = c.id === guess;
-                let cls = 'eartest__answer';
-                if (revealed && isAnswer) cls += ' eartest__answer--right';
-                else if (revealed && isGuess) cls += ' eartest__answer--wrong';
-                else if (revealed) cls += ' eartest__answer--quiet';
-                return (
-                  <button
-                    key={c.id}
-                    className={cls}
-                    disabled={revealed}
-                    onClick={() => answer(c.id)}
-                  >
-                    {c.name}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* The answer and the way onward together, below a rule — so
-                "what was it" and "go again" are one moment rather than two
-                controls in different corners. */}
-            {revealed && (
-              <div className="eartest__verdict">
-                <p className="eartest__said">
-                  {guess === question.chord.chord.id
-                    ? 'Correct — '
-                    : 'Not quite — '}
-                  that was{' '}
-                  <strong>
-                    {noteName(question.chord.root)} {question.chord.chord.name}
-                  </strong>
-                  , the <strong>{question.chord.roman}</strong> of{' '}
-                  {noteName(question.chord.tonic)} {question.chord.scale.name}.
-                  {/* AND HOW IT WAS ARRANGED, when the arrangement is what made
-                      it hard. On Easy every chord is root position and close,
-                      so saying so every time would be noise; anything else is
-                      the thing you were probably hearing and couldn't place,
-                      and naming it is where the learning is. */}
-                  {arrangement(question) && <> Played {arrangement(question)}.</>}
-                </p>
-                <button className="eartest__next" onClick={newQuestion}>
-                  Next chord →
-                </button>
-              </div>
-            )}
-          </>
+            <button className="eartest__next" onClick={newQuestion}>
+              Next chord →
+            </button>
+          </div>
         )}
       </div>
 
@@ -303,7 +310,8 @@ function QualityQuiz({
       />
 
       <footer className="footnote">
-        The chords come from whatever you put in play in the CONTROLS above —
+        The chords come from whatever you put in play in the CONTROL PANEL
+        above —
         keys, scales and degrees. Narrow them to drill one sound; widen them to
         stretch. The answers on offer are only ever the qualities that can
         actually occur in what you selected.{' '}

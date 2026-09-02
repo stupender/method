@@ -110,7 +110,7 @@ function resizeAtEdge(
 // One chord in the chart — stored as indices so it's easy to edit, plus how long
 // it lasts (in beats). Chords lay end to end; bar lines come from the time sig.
 // Exported because the SONG itself (the chord list) lives up in App, so it
-// persists when you switch areas and so Possibility can append to it.
+// persists when you switch areas and so the Fretboard area can append to it.
 export interface ChartChord {
   rootIndex: number;
   chordId: string;
@@ -161,7 +161,7 @@ export const chordLabel = (c: ChartChord) => {
 const keyId = (tonic: Note, scaleId: string) => `${pitchClassOf(tonic)}:${scaleId}`;
 
 // The song's chord list (`chords`) is owned by App and handed in, so it persists
-// across area switches and Possibility can add to it. Everything else here —
+// across area switches and the Fretboard area can add to it. Everything else here —
 // tempo, time signature, which chord is selected, voice-leading — is view state
 // local to this screen.
 export function SongView({

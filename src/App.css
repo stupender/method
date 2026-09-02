@@ -164,7 +164,9 @@
   display: flex;
   align-items: center;
   gap: 3px;
-  margin-left: auto;
+  /* A wider gap than the nav's own, so the light reads as a separate kind of
+     thing from the two places you can go. */
+  margin-left: 10px;
   flex: none;
   /* BOTH MENUS HANG FROM THE SAME PLACE — the right edge of this cluster,
      rather than each from its own icon.
@@ -255,11 +257,17 @@
    when the nav was a centred row BELOW the title, and in a flex bar that
    centres its children it just pushed the whole thing down. Gone, and the
    items now sit on the bar's own centre line with the name. */
+/* AT THE FAR END, with the light. The bar reads left to right as identity
+   then instruments-of-use: the mark and the name are who this is, and
+   everything you can press is gathered at the other end. In the middle the nav
+   was neither — too close to the title to read as a control, too far from the
+   controls to belong to them. */
 .topnav {
   display: flex;
   align-items: center;
   gap: 22px;
   flex: none;
+  margin-left: auto;
 }
 /* Smaller than the 25px title, because it isn't a second title — it's the
    app's structure, and the name is the app. Still the display face: these are
@@ -392,25 +400,28 @@
   background: var(--surface);
   padding-right: 8px;
 }
-/* The whole title strip is the handle that folds the panel on a phone. On a
-   desktop it's still a button, but there's nothing to fold, so it's given no
-   pointer and no chevron and reads as the plain eyebrow it always was. */
+/* THE WHOLE TITLE STRIP IS THE HANDLE, at every width. It used to fold only
+   on a phone — a desktop got a plain eyebrow with nothing to press — on the
+   reasoning that a wide screen has room for the rows. Room isn't the only
+   reason to shut a panel: once you've set a key and a fingering you're looking
+   at the NECK, and six rows of settings you're no longer touching sit between
+   you and it. Folding is now a choice anyone can make, on any screen. */
 .panel__fold {
   flex: 1;
   min-width: 0;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
   padding: 0;
   background: transparent;
   border: 0;
   font: inherit;
   text-align: left;
-  cursor: default;
+  cursor: pointer;
 }
 .panel__title {
   margin: 0;
-  padding: 9px 14px;
+  padding: 9px 14px 9px 0;
   color: var(--muted);
   font-size: 10.5px;
   font-weight: 700;
@@ -429,8 +440,44 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* Anchored at the left end of the strip, in the same place open or shut:
+   `margin-left` matches the title's padding so the strip keeps its left edge,
+   and the title sheds its own left padding to sit beside it. A control that
+   moves when you use it makes you find it again every time. */
 .panel__chevron {
-  display: none; /* only when there's something to fold — see the media query */
+  display: block;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-left: 14px;
+  color: var(--ink);
+  opacity: 0.58;
+  transition: transform 0.18s ease;
+}
+.panel__chevron svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.panel__fold:hover .panel__chevron {
+  opacity: 1;
+}
+/* Down when open (press to close), right when shut (press to open). Only the
+   direction changes — the arrow itself never moves. */
+.panel--folded .panel__chevron {
+  transform: rotate(-90deg);
+}
+.panel--folded .panel__rows {
+  display: none;
+}
+/* Folded, the strip is the whole panel, so it shouldn't also draw the line
+   that separates it from rows that aren't there. */
+.panel--folded .panel__head {
+  border-bottom: 0;
+}
+/* The title shrinks to make room for the summary beside it. */
+.panel--folded .panel__title {
+  padding-right: 0;
 }
 .panel__rows {
   display: flex;
@@ -518,58 +565,8 @@
      putting them next to what they override is the only way that stays true
      when either one is edited.) */
 
-  /* The fold. */
-  .panel__fold {
-    cursor: pointer;
-    align-items: center;
-  }
-  /* Anchored at the left end of the strip, in the same place open or shut.
-     `margin-left` matches the title's old padding so the strip keeps its
-     left edge; the title then sheds its own left padding to sit beside it. */
-  .panel__chevron {
-    display: block;
-    flex: none;
-    width: 18px;
-    height: 18px;
-    margin-left: 14px;
-    color: var(--ink);
-    opacity: 0.58;
-    transition: transform 0.18s ease;
-  }
-  .panel__chevron svg {
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
-  .panel__title {
-    padding-left: 0;
-  }
-  /* Down when open (press to close), right when shut (press to open). Only the
-     direction changes — the arrow itself never moves. */
-  .panel--folded .panel__chevron {
-    transform: rotate(-90deg);
-  }
-  .panel--folded .panel__rows {
-    display: none;
-  }
-  /* Folded, the strip is the whole panel, so it shouldn't also draw the line
-     that separates it from rows that aren't there. */
-  .panel--folded .panel__head {
-    border-bottom: 0;
-  }
-  /* The title shrinks to make room for the summary beside it. */
-  .panel--folded .panel__title {
-    padding-right: 0;
-  }
-}
-
-/* Above the breakpoint there is nothing to fold, so the fold state means
-   nothing: the rows show whatever React thinks. This is the guard that makes
-   it impossible to get stuck with a shut panel on a desktop. */
-@media (min-width: 641px) {
-  .panel--folded .panel__rows {
-    display: flex;
-  }
+  /* (The fold's own styles moved up to the base sheet — it works at every
+     width now, so it isn't a small-screen behaviour any more.) */
 }
 
 /* ==========================================================================
@@ -735,7 +732,7 @@
 /* --- Segmented control: the either/or choice ------------------------------ */
 /* MARKED, NOT BOXED. A printed page has no buttons — it has words, rules and
    marks. So "this one is chosen" is a rule under the word, which is the mark
-   the area nav (Possibility / Play / Ear Training) was already using; the two
+   the area nav (Fretboard / Ear Training) was already using; the two
    now differ only in SIZE, not in kind. That retires the recessed track, the
    ink block and the lozenge in one go. */
 .seg {

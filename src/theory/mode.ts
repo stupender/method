@@ -4,7 +4,7 @@
 // THEORY LOGIC layer (pure function). A "mode" is the same parent scale heard
 // from a different starting note: C major played from G is G Mixolydian — same
 // seven notes, but now G is home, so the pattern of steps (and the b7) is
-// measured from G. This turns the Possibility degree selector into a mode picker
+// measured from G. This turns the Fretboard area's degree selector into a mode picker
 // in the Scales view: pick the 5th degree and you get Mixolydian, in position.
 //
 // Given a parent root + scale + a degree (0-based), we return the mode's ROOT

@@ -1,5 +1,5 @@
 // ============================================================================
-// ui/PatternExplorer.tsx — drill any scale in interval patterns (Possibility)
+// ui/PatternExplorer.tsx — drill any scale in interval patterns (Fretboard)
 // ----------------------------------------------------------------------------
 // The palta generator, a study mode beside Scales and Harmony. Every drill is
 // built from Stu's three ingredients (see theory/pairs.ts): the CELL played at

@@ -170,8 +170,12 @@ Four scopes, and each now sits at its own level:
 
 1. **The room** — the light. That's all: the site bar's cluster once held four
    marks and three of them were about a PANEL, not the app.
-2. **What you're doing** — `Possibility | Ear Training` in the nav, beside the
-   app's name. It was a "Mode" row *inside* CONTROLS, which was the wrong level
+2. **What you're doing** — `Fretboard | Ear Training` in the nav, at the FAR
+   END of the bar with the light. The bar reads left to right as identity then
+   instruments-of-use: the mark and the name are who this is, everything you
+   can press is gathered at the other end. ("Possibility" is what the app is
+   about — it's in the footer, and it's the idea the whole thing rests on — but
+   a nav item has one job, which is to say what's behind it.) It was a "Mode" row *inside* CONTROLS, which was the wrong level
    twice over: a control that decides which rows exist beneath it — and quietly
    turns two survivors from pick-one into pick-many — can't sit inside the box
    it rewrites; and in an app that teaches modes, a row called "Mode" that isn't
@@ -185,6 +189,12 @@ Four scopes, and each now sits at its own level:
    same key is the most useful thing two panels have ever been for, which one
    app-wide instrument made impossible.
 4. **How you're looking at it** — Scales/Harmony, fingering, voicing, difficulty.
+
+**The panel folds at any width, by choice.** It used to fold only on a phone,
+on the reasoning that a wide screen has room for the rows. Room was never the
+only reason to shut it: once you've set a key and a fingering you're looking at
+the NECK, and six rows you're no longer touching sit between you and it. The
+viewport now decides only which way it OPENS.
 
 **What a panel's title strip carries**: the saved list, the save mark, and
 `+` / `×`. All three are about THIS panel. The saved list moved off the site

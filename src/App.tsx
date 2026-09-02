@@ -111,7 +111,12 @@ const AREAS: Area[] = [
 
 // The label each top-level area shows in the nav.
 const AREA_LABELS: Record<Area, string> = {
-  study: 'Possibility',
+  // FRETBOARD, not "Possibility". Possibility is what the app is ABOUT — it's
+  // in the footer, and it's the idea the whole thing rests on — but a nav item
+  // has one job, which is to say what you'll find behind it. "Fretboard" says
+  // it, matches the name over the door, and is the word this switch already
+  // used when it was a row inside the panel.
+  study: 'Fretboard',
   song: 'Play',
   ear: 'Ear Training',
 };
@@ -236,7 +241,7 @@ function App() {
   const [area, setArea] = useState<Area>('study');
 
   // The SONGBOOK lives here, above both areas, so it survives switching to
-  // Possibility and back, and so the "Add to Play" button in Possibility can
+  // the Fretboard area and back, and so its "Add to Play" button can
   // append to whichever song is open. Tempo / time-sig / selection stay in Play.
   const [songs, setSongs] = useState<Song[]>(initialSongbook.songs);
   const [currentId, setCurrentId] = useState(initialSongbook.currentId);
@@ -419,7 +424,7 @@ function App() {
       </header>
 
       {/* Both areas stay mounted (just hidden) so each keeps its own state when
-          you switch — the songbook, and Possibility's key/scale/mode choices.
+          you switch — the songbook, and the Fretboard area's key/scale choices.
           POSSIBILITY AND EAR TRAINING SHARE THE MODULE, and that's the point:
           a listening drill is a CONTROLS panel too, asking the same kind of
           questions about the same material. What differs is which rows it has
@@ -436,7 +441,7 @@ function App() {
             area === 'study' && panels.length > 1 ? 'modules modules--two' : 'modules'
           }
         >
-          {/* Only Possibility lays out two. The second panel's state isn't
+          {/* Only the Fretboard area lays out two. The second panel's state isn't
               thrown away when you step into Ear Training — it's simply not
               drawn — so coming back finds it where you left it. */}
           {(area === 'study' ? panels : panels.slice(0, 1)).map((panel, i) => (
@@ -496,7 +501,7 @@ function App() {
                   : undefined
               }
               // Only where two are DRAWN. Ear Training shows one panel even
-              // when Possibility is holding two, and a × there would close a
+              // when the Fretboard area is holding two, and a × there would close a
               // panel you can't see.
               onClose={
                 area === 'study' && panels.length > 1
@@ -954,7 +959,6 @@ function Module({
           yet. The view + ChordExplorer are kept below for a future, less
           key-centric section; re-add 'chord' to the list to show it.) */}
       <ControlPanel
-        title="Controls"
         /* What a folded panel says on a phone — the same facts the rows carry,
            in the order they're read: key, then which degree is home, then what
            you're looking at. `describe` already writes exactly this line for a

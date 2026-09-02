@@ -1,7 +1,7 @@
 // ============================================================================
 // ui/ShapeStepper.tsx — step through the TAB shapes one at a time
 // ----------------------------------------------------------------------------
-// In Possibility the TAB shows a row of shapes you play one after another —
+// On the Fretboard the TAB shows a row of shapes you play one after another —
 // scale positions up the neck, the rungs of a chord scale, a chord's voicings.
 // This lets you WALK that row: the ‹ › buttons, or the ← → arrow keys, move the
 // selection to the next/previous shape (and play it, since that's how you'd

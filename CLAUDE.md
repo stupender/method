@@ -90,9 +90,11 @@ must match the repo name (`/method/`).
 6. VexFlow notation + polish + case study. ← not started.
 7. Study guide (teaching pass, after ship).
 
-Note: the app has three top-level AREAS — **Possibility** (scale/harmony study),
-**Play** (the lead-sheet workbench + analysis), **Ear Training** (chord-quality
-and function quizzes). The UI follows a strict control grammar: every choice
+Note: the app has top-level AREAS in the site bar's nav — **Fretboard**
+(scale/harmony study) and **Ear Training** (chord-quality quizzes), with
+**Play** (the lead-sheet workbench + analysis) behind a READY flag. The nav
+says what you're DOING; the CONTROL PANEL below says what you're doing it to,
+and the instrument is one of its rows. See DESIGN.md "The hierarchy". The UI follows a strict control grammar: every choice
 wears a DOT before the word — lit like an indicator lamp when chosen — whether
 it's pick-one (`Segmented`) or pick-many (`MultiSelect`); the row says which,
 because a pick-one row never has two lit. Accent pill / circled ▶ = action. The

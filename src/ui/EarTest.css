@@ -25,10 +25,27 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 22px;
-  padding: 34px 18px 10px;
+  gap: 18px;
+  padding: 34px 18px 26px;
   overflow: hidden;
   isolation: isolate;
+}
+
+/* ---- The question, on plain ground ---------------------------------------
+   A SECOND SECTION, below the weather rather than inside it. Everything here
+   used to sit in the colour field and appear the moment you first pressed
+   play, so the box grew by half its height under your eyes — a jolt on the
+   one screen meant to be calm. It's always drawn now (the answers disabled
+   until there's a chord to name), which means nothing appears on that first
+   press; something just becomes live.
+   The rule above it is the same one that divides the standing below. */
+.eartest__quiz {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 16px 22px;
+  border-top: 1px solid var(--line);
 }
 /* (A wide gradient wash across the panel was tried here too. Even at eight
    percent it read as a lighter RECTANGLE rather than as atmosphere — the box
@@ -294,6 +311,16 @@
 .eartest__answer:disabled {
   cursor: default;
 }
+/* WAITING, NOT BROKEN. Before the first chord these are drawn but dead, and
+   the difference has to be legible: a button that looks identical to a live
+   one and does nothing is worse than one that plainly isn't ready. Faded far
+   enough to read as inactive, not so far as to disappear — you're meant to be
+   able to read the pool you're about to be tested on. (Once an answer is
+   revealed they're disabled too, and those states style themselves — hence
+   `:not()` rather than a blanket rule.) */
+.eartest__answer:disabled:not(.eartest__answer--right):not(.eartest__answer--wrong):not(.eartest__answer--quiet) {
+  opacity: 0.4;
+}
 /* Right and wrong are the one place colour means true/false rather than
    distance — the same two tokens the quizzes have always used. */
 .eartest__answer--right {
@@ -318,7 +345,7 @@
   gap: 14px;
   width: 100%;
   max-width: 470px;
-  padding-top: 4px;
+  padding-top: 8px;
   border-top: 1px solid var(--line);
 }
 
@@ -360,8 +387,12 @@
 
 @media (max-width: 640px) {
   .eartest {
-    padding: 20px 12px 4px;
-    gap: 18px;
+    padding: 20px 12px 20px;
+    gap: 16px;
+  }
+  .eartest__quiz {
+    padding: 16px 12px 18px;
+    gap: 14px;
   }
   .eartest__orb {
     width: 104px;
