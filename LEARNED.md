@@ -1981,3 +1981,10 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **A toggle and an add are different verbs.** Reusing the save button's
   toggle for "paste a shared setting" meant pasting a setting you already had
   silently DELETED it.
+- **A fixed overlay needs a z-index ABOVE the sticky thing it passes.** The
+  page-marks rail and the floating neck were both `z-index: 20`; the neck comes
+  later in the document, so it won. A label reaching over the page got its
+  first letters clipped by the neck's box — "G Mixolydian" arrived as "ydian".
+- **`pointer-events: none` on a box means `:hover` on that box never fires,**
+  even when a child with `pointer-events: auto` is under the pointer. Ask
+  whether the box CONTAINS a hovered child instead: `.rail:has(.mark:hover)`.

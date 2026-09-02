@@ -20,6 +20,7 @@ import { NeckPanel } from './NeckPanel';
 import { SHOW_PLAY_BUTTONS } from './flags';
 import { DegreeLegend } from './DegreeLegend';
 import { useScrollFocus } from './useScrollFocus';
+import { PageMarks } from './PageMarks';
 import { LazySystem as System } from '../render/LazySystem';
 import { useStepper } from './ShapeStepper';
 import type { PlacedNote } from '../theory/types';
@@ -98,7 +99,7 @@ export function ScaleExplorer({
   // floating neck becomes the shape the neck shows. Re-measures whenever the
   // list changes length, which is when the old measurements stop meaning
   // anything.
-  const focusRef = useScrollFocus(positions.length, (i) => {
+  const { register: focusRef, goTo } = useScrollFocus(positions.length, (i) => {
     setPinnedShape(i);
     // Scrolling onto a position is choosing it, so it leaves "All notes".
     // Only when the focused row actually CHANGES, which is the hook's own
@@ -229,6 +230,19 @@ export function ScaleExplorer({
 
   return (
     <>
+      {/* THE MARGIN'S TABLE OF CONTENTS — one mark per position, the one
+          you're in named. Same measurement that lights the neck, drawn in the
+          margin; see ui/PageMarks.tsx. */}
+      <PageMarks
+        items={positions.map((pos, i) => positionLabel(i) ?? pos.name)}
+        active={activeShape}
+        onGo={(i) => {
+          setShowAll(false);
+          setPinnedShape(i);
+          goTo(i);
+        }}
+        label="Positions"
+      />
       {/* Nothing sits between the panel and the neck any more: the fingering
           row moved up into CONTROLS, where it reads as the setting it is. The
           ← → stepper's ref moved onto the workbench, which is the element that

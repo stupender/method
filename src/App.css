@@ -2576,3 +2576,117 @@ button.neckpanel__name:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
+
+/* ==========================================================================
+   PAGE MARKS — the margin's table of contents
+   --------------------------------------------------------------------------
+   The note-taking apps' rail: a column of small rules in the right margin,
+   one per section, the one you're in naming itself. See ui/PageMarks.tsx for
+   what a "section" is here (a mode, or a string set).
+
+   FIXED TO THE WINDOW, not to the page, because it's a fact about where you
+   ARE — it should sit still while the document moves past it, which is what
+   makes it read as a margin rather than as more content.
+   ========================================================================== */
+.pagemarks {
+  position: fixed;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  /* ABOVE THE FLOATING NECK (20), BELOW THE SITE BAR (30). At the neck's own
+     level it lost — same z-index, later in the document — and a label reaching
+     over the page got its first few letters cut off by the neck's box, so
+     "G Mixolydian" arrived as "ydian". */
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 11px;
+  /* The rail is as wide as its longest label even while the labels are
+     invisible — that's what keeps the marks from shuffling sideways. So the
+     BOX must not take clicks; only the marks in it do. */
+  pointer-events: none;
+}
+
+.pagemarks__mark {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 3px 0;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+/* A hairline, like every rule in this app. It grows a little and takes ink
+   when it's the one you're in — the same two-part signal the nav uses, weight
+   and colour, at the smallest size the app has. */
+.pagemarks__tick {
+  display: block;
+  flex: none;
+  width: 14px;
+  height: 1px;
+  background: var(--line);
+  transition: width 0.16s ease, background-color 0.16s ease;
+}
+.pagemarks__mark:hover .pagemarks__tick {
+  background: var(--muted);
+}
+.pagemarks__mark--on .pagemarks__tick,
+.pagemarks__mark--on:hover .pagemarks__tick {
+  width: 22px;
+  background: var(--ink);
+}
+
+/* Named only where you are — and, on hover, everywhere, which is what turns
+   a report into a table of contents. */
+/* IT SITS ON ITS OWN GROUND. The ticks live in the page's margin, but a name
+   is wider than a margin — at anything short of a very wide window the label
+   reaches back over the music, and "B Locrian" printed across a TAB staff is
+   two things at once. A patch of the page's own paper under it makes it a
+   margin note laid on the page, which is what it is. */
+.pagemarks__label {
+  padding: 1px 5px;
+  background: var(--bg);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.16s ease, color 0.16s ease;
+}
+.pagemarks__mark--on .pagemarks__label {
+  color: var(--ink);
+  opacity: 1;
+}
+/* HOVER ANY MARK AND THEY ALL SPEAK — which is what turns a report into a
+   table of contents.
+   `:has()` rather than `.pagemarks:hover`, because the rail's own box has
+   `pointer-events: none` (it's as wide as its longest label and must not eat
+   clicks meant for the music underneath). Asking whether it CONTAINS a hovered
+   mark doesn't depend on the box being hoverable itself. */
+.pagemarks:has(.pagemarks__mark:hover) .pagemarks__label,
+.pagemarks:has(.pagemarks__mark:focus-visible) .pagemarks__label {
+  opacity: 1;
+}
+
+/* WHERE IT DOESN'T BELONG.
+   Two panels side by side is a comparison, not a document — and there would
+   be two rails claiming one margin. Narrow windows have no margin to put it
+   in at all, and a rail overlapping the music is worse than no rail. */
+.modules--two .pagemarks {
+  display: none;
+}
+/* The page is 1040px at its widest and centred, so below about 1100 there is
+   no margin left to put a rail in — and marks sitting on top of the music are
+   worse than no marks. (Above it, the TICKS live in the margin and only the
+   labels reach over the page, on hover, which is what these rails have always
+   done.) */
+@media (max-width: 1100px) {
+  .pagemarks {
+    display: none;
+  }
+}

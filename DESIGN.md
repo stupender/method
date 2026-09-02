@@ -238,6 +238,20 @@ so it was two unrelated things side by side rather than a reference sheet for
 the drill, and it didn't exist on a phone at all. The coordinated version is
 better and lives in one panel: the ear test showing its answer on a neck.
 
+**The margin's table of contents** (`ui/PageMarks.tsx`). A living textbook
+should read like one: once a key and a fingering are set, the page below the
+neck is pages of engraved music — seven modal positions, or three or four
+string sets each holding a key's worth of chords. That's a document, and it
+gets what every note-taking app grew for long documents: a rail of hairlines in
+the right margin, one per section, the one you're in naming itself. Applied to
+what this app's headings actually are — which MODE, or which STRING SET.
+
+It costs almost nothing because the app already knew: `useScrollFocus` has been
+deciding which section sits under the neck since the neck started floating. The
+rail draws that same answer in the margin, so the mark and the neck can't
+disagree — one piece of state seen twice. And it reads both ways: scrolling
+names the section, pressing a mark goes there.
+
 **A menu is a small panel** (`ui/Menu.tsx`). The two menus in the site bar —
 what's in your hands, and what you've saved — each used to have their own box: a
 rounded card with a drop shadow, floating under an icon, rows styled to taste.

@@ -48,6 +48,7 @@ import { SHOW_PLAY_BUTTONS } from './flags';
 import { placeScale } from '../theory/scale';
 import { DegreeLegend } from './DegreeLegend';
 import { useScrollFocus } from './useScrollFocus';
+import { PageMarks } from './PageMarks';
 import { LazySystem as System } from '../render/LazySystem';
 import { useStepper } from './ShapeStepper';
 
@@ -173,7 +174,7 @@ export function InversionLadder({
   // the more useful picture anyway — you see where that set puts the chord all
   // the way up the neck.
   const [focusedSet, setFocusedSet] = useState<number | null>(null);
-  const focusRef = useScrollFocus(groups.length, setFocusedSet);
+  const { register: focusRef, goTo } = useScrollFocus(groups.length, setFocusedSet);
   const litShapes =
     focusedSet !== null && groups[focusedSet]
       ? groups[focusedSet].rows.map((r) => indexOf.get(r)!)
@@ -264,6 +265,18 @@ export function InversionLadder({
         </p>
       ) : (
         <>
+          {/* One mark per string set — see ui/PageMarks.tsx. */}
+          <PageMarks
+            items={groups.map((g) => groupLabel(g))}
+            active={pinned === null ? focusedSet : null}
+            onGo={(i) => {
+              stopAll();
+              setPinned(null);
+              setFocusedSet(i);
+              goTo(i);
+            }}
+            label="String sets"
+          />
           <div className="workbench" ref={viewRef}>
             <NeckPanel
               /* The FULL name here — "D Diminished Triad", not "D°". This is

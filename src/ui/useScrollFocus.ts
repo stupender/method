@@ -44,6 +44,34 @@ export function useScrollFocus(
     items.current[index] = el;
   };
 
+  // ...AND SCROLL TO ONE, which is the same relationship read backwards. The
+  // page-marks rail (see ui/PageMarks.tsx) names the section you're in; making
+  // those names pressable turns the rail into a table of contents, and the
+  // list of elements it needs is the one this hook is already holding.
+  //
+  // It aims at the FOCUS LINE rather than the top of the window, so arriving
+  // by pressing a mark leaves the page exactly where arriving by scrolling
+  // would have — the section under the neck, and that section lit on it.
+  const goTo = (index: number) => {
+    const el = items.current[index];
+    if (!el) return;
+    const bar = document.querySelector('.sitebar');
+    const neck =
+      el.closest('.module')?.querySelector('.neckpanel') ??
+      document.querySelector('.neckpanel');
+    // Where the neck comes to rest once it's stuck: under the site bar.
+    const line =
+      (bar?.getBoundingClientRect().height ?? 0) +
+      (neck?.getBoundingClientRect().height ?? 0) +
+      90;
+    window.scrollTo({
+      top: window.scrollY + el.getBoundingClientRect().top - line,
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ? 'auto'
+        : 'smooth',
+    });
+  };
+
   useEffect(() => {
     let last: number | null = -1;
 
@@ -101,5 +129,5 @@ export function useScrollFocus(
     // anything.
   }, [count]);
 
-  return register;
+  return { register, goTo };
 }
