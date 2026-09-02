@@ -30,6 +30,7 @@ export function Menu({
   icon,
   label,
   badge,
+  variant = 'bar',
   children,
 }: {
   /** The eyebrow across the menu's title strip — "Instrument". */
@@ -40,6 +41,13 @@ export function Menu({
   label: string;
   /** An optional small figure beside the icon, e.g. how many are saved. */
   badge?: ReactNode;
+  /**
+   * WHOSE BUTTON IT IS. A menu in the site bar wears the bar's mark; a menu in
+   * a panel's title strip wears the panel's, which is a touch smaller and sits
+   * with the bookmark beside it. Same menu either way — only the button that
+   * opens it belongs to a different row of things.
+   */
+  variant?: 'bar' | 'panel';
   children: (close: () => void) => ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -76,7 +84,18 @@ export function Menu({
     <div className="menu" ref={wrap}>
       <button
         ref={trigger}
-        className={open ? 'sitebar__act sitebar__act--on' : 'sitebar__act'}
+        /* `--on` means SAVED on a panel mark (it's the bookmark's filled
+           red), so an open menu can't borrow it there — it gets `--open`,
+           which only brings the mark up to full strength. */
+        className={
+          variant === 'panel'
+            ? open
+              ? 'panel__act panel__act--open'
+              : 'panel__act'
+            : open
+              ? 'sitebar__act sitebar__act--on'
+              : 'sitebar__act'
+        }
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-label={label}
@@ -98,23 +117,7 @@ export function Menu({
   );
 }
 
-/**
- * A heading WITHIN a menu, for a menu that holds more than one list — the
- * instrument menu's "Tuning" under its instruments. Set smaller and quieter
- * than the strip above, because it's a subdivision of that strip rather than a
- * second one of it.
- */
-export function MenuGroup({
-  label,
-  children,
-}: {
-  label?: string;
-  children: ReactNode;
-}) {
-  return (
-    <>
-      {label && <p className="menu__group">{label}</p>}
-      <ul className="menu__list">{children}</ul>
-    </>
-  );
-}
+/* (There was a `MenuGroup` here — a heading WITHIN a menu, for one that held
+   two lists. Its only user was the instrument menu, whose instruments and
+   tunings are CONTROLS rows now. It's a five-line component and the shape is
+   in this file's history if a menu ever needs two lists again.) */

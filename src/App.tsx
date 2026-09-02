@@ -48,7 +48,6 @@ import {
 } from './ui/links';
 import { alreadyAsked, markDismissed } from './ui/asked';
 import { BookmarksMenu, SaveBookmark } from './ui/Bookmarks';
-import { InstrumentMenu } from './ui/InstrumentMenu';
 import {
   defaultModuleState,
   describe,
@@ -87,14 +86,28 @@ export const ALL_DEGREES = -1;
 
 const READY = {
   play: false,
-  earTraining: true, // reached from the CONTROLS panel's Mode row, not the nav
+  earTraining: true,
   patterns: false,
 } as const;
 
-// Ear Training is a MODE inside the study area now (see the Mode row), so the
-// top nav only carries genuinely separate areas. With one entry it's noise, so
-// it hides itself.
-const AREAS: Area[] = ['study', ...(READY.play ? (['song'] as Area[]) : [])];
+// EAR TRAINING IS AN AREA, not a row inside the panel.
+//
+// It was a row for a while — a "Mode" switch at the top of CONTROLS — and that
+// was the wrong level twice over. A control that decides WHICH ROWS EXIST
+// beneath it, and silently changes two of the survivors from pick-one to
+// pick-many, is a level above them; it can't sit inside the box it rewrites.
+// And in an app that teaches modes, a row labelled "Mode" that has nothing to
+// do with modes is a collision you can't explain away — Gravity is the mode
+// picker here.
+//
+// So the nav says what you're DOING and the panel says what you're doing it
+// TO. Which is also what makes room for the instrument to come down into the
+// panel, where it means something. See DESIGN.md.
+const AREAS: Area[] = [
+  'study',
+  ...(READY.earTraining ? (['ear'] as Area[]) : []),
+  ...(READY.play ? (['song'] as Area[]) : []),
+];
 
 // The label each top-level area shows in the nav.
 const AREA_LABELS: Record<Area, string> = {
@@ -289,22 +302,13 @@ function App() {
   ]);
   // THE SAVED SETTINGS live here rather than in a panel, because the list is
   // the app's and a panel is only one of the things that can be in it.
-  // WHICH INSTRUMENT, for the whole app. It's held here rather than per-panel
-  // because it answers "what is in my hands today", which doesn't change
-  // between two views of the same lesson. It's still written into every saved
-  // setting (see `moduleState`), so a bookmark made on a ukulele comes back on
-  // one.
-  const [instrumentId, setInstrumentId] = useState('guitar');
-  const [tuningId, setTuningId] = useState('guitar-standard');
-  const instrument = INSTRUMENTS[instrumentId] ?? GUITAR;
-  const tuning = TUNINGS[tuningId] ?? GUITAR_STANDARD;
-  // Picking an instrument picks its tuning too: the two have to move together
-  // or the neck would be drawn with six strings' worth of notes on four.
-  const pickInstrument = (id: string) => {
-    const next = INSTRUMENTS[id] ?? GUITAR;
-    setInstrumentId(next.id);
-    setTuningId(next.defaultTuningId);
-  };
+  // (WHICH INSTRUMENT used to live here, as one setting for the whole app,
+  // reached from a menu in the site bar. It's a row in each panel now — see
+  // the Instrument row in Module. Two reasons: it does nothing at all in Ear
+  // Training, so in the bar it was a control on screen changing nothing you
+  // could see or hear; and a guitar beside a ukulele in the same key is the
+  // most useful thing two panels have ever been for, which one app-wide
+  // instrument made impossible.)
 
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => loadBookmarks());
   // THE ONE TIME THIS APP ASKS FOR ANYTHING. Saving your first setting is the
@@ -320,12 +324,9 @@ function App() {
     setBookmarks(next);
     saveBookmarks(next);
   };
-  // Restoring has to push a setting INTO a panel, which owns its own state. A
-  // bumped counter rather than a plain value, so restoring the same bookmark
-  // twice still counts as something happening.
-  const [restore, setRestore] = useState<{ state: ModuleState; seq: number } | null>(
-    null,
-  );
+  // (The plumbing that used to push a restored setting DOWN into a panel is
+  // gone. The saved list is in each panel's own title strip now, so a panel
+  // restores itself and nothing has to be threaded through the app.)
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     try {
@@ -404,117 +405,48 @@ function App() {
             ))}
           </nav>
         )}
-        {/* THE APP'S OWN CONTROLS, IN ONE CLUSTER at the far end — what you've
-            saved, then one panel or two, then the light, which is a room
-            setting and belongs last.
-            They used to be three separate children of the bar: two sat just
-            after the title and the third was pushed to the opposite edge, so a
-            set of three related marks read as scattered. Grouped, with a
-            tighter gap inside the group than around it, they read as what they
-            are — the controls FOR the app, as opposed to the controls for the
-            music, which all live in the panel below. */}
+        {/* ONE THING TRUE OF THE ROOM, and it turns out there's only one: the
+            light. This cluster held four marks at its widest — instrument,
+            saved settings, one-panel-or-two, theme — and three of them were
+            about a PANEL rather than about the app. They've each gone down to
+            the panel they belong to: the instrument as a row, the saved list
+            as a mark in the title strip, and one-panel-or-two as the + that
+            adds the next one. What's left is the only setting that really is
+            the room's. */}
         <div className="sitebar__controls">
-        {/* WHAT'S IN YOUR HANDS, first in the cluster — it's the widest-scoped
-            of these controls, since everything below it is drawn for whatever
-            this says. */}
-        <InstrumentMenu
-          /* The keyboard is built and currently hidden — see SHOW_KEYBOARD. */
-          instruments={
-            SHOW_KEYBOARD
-              ? INSTRUMENT_LIST
-              : INSTRUMENT_LIST.filter((i) => i.layout !== 'keys')
-          }
-          tunings={tuningsFor(instrument.id)}
-          instrument={instrument}
-          tuning={tuning}
-          onPickInstrument={pickInstrument}
-          onPickTuning={setTuningId}
-        />
-        <BookmarksMenu
-          list={bookmarks}
-          onRestore={(state) => {
-            // A saved setting includes the instrument it was made on, and
-            // that lives above the panels — so restoring has to set it here
-            // as well as pushing the rest into the panel.
-            if (state.instrumentId) setInstrumentId(state.instrumentId);
-            if (state.tuningId) setTuningId(state.tuningId);
-            setRestore((r) => ({ state, seq: (r?.seq ?? 0) + 1 }));
-          }}
-          onRemove={(id) => writeBookmarks(bookmarks.filter((b) => b.id !== id))}
-          onRename={(id, name) =>
-            writeBookmarks(bookmarks.map((b) => (b.id === id ? { ...b, name } : b)))
-          }
-        />
-        {/* ONE PANEL OR TWO — a switch that stays put and reports which way
-            it's set, lit like every other chosen thing in this app. It used to
-            VANISH when you pressed it, because it only rendered while there
-            was one panel: the control that got you into two-up wasn't there to
-            get you out again, and the only way back was an × inside the panel
-            you wanted to close. A control that disappears on use can't be
-            undone by the person who just used it. */}
-        <button
-          className={panels.length > 1 ? 'sitebar__act sitebar__act--on' : 'sitebar__act'}
-          onClick={() =>
-            setPanels((list) =>
-              list.length > 1
-                ? [list[0]]
-                : [...list, { id: `panel-${Date.now()}`, initial: list[0]?.initial }],
-            )
-          }
-          aria-pressed={panels.length > 1}
-          aria-label={panels.length > 1 ? 'Back to one panel' : 'Work in two panels'}
-          title={panels.length > 1 ? 'One panel' : 'Two panels'}
-        >
-          {/* Two overlapping circles — the app's own mark cut down to two.
-              Overlapping SQUARES is the operating system's word for
-              duplicating a window; circles that meet is this app's word for
-              two things sharing something. Filled when it's on, the way a
-              chosen dot is filled everywhere else. */}
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <circle
-              cx="9.5"
-              cy="12"
-              r="5.6"
-              fill={panels.length > 1 ? 'currentColor' : 'none'}
-              fillOpacity="0.28"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            />
-            <circle
-              cx="14.5"
-              cy="12"
-              r="5.6"
-              fill={panels.length > 1 ? 'currentColor' : 'none'}
-              fillOpacity="0.28"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            />
-          </svg>
-        </button>
-
           <ThemeToggle theme={theme} onChange={setTheme} />
         </div>
       </header>
 
       {/* Both areas stay mounted (just hidden) so each keeps its own state when
-          you switch — the songbook, and Possibility's key/scale/mode choices. */}
-      <div hidden={area !== 'study'}>
+          you switch — the songbook, and Possibility's key/scale/mode choices.
+          POSSIBILITY AND EAR TRAINING SHARE THE MODULE, and that's the point:
+          a listening drill is a CONTROLS panel too, asking the same kind of
+          questions about the same material. What differs is which rows it has
+          and what sits under it, which the panel already knew how to do. */}
+      <div hidden={area !== 'study' && area !== 'ear'}>
         {/* ONE MODULE, OR TWO SIDE BY SIDE. Each owns its own settings and
             knows nothing about the other, so this is a list rather than a
             special case — the second one is not a "compare mode", it's another
             of the same thing. It opens as a COPY of the one that spawned it,
             because the move worth practising is "here, then there", and you
             get there by setting one up and changing one control. */}
-        <div className={panels.length > 1 ? 'modules modules--two' : 'modules'}>
-          {panels.map((panel, i) => (
+        <div
+          className={
+            area === 'study' && panels.length > 1 ? 'modules modules--two' : 'modules'
+          }
+        >
+          {/* Only Possibility lays out two. The second panel's state isn't
+              thrown away when you step into Ear Training — it's simply not
+              drawn — so coming back finds it where you left it. */}
+          {(area === 'study' ? panels : panels.slice(0, 1)).map((panel, i) => (
             <Module
               key={panel.id}
               initial={panel.initial}
               onAddChord={addToSong}
               songLength={current.chords.length}
               bookmarks={bookmarks}
-              instrumentId={instrumentId}
-              tuningId={tuningId}
+              studyMode={area === 'ear' ? 'ear' : 'fretboard'}
               // SAVE, OR UNSAVE. The mark in a panel's corner reports whether
               // this exact setting is in the list, so the button that draws it
               // has to be able to take it out again — otherwise pressing it
@@ -536,13 +468,38 @@ function App() {
                   },
                 ]);
               }}
-              // Only the FIRST panel takes a restore for now. Which side a
-              // preset should open into is a real question and Stu flagged it
-              // to answer after using two-up; guessing an answer here would
-              // bake it in.
-              restore={i === 0 ? restore : null}
+              // WHICH PANEL A PRESET OPENS INTO — answered by asking on the
+              // panel itself. The saved list used to live in the site bar,
+              // above both panels, which left "which side?" genuinely
+              // unanswerable; a list in each panel's own title strip makes the
+              // question disappear rather than solving it.
+              onEnterArea={setArea}
+              onRemoveBookmark={(id) =>
+                writeBookmarks(bookmarks.filter((b) => b.id !== id))
+              }
+              onRenameBookmark={(id, name) =>
+                writeBookmarks(
+                  bookmarks.map((b) => (b.id === id ? { ...b, name } : b)),
+                )
+              }
+              // + WHEN THERE'S ONE, × WHEN THERE ARE TWO. Adding a panel is
+              // the same gesture that will one day add a BAR — a module per
+              // bar is where Play is heading — so it's a plus on the thing
+              // being multiplied rather than a mode switch in the bar.
+              onAdd={
+                area === 'study' && panels.length === 1
+                  ? () =>
+                      setPanels((list) => [
+                        ...list,
+                        { id: `panel-${Date.now()}`, initial: list[0]?.initial },
+                      ])
+                  : undefined
+              }
+              // Only where two are DRAWN. Ear Training shows one panel even
+              // when Possibility is holding two, and a × there would close a
+              // panel you can't see.
               onClose={
-                panels.length > 1
+                area === 'study' && panels.length > 1
                   ? () => setPanels((list) => list.filter((_, n) => n !== i))
                   : undefined
               }
@@ -728,10 +685,12 @@ function Module({
   initial,
   onClose,
   bookmarks,
-  instrumentId,
-  tuningId,
   onToggleBookmark,
-  restore,
+  onEnterArea,
+  onRemoveBookmark,
+  onRenameBookmark,
+  onAdd,
+  studyMode,
 }: {
   onAddChord: (rootIndex: number, chordId: string) => void;
   songLength: number;
@@ -740,16 +699,28 @@ function Module({
   initial?: ModuleState;
   /** Given when this module can be closed. */
   onClose?: () => void;
-  /** Which neck to draw — chosen in the site bar, shared by every panel. */
-  instrumentId: string;
-  tuningId: string;
+  /**
+   * WHICH AREA THIS PANEL IS IN — the fretboard, or the listening drill.
+   *
+   * It arrives as a prop because it's chosen in the NAV, above every panel:
+   * it's the thing that decides which rows this panel has and what two of
+   * them mean, which puts it a level above anything the panel itself sets.
+   * It's still part of a module's STATE, though — a preset full of ear pools
+   * means nothing on the fretboard — so `moduleState()` folds it back in, the
+   * way the instrument used to be folded in from the other direction.
+   */
+  studyMode: 'fretboard' | 'ear';
   /** Everything saved, so this panel can tell whether IT is one of them. */
   bookmarks: Bookmark[];
   /** Save this setting, or — if it's already saved — remove it. */
   onToggleBookmark: (state: ModuleState, label: string) => void;
-  /** A setting pushed in from the bookmarks menu; the counter is what makes
-   *  restoring the same one twice count as an event. */
-  restore?: { state: ModuleState; seq: number } | null;
+  /** Restoring a saved setting can mean changing area; only the app can. */
+  onEnterArea: (area: 'study' | 'ear') => void;
+  /** The list belongs to the app, so tending it does too. */
+  onRemoveBookmark: (id: string) => void;
+  onRenameBookmark: (id: string, name: string) => void;
+  /** Given when another panel can be opened beside this one. */
+  onAdd?: () => void;
 }) {
   // ONE OBJECT, NOT A DOZEN. Everything this panel is set to lives in a single
   // ModuleState (see ui/moduleState.ts), which is what makes a module a thing
@@ -766,7 +737,7 @@ function Module({
   const set = <K extends keyof ModuleState>(key: K, value: ModuleState[K]) =>
     setState((s) => ({ ...s, [key]: value }));
 
-  const { studyMode, rootIndex, scaleId, degree, seventh, structureId } = state;
+  const { rootIndex, scaleId, degree, seventh, structureId } = state;
   const { inversionIndex, quiz, fingering, earDifficulty } = state;
   const mode: Mode = state.view;
 
@@ -774,14 +745,19 @@ function Module({
   // objects, because a bookmark has to survive being written to storage and a
   // whole Instrument doesn't round-trip usefully. Falling back to the guitar
   // means a preset naming an instrument that no longer exists still opens.
-  // The menu that sets these lives in the site bar, so they arrive as props
-  // rather than out of this panel's own state. They're still PART of that
-  // state — a bookmark has to remember which instrument you saved it on — so
-  // `moduleState()` folds them back in below, and restoring one sets the menu.
-  const instrument = INSTRUMENTS[instrumentId] ?? GUITAR;
-  const tuning = TUNINGS[tuningId] ?? GUITAR_STANDARD;
-
-  const setStudyMode = (v: 'fretboard' | 'ear') => set('studyMode', v);
+  const instrument = INSTRUMENTS[state.instrumentId] ?? GUITAR;
+  const tuning = TUNINGS[state.tuningId] ?? GUITAR_STANDARD;
+  // Picking an instrument picks its tuning too: the two have to move together
+  // or the neck would be drawn with six strings' worth of notes on four.
+  const pickInstrument = (id: string) => {
+    const next = INSTRUMENTS[id] ?? GUITAR;
+    setState((s) => ({ ...s, instrumentId: next.id, tuningId: next.defaultTuningId }));
+  };
+  const setTuningId = (id: string) => set('tuningId', id);
+  const instrumentChoices = SHOW_KEYBOARD
+    ? INSTRUMENT_LIST
+    : INSTRUMENT_LIST.filter((i) => i.layout !== 'keys');
+  const tuningChoices = tuningsFor(instrument.id);
   const setMode = (v: Mode) => set('view', v === 'harmony' ? 'harmony' : 'scale');
   const setRootIndex = (v: number) => set('rootIndex', v);
   const setScaleId = (v: string) => set('scaleId', v);
@@ -872,14 +848,20 @@ function Module({
     }
   };
 
-  // A setting arriving from the bookmarks menu.
-  const lastRestore = useRef(0);
-  useEffect(() => {
-    if (restore && restore.seq !== lastRestore.current) {
-      lastRestore.current = restore.seq;
-      setState(restore.state);
+  // GOING BACK TO A SAVED SETTING. The panel sets itself, and tells the app
+  // which area that setting belongs to — a preset full of ear-training pools
+  // means nothing on the fretboard, so it takes you there.
+  const restoreSetting = (saved: ModuleState) => {
+    setState(saved);
+    onEnterArea(saved.studyMode === 'ear' ? 'ear' : 'study');
+    // Put the page back where it was, once the new setting has actually laid
+    // out — a saved place is a place on a page that doesn't exist yet at the
+    // moment of restoring.
+    if (typeof saved.scrollY === 'number') {
+      const y = saved.scrollY;
+      setTimeout(() => window.scrollTo({ top: y, behavior: 'smooth' }), 90);
     }
-  }, [restore]);
+  };
 
   // NOT part of the module's state: which fret you last clicked is about this
   // moment, not about what the panel is set to. A preset that restored a
@@ -903,8 +885,7 @@ function Module({
   // settings lived apart.)
   const moduleState = (): ModuleState => ({
     ...state,
-    instrumentId,
-    tuningId,
+    studyMode,
     scrollY: Math.round(window.scrollY),
   });
 
@@ -979,13 +960,27 @@ function Module({
            you're looking at. `describe` already writes exactly this line for a
            bookmark's default name, so the summary and the name you'd save
            agree by construction rather than by being kept in step. */
-        summary={describe(state, {
+        /* The panel's state AS IT STANDS — which includes the area, since
+           that arrives as a prop rather than living in `state`. Without it a
+           folded panel in Ear Training described itself as a fretboard. */
+        summary={describe({ ...state, studyMode }, {
           root: noteName(root),
           scale: scale.name,
           roman: deg === ALL_DEGREES ? null : romanLabels[deg],
         })}
         action={
           <div className="panel__actions">
+            {/* WHAT YOU'VE SAVED, on the panel that would load it. In the site
+                bar this list sat above both panels and couldn't say which one
+                a preset should open into; here the question doesn't arise.
+                No count beside it, and nothing but three lines: it's a way
+                back, not a readout. */}
+            <BookmarksMenu
+              list={bookmarks}
+              onRestore={restoreSetting}
+              onRemove={onRemoveBookmark}
+              onRename={onRenameBookmark}
+            />
             <SaveBookmark
               saved={bookmarks.some((b) => sameSetting(b.state, state))}
               onToggle={() =>
@@ -999,9 +994,22 @@ function Module({
                 )
               }
             />
+            {/* ONE MARK, TWO STATES: + adds the panel beside this one, ×
+                closes this one. It's the same question either way — how many
+                of these am I working with — so it's the same button. */}
+            {onAdd && (
+              <button
+                className="panel__act panel__act--add"
+                onClick={onAdd}
+                aria-label="Work in two panels"
+                title="Add a panel beside this one"
+              >
+                +
+              </button>
+            )}
             {onClose && (
               <button
-                className="panel__act"
+                className="panel__act panel__act--add"
                 onClick={onClose}
                 aria-label="Close this panel"
                 title="Close this panel"
@@ -1012,17 +1020,40 @@ function Module({
           </div>
         }
       >
-        {READY.earTraining && (
-          <ControlRow label="Mode">
+        {/* WHAT'S IN YOUR HANDS, first — everything below it is drawn for
+            whatever this says, which is what makes it the widest-scoped
+            choice on the panel.
+
+            IT'S A PANEL ROW, NOT A MENU IN THE BAR, for two reasons. It does
+            nothing at all in Ear Training, so up there it was a control on
+            screen changing nothing you could see or hear; and a guitar beside
+            a ukulele in the same key is the most useful thing two panels have
+            ever been for, which one app-wide instrument made impossible. */}
+        {studyMode !== 'ear' && (
+          <ControlRow label="Instrument">
             <Segmented
               fill
-              ariaLabel="Mode"
-              options={[
-                { value: 'fretboard' as const, label: 'Fretboard' },
-                { value: 'ear' as const, label: 'Ear Training' },
-              ]}
-              value={studyMode}
-              onChange={setStudyMode}
+              ariaLabel="Instrument"
+              options={instrumentChoices.map((i) => ({
+                value: i.id,
+                label: i.name,
+                short: i.name.replace('Ukulele', 'Uke').replace('Baritone', 'Bari'),
+              }))}
+              value={instrument.id}
+              onChange={pickInstrument}
+            />
+          </ControlRow>
+        )}
+        {/* Only when there's a choice — see NOT_OFFERED in data/tunings.ts.
+            A row that can only say one thing isn't a control. */}
+        {studyMode !== 'ear' && tuningChoices.length > 1 && (
+          <ControlRow label="Tuning">
+            <Segmented
+              fill
+              ariaLabel="Tuning"
+              options={tuningChoices.map((t) => ({ value: t.id, label: t.name }))}
+              value={tuning.id}
+              onChange={setTuningId}
             />
           </ControlRow>
         )}

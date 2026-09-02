@@ -20,8 +20,15 @@
 //                   panels, two save buttons. Outline until this exact setting
 //                   is already saved, then filled: the mark tells you where you
 //                   stand rather than just what the button does.
-//   BookmarksMenu — in the site bar, because the list is the whole app's, not
-//                   any one panel's.
+//   BookmarksMenu — in the SAME title strip, beside it. The list is the whole
+//                   app's, but going back to a saved setting has to happen
+//                   somewhere, and in the site bar it couldn't say WHERE: with
+//                   two panels open, "which side does this load into?" had no
+//                   answer. A list in each panel's own strip makes the
+//                   question disappear rather than answering it — the panel
+//                   you asked from is the panel that changes.
+//                   Minimal on purpose: three lines, no count. It's a way
+//                   back, not a readout.
 // ============================================================================
 
 import { useState } from 'react';
@@ -90,15 +97,9 @@ export function BookmarksMenu({
   const [editing, setEditing] = useState<string | null>(null);
 
   const restore = (b: Bookmark, close: () => void) => {
+    // The panel does the rest — setting itself, and putting the page back
+    // where it was. See restoreSetting in App.tsx.
     onRestore(b.state);
-    // Put the page back where it was, once the new setting has actually laid
-    // out. A saved place is a place on a page that doesn't exist yet at the
-    // moment of restoring, so this waits a beat rather than scrolling into the
-    // old layout.
-    if (typeof b.state.scrollY === 'number') {
-      const y = b.state.scrollY;
-      setTimeout(() => window.scrollTo({ top: y, behavior: 'smooth' }), 90);
-    }
     setEditing(null);
     close();
   };
@@ -106,7 +107,8 @@ export function BookmarksMenu({
   return (
     <Menu
       title="Saved settings"
-      label={`Saved settings (${list.length})`}
+      variant="panel"
+      label="Saved settings"
       icon={
         /* Just a list. The earlier icon was a bookmark WITH lines beside it,
            trying to say "the list of bookmarks" in one drawing — which read as
@@ -123,7 +125,6 @@ export function BookmarksMenu({
           />
         </svg>
       }
-      badge={list.length > 0 ? <span className="menu__badge">{list.length}</span> : undefined}
     >
       {(close) =>
         list.length === 0 ? (

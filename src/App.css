@@ -250,29 +250,54 @@
 }
 
 /* Top-level area switch (Study / Song) — a higher-level nav than the pills. */
+/* WHAT YOU'RE DOING, beside the app's name rather than under it.
+   The `margin-top: 18px` that used to be here is why it sat low: it dates from
+   when the nav was a centred row BELOW the title, and in a flex bar that
+   centres its children it just pushed the whole thing down. Gone, and the
+   items now sit on the bar's own centre line with the name. */
 .topnav {
   display: flex;
-  justify-content: center;
-  gap: 28px;
-  margin-top: 18px;
+  align-items: center;
+  gap: 22px;
+  flex: none;
 }
+/* Smaller than the 25px title, because it isn't a second title — it's the
+   app's structure, and the name is the app. Still the display face: these are
+   proper nouns, and they belong to the same voice as "C Major". */
 .topnav-item {
+  position: relative;
   font-family: var(--serif);
-  font-size: 22px;
+  font-size: 17px;
+  line-height: 1.1;
   color: var(--muted);
   background: transparent;
   border: none;
-  padding: 4px 2px;
+  padding: 3px 1px;
   cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: color 0.12s ease, border-color 0.12s ease;
+  transition: color 0.12s ease;
+}
+/* THE RULE IS DRAWN, NOT LAID OUT. As a border it added 2px to the bottom of
+   the box and nothing to the top, so the word sat a pixel high of centre — the
+   sort of thing you feel before you can name it. As a pseudo-element it's
+   outside the box model entirely and the centring is exact. */
+.topnav-item::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 2px;
+  background: transparent;
+  transition: background-color 0.12s ease;
 }
 .topnav-item:hover {
   color: var(--ink);
 }
 .topnav-item--on {
   color: var(--ink);
-  border-bottom-color: var(--accent);
+}
+.topnav-item--on::after {
+  background: var(--accent);
 }
 
 /* --- Controls ------------------------------------------------------------ */
@@ -2217,6 +2242,20 @@
   align-items: center;
   gap: 2px;
   flex: none;
+  /* The menu hangs from the right edge of this cluster rather than from its
+     own mark — same rule, and the same two reasons, as the site bar's. */
+  position: relative;
+}
+.panel__actions .menu {
+  position: static;
+}
+/* THE PLUS IS A DIFFERENT KIND OF THING from the two marks beside it. Those
+   are about this panel's SETTING — save it, go back to a saved one. This one
+   is about how many panels there are. A little air says so. */
+.panel__actions .panel__act--add {
+  margin-left: 7px;
+  font-size: 19px;
+  line-height: 1;
 }
 /* Same rule as the bar's controls: the icon IS the button. See the note there. */
 .panel__act {
@@ -2246,6 +2285,11 @@
    something else, and it gets away with it because a panel header has no
    degree dots to be confused with. Kept next to `.panel__act` on purpose:
    it's the same specificity, so it only wins by coming after it. */
+/* A menu's mark while its menu is open — full strength, no colour. Saved is
+   what colour means on a panel mark. */
+.panel__act--open {
+  opacity: 1;
+}
 .panel__act--on,
 .panel__act--on:hover {
   color: var(--deg-1);

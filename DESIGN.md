@@ -164,6 +164,43 @@ chips — they're content, not settings. One more small role: the **stepper**
 (`ui/ShapeStepper.tsx`, ‹ 3 / 7 ›) walks a sequence of shapes in playing order —
 tiny prev/next actions around a live readout, mirrored by the ← → arrow keys.
 
+## The hierarchy (re-audited, 2026-09)
+
+Four scopes, and each now sits at its own level:
+
+1. **The room** — the light. That's all: the site bar's cluster once held four
+   marks and three of them were about a PANEL, not the app.
+2. **What you're doing** — `Possibility | Ear Training` in the nav, beside the
+   app's name. It was a "Mode" row *inside* CONTROLS, which was the wrong level
+   twice over: a control that decides which rows exist beneath it — and quietly
+   turns two survivors from pick-one into pick-many — can't sit inside the box
+   it rewrites; and in an app that teaches modes, a row called "Mode" that isn't
+   about modes is a collision you can't explain away (Gravity is the mode
+   picker). The nav says what you're DOING; the panel says what you're doing it
+   TO.
+3. **What you're working on** — instrument, key, scale, gravity: CONTROLS rows.
+   The instrument came DOWN from the site bar as part of the same move. It does
+   nothing at all in Ear Training, so up there it was a control on screen
+   changing nothing you could see or hear; and a guitar beside a ukulele in the
+   same key is the most useful thing two panels have ever been for, which one
+   app-wide instrument made impossible.
+4. **How you're looking at it** — Scales/Harmony, fingering, voicing, difficulty.
+
+**What a panel's title strip carries**: the saved list, the save mark, and
+`+` / `×`. All three are about THIS panel. The saved list moved off the site
+bar because up there it couldn't say which panel a preset should load into —
+with two open, "which side?" had no answer; asked from a panel's own strip the
+question disappears. And `+` / `×` replaced a split-screen toggle in the bar
+because adding a panel is the same gesture that will one day add a BAR: a
+module per bar is where Play is heading, so the plus belongs on the thing
+being multiplied.
+
+**What it costs**: a fretboard beside an ear test is no longer possible. That
+was a good idea the build never delivered — the two panels didn't share a key,
+so it was two unrelated things side by side rather than a reference sheet for
+the drill, and it didn't exist on a phone at all. The coordinated version is
+better and lives in one panel: the ear test showing its answer on a neck.
+
 **A menu is a small panel** (`ui/Menu.tsx`). The two menus in the site bar —
 what's in your hands, and what you've saved — each used to have their own box: a
 rounded card with a drop shadow, floating under an icon, rows styled to taste.
