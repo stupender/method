@@ -45,11 +45,24 @@ export function EarProgress({
         <span className="earprogress__of">
           {now.correct} of {now.total} heard right
         </span>
-        <span className="earprogress__more">{open ? 'Hide' : 'By quality'}</span>
+        {/* SHOW / HIDE — what the button DOES, not what's behind it.
+            "By quality" was a description of the list, printed on the control
+            that opens it, and a description isn't an instruction: it left you
+            to work out that the words were pressable and that pressing them
+            would reveal something. The word "quality" still earns its place —
+            it's the one thing being quizzed and worth saying out loud — but it
+            belongs over the list it names, which is where it is now.
+            Four letters either way, so the row doesn't twitch as it toggles. */}
+        <span className="earprogress__more">{open ? 'Hide' : 'Show'}</span>
       </button>
 
       {open && (
         <>
+          {/* WHAT THE LIST IS CUT BY. Today there's only one answer — quality
+              is the whole quiz — and saying it anyway is what makes room for
+              the others: when inversion and function arrive, this line is
+              already the place that says which one you're reading. */}
+          <p className="earprogress__by">By quality</p>
           <ol className="earprogress__list">
             {now.byItem.map((row) => (
               <li key={row.item} className="earprogress__row">

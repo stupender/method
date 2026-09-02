@@ -55,9 +55,21 @@
 }
 
 /* ---- The breakdown ------------------------------------------------------ */
+/* The list's own eyebrow, in the app's smallest voice — the same one the panel
+   strips and the menu heads use, because it's doing the same job: naming the
+   block under it. */
+.earprogress__by {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
 .earprogress__list {
   list-style: none;
-  margin: 14px 0 0;
+  margin: 10px 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;
