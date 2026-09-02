@@ -33,7 +33,8 @@ const System = lazy(() =>
 export function LazySystem(props: {
   events: PlacedNote[][];
   strings?: number;
-  width?: number;
+  /** How big to draw it — see STAFF_PX in System.tsx. */
+  staffPx?: number;
   /** Passed straight through — see the `keyboard` prop on System. */
   keyboard?: boolean;
 }) {

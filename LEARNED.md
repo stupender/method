@@ -1988,3 +1988,19 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **`pointer-events: none` on a box means `:hover` on that box never fires,**
   even when a child with `pointer-events: auto` is under the pointer. Ask
   whether the box CONTAINS a hovered child instead: `.rail:has(.mark:hover)`.
+- **Halving to break a line is right once and ruinous after.** Breaking a
+  scale run in two puts the turn at the end of line one, which is how you'd
+  read it aloud. Halving AGAIN doesn't: at four lines and beyond the apex
+  falls mid-line like any other note, and you've paid for a break you didn't
+  get. On a phone the doubling went 1 → 2 → 4 → 8 and drew eight lines of four
+  notes where five would have held it.
+- **Size the OUTPUT, not the input.** Two views scaled their notation by
+  different means — one divided its column by 1.15, the other engraved into a
+  fixed 210 units and let CSS squeeze it — and they drifted to nearly 2× apart
+  without either being "wrong". Naming the thing you actually care about (how
+  many screen pixels between two staff lines) and solving for the engraving
+  width makes them incapable of disagreeing.
+- **A `getBBox()` on a music glyph is the font's em box, not its ink.** The
+  clefs reported 161 units tall and appeared to overflow the SVG by 30; the
+  visible drawing was nowhere near it. Measure the thin wide `path`s (the
+  staff lines) to find the real geometry.

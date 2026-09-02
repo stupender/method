@@ -103,22 +103,37 @@ const MIN_NOTE_SPACING = 26;
 // and the breathing room left at the right end.
 const CLEF_COLUMN = 56;
 const TAIL = 14;
-// HOW BIG THE ENGRAVING READS. VexFlow draws at a fixed size — a staff line is
-// 10 units apart and that's that — so the way to make everything larger is to
-// engrave into a NARROWER page and let the SVG scale up to fill its container.
-// At 1.15 a system is drawn as if the column were a seventh narrower, then
-// stretched back out: staff lines, note heads, fret numbers and clef all grow
-// together, and because it's a viewBox and not a bitmap nothing softens.
+// ============================================================================
+// HOW BIG THE ENGRAVING READS — one number for the whole app
+// ----------------------------------------------------------------------------
+// VexFlow draws at a fixed internal size: a staff line is 10 units from the
+// next and that's that. What varies is how many of those units the SVG is
+// engraved into before CSS stretches it to fill its column — engrave narrow
+// and it magnifies, engrave wide and it shrinks.
 //
-// It also means fewer notes fit on a line, so a long run wraps sooner.
+// That knob used to be turned separately in two places and they disagreed. A
+// scale run engraved into `container / 1.15` and came out at 11.5 screen pixels
+// a staff line; a chord card engraved into a fixed 210 and, squeezed into a
+// phone's 130px column, came out at 6.2. The same app printing the same music
+// at nearly twice the size in one view as the other — which is exactly what
+// Stu saw.
 //
-// FOUND BY OVERSHOOTING. This was 1.0 and the fret numbers were too small to
-// read; it went to 1.3 and a two-octave scale turned into three enormous
-// systems that dominated the page — on a phone the notation was bigger than
-// the fretboard it was describing. The real problem at 1.0 was never the
-// engraving's size, it was that the fret numbers were set in a music font (see
-// the metrics block below); with that fixed, the drawing only needed a nudge.
-const ZOOM = 1.15;
+// So the knob is the OUTPUT now, not the input: say how big a staff line
+// should be ON SCREEN and let each system work out its own engraving width
+// from the room it has. Scales and Harmony can't drift apart, because there's
+// only one number.
+//
+// TEN PIXELS is the resting size. It's what the scale runs were already close
+// to and the chord cards were well under; below about eight the fret numbers
+// start to close up, and much above twelve a two-octave run turns into a wall
+// of systems that dominates the page it's describing.
+//
+// (This is also the height lever. A bigger staff means fewer notes per line,
+// which means more lines, and on a phone a line is about 200px of scrolling.)
+// ============================================================================
+const STAFF_PX = 10;
+/** VexFlow's own unit: the distance between two staff lines, before scaling. */
+const STAFF_UNITS = 10;
 
 // VexFlow wants "c#/4" — letter, accidental, slash, octave. Written pitch, so
 // an octave above where the guitar sounds.
@@ -372,7 +387,7 @@ function drawKeyboardSystem({
 export function System({
   events,
   strings = 6,
-  width,
+  staffPx = STAFF_PX,
   keyboard = false,
 }: {
   // Each entry is one moment: the notes sounding together at it.
@@ -385,13 +400,12 @@ export function System({
    */
   strings?: number;
   /**
-   * Draw at this many units wide. Omit it and the system MEASURES its
-   * container and draws at that size instead — which is the difference between
-   * a scale run rendered at 860 units and squeezed into a 680px row at 79%
-   * (everything shrinks: staff lines, note heads, fret numbers) and one drawn
-   * at 680 in the first place, where a staff line is a staff line.
+   * How many SCREEN PIXELS one staff line should sit from the next. The system
+   * measures its container and picks an engraving width that lands on this, so
+   * a chord card in a 130px column and a scale run in a 700px one are drawn at
+   * the same size as each other. See STAFF_PX above.
    */
-  width?: number;
+  staffPx?: number;
   /**
    * IT'S FOR A KEYBOARD — so there is no tablature.
    *
@@ -407,8 +421,8 @@ export function System({
   const host = useRef<HTMLDivElement>(null);
   const [measured, setMeasured] = useState<number | null>(null);
 
-  // Only when no width is given. A chord card wants a fixed engraving that
-  // scales down into its column; a run wants the room it actually has.
+  // EVERY system measures its column now, because the size it draws at is
+  // worked out from the room it has (see STAFF_PX).
   //
   // The first measurement is taken SYNCHRONOUSLY in a layout effect rather than
   // waiting for the ResizeObserver, which only delivers at the end of a
@@ -416,15 +430,13 @@ export function System({
   // nothing is ever drawn. The observer then handles later changes, which is
   // what it's good for.
   useLayoutEffect(() => {
-    if (width !== undefined) return;
     const el = host.current;
     if (!el) return;
     const w = Math.round(el.getBoundingClientRect().width);
     if (w > 0) setMeasured(w);
-  }, [width]);
+  }, []);
 
   useEffect(() => {
-    if (width !== undefined) return;
     const el = host.current;
     if (!el) return;
     const observer = new ResizeObserver(([entry]) => {
@@ -433,7 +445,7 @@ export function System({
     });
     observer.observe(el);
     return () => observer.disconnect();
-  }, [width]);
+  }, []);
 
   useEffect(() => {
     const el = host.current;
@@ -453,12 +465,12 @@ export function System({
     const isRun = moments.length > 1;
     const duration = isRun ? '8' : 'w';
 
-    // A given width is a fixed engraving that CSS already fits to its column, so
-    // zooming it would change nothing you could see. A MEASURED width is the
-    // room actually available, and that's where engraving smaller and scaling up
-    // buys legibility.
-    const drawWidth =
-      width !== undefined ? width : measured ? Math.round(measured / ZOOM) : null;
+    // THE ENGRAVING WIDTH THAT LANDS ON THE ASKED-FOR SIZE. Draw into `d` units
+    // and display across `measured` pixels and a staff line comes out
+    // `10 * measured / d` pixels; solve for `d`.
+    const drawWidth = measured
+      ? Math.max(120, Math.round((measured * STAFF_UNITS) / staffPx))
+      : null;
     if (!drawWidth) return; // nothing drawn until we know how much room there is
 
     // HOW MANY LINES. Music that doesn't fit runs onto the next line; it
@@ -516,23 +528,26 @@ export function System({
     const perLine =
       moments.length === 1 ? 1 : Math.max(4, Math.floor(room / MIN_NOTE_SPACING));
 
-    // BREAK IT IN HALF, NOT BY THE YARD.
+    // BREAK AT THE TURN IF YOU CAN; PACK IF YOU CAN'T.
     //
-    // This used to fill each line to capacity and start a new one wherever the
-    // count ran out, which put the break at an arbitrary note — a run would
-    // turn around in the middle of line two for no reason you could see.
+    // A scale run is a shape — up, then back down — so two lines is the good
+    // break: the ascent is one line, the descent is the next, and the count
+    // being odd (the top note is played once, not twice) puts the apex at the
+    // end of line one, which is how you'd read it aloud.
     //
-    // A scale run is a shape: up, then back down. Halving it puts the break
-    // exactly at the turn, so the ascent is one line and the descent is the
-    // next. Halve again if a half still doesn't fit, and the breaks keep
-    // landing on the shape's own joints instead of cutting across them.
+    // This used to get there by HALVING, which is right at two lines and
+    // ruinous past it. On a phone a 35-note run has room for eight notes a
+    // line, so halving went 1 → 2 → 4 → 8 and drew eight lines of four notes
+    // where five lines would have held it: one position came to 2190px, more
+    // than two and a half phone screens, and seven positions to nearly twenty.
+    // Worse, the break it was paying all that for wasn't even landing on the
+    // apex any more — at four lines and beyond the turn falls mid-line like
+    // any other note.
     //
-    // The count is odd (the top note is played once, not twice), so the first
-    // half takes the extra note — which is the apex itself. Line one therefore
-    // ENDS on the top note and line two begins the way down, which is how
-    // you'd read it aloud.
-    let lineCount = 1;
-    while (Math.ceil(moments.length / lineCount) > perLine) lineCount *= 2;
+    // So: the fewest lines that fit. Where two of them fit, that IS two, and
+    // the break lands on the turn exactly as before; where they don't, the
+    // shape argument has already lost and the height is worth more.
+    const lineCount = Math.max(1, Math.ceil(moments.length / perLine));
     const lines: PlacedNote[][][] = [];
     for (let i = 0; i < lineCount; i++) {
       const from = Math.round((i * moments.length) / lineCount);
@@ -736,7 +751,7 @@ export function System({
     return () => {
       el.innerHTML = '';
     };
-  }, [events, strings, width, measured, keyboard]);
+  }, [events, strings, staffPx, measured, keyboard]);
 
   return <div className="system" ref={host} aria-label="Notation and tablature" />;
 }

@@ -393,7 +393,6 @@ export function InversionLadder({
                         events={[r.shape]}
                         strings={instrument.stringCount}
                         keyboard={keys}
-                        width={210}
                       />
                       {/* Where on the neck, and whether it's a reach. The TAB
                           shows the frets; this says which end of the neck they
