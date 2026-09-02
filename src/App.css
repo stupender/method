@@ -288,13 +288,18 @@
    the box and nothing to the top, so the word sat a pixel high of centre — the
    sort of thing you feel before you can name it. As a pseudo-element it's
    outside the box model entirely and the centring is exact. */
+/* A HAIRLINE, like every other rule in this app. At 2px it was heavier than
+   the panel borders, the row dividers and the neck's own frets — the boldest
+   line on the page, marking the smallest thing. 1px puts it in the same
+   family as everything else, and dropping it a little further from the word
+   lets it read as an underline rather than as part of the letterforms. */
 .topnav-item::after {
   content: '';
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -3px;
-  height: 2px;
+  bottom: -2px;
+  height: 1px;
   background: transparent;
   transition: background-color 0.12s ease;
 }
@@ -383,10 +388,15 @@
    One outlined block holding every choice, so the page has a left edge, a
    right edge and a beat. Rows are separated by hairlines (a plain border, not
    the gap trick, because these rows share a background). */
+/* NO `overflow: hidden`. It was here to keep the title strip's fill inside the
+   4px corners, and it also clipped anything hanging out of the panel — which
+   from the moment the saved-settings menu moved into the title strip meant the
+   menu itself. Folded, the panel is 40px tall and the menu simply vanished.
+   The corners are done on the strip instead, which is the only thing that
+   paints to an edge. */
 .panel {
   border: 1px solid var(--line);
   border-radius: 4px;
-  overflow: hidden;
   /* Named so the rows inside can ask how wide THIS panel is — see
      `.seg__short`. With two panels open the window says nothing useful. */
   container: panel / inline-size;
@@ -398,6 +408,8 @@
   gap: 10px;
   border-bottom: 1px solid var(--line);
   background: var(--surface);
+  /* Inside the panel's own 4px, so the fill stops where the border does. */
+  border-radius: 3px 3px 0 0;
   padding-right: 8px;
 }
 /* THE WHOLE TITLE STRIP IS THE HANDLE, at every width. It used to fold only
@@ -470,10 +482,11 @@
 .panel--folded .panel__rows {
   display: none;
 }
-/* Folded, the strip is the whole panel, so it shouldn't also draw the line
-   that separates it from rows that aren't there. */
+/* Folded, the strip IS the whole panel: no line under it separating it from
+   rows that aren't there, and all four corners are its own. */
 .panel--folded .panel__head {
   border-bottom: 0;
+  border-radius: 3px;
 }
 /* The title shrinks to make room for the summary beside it. */
 .panel--folded .panel__title {
@@ -2340,7 +2353,7 @@
   border-radius: var(--radius);
 }
 
-/* The same strip the CONTROLS panel wears, at the same weight. */
+/* The same strip the CONTROL PANEL wears, at the same weight. */
 .menu__head {
   position: sticky;
   top: 0;
@@ -2473,6 +2486,11 @@
 .menu__remove:focus-visible {
   opacity: 1;
 }
+/* The copy mark is a glyph rather than a cross, and glyphs of that shape read
+   heavier at the same size. */
+.menu__row .menu__remove:first-of-type {
+  font-size: 14px;
+}
 
 /* Only while renaming, so the field's box is a MODE you entered rather than
    the row's resting appearance. */
@@ -2490,6 +2508,34 @@
 .menu__rename:focus {
   outline: none;
   border-color: var(--ink);
+}
+
+/* THE WAY IN — paste a link or a code someone sent you. A field rather than a
+   paste MARK, because a mark would have needed the browser's permission to
+   read the clipboard and most browsers refuse; a field needs none, works
+   everywhere, and is visible, which a mark you have to recognise never is.
+   Ruled off from the list below it: it's the way IN, not one of the things
+   already there. */
+.menu__paste {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-bottom: 6px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--line);
+}
+.menu__paste .menu__rename::placeholder {
+  color: var(--muted);
+  opacity: 0.75;
+}
+
+/* When what was pasted isn't one of ours. Quiet — a bad paste is a shrug. */
+.menu__note-bad {
+  margin: 0 0 6px;
+  padding: 0 8px;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.4;
 }
 
 /* How many are saved, beside the icon that opens them. */

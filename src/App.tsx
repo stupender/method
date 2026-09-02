@@ -57,6 +57,7 @@ import {
   type Bookmark,
   type ModuleState,
 } from './ui/moduleState';
+import { stateFromUrl } from './ui/shareCode';
 import { MultiSelect } from './ui/MultiSelect';
 import { PatternExplorer } from './ui/PatternExplorer';
 import { ScaleExplorer } from './ui/ScaleExplorer';
@@ -110,6 +111,14 @@ const AREAS: Area[] = [
 ];
 
 // The label each top-level area shows in the nav.
+/** How each fingering system is written on a folded panel's one line. */
+const FINGERING_LABELS: Record<ModuleState['fingering'], string> = {
+  caged: 'CAGED',
+  '3nps': '3NPS',
+  '4nps': '4NPS',
+  '5nps': '5NPS',
+};
+
 const AREA_LABELS: Record<Area, string> = {
   // FRETBOARD, not "Possibility". Possibility is what the app is ABOUT — it's
   // in the footer, and it's the idea the whole thing rests on — but a nav item
@@ -238,7 +247,14 @@ function loadCards(): PracticeCard[] {
 const initialCards = loadCards();
 
 function App() {
-  const [area, setArea] = useState<Area>('study');
+  // A SHARED LINK OPENS INTO ITS SETTING — including the area it was made in,
+  // since a setting full of ear-training pools means nothing on the fretboard.
+  // Read once, at startup, and the hash is cleared as it's read (see
+  // stateFromUrl) so a reload doesn't drag you back after you've moved on.
+  const shared = useRef(stateFromUrl()).current;
+  const [area, setArea] = useState<Area>(
+    shared?.studyMode === 'ear' ? 'ear' : 'study',
+  );
 
   // The SONGBOOK lives here, above both areas, so it survives switching to
   // the Fretboard area and back, and so its "Add to Play" button can
@@ -303,7 +319,7 @@ function App() {
   // it. Held as a list rather than a boolean so that three, or a saved
   // arrangement of them, is a change of data rather than of shape.
   const [panels, setPanels] = useState<{ id: string; initial?: ModuleState }[]>([
-    { id: 'panel-1' },
+    { id: 'panel-1', initial: shared ?? undefined },
   ]);
   // THE SAVED SETTINGS live here rather than in a panel, because the list is
   // the app's and a panel is only one of the things that can be in it.
@@ -322,6 +338,20 @@ function App() {
   // on arrival: the first ten seconds are the point of the whole thing and
   // shouldn't be spent on a form. See Subscribe.tsx.
   const [invite, setInvite] = useState(false);
+  // PUT ONE IN THE LIST. Separate from the save button's toggle on purpose:
+  // pressing the bookmark twice on one setting should unsave it, but pasting a
+  // setting you already have must not silently delete it.
+  const addBookmark = (state: ModuleState, label: string) => {
+    writeBookmarks([
+      ...bookmarks,
+      {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        name: label,
+        state,
+        savedAt: Date.now(),
+      },
+    ]);
+  };
   const writeBookmarks = (next: Bookmark[]) => {
     if (bookmarks.length === 0 && next.length === 1 && !alreadyAsked()) {
       setInvite(true);
@@ -463,16 +493,9 @@ function App() {
                   writeBookmarks(bookmarks.filter((b) => !existing.includes(b)));
                   return;
                 }
-                writeBookmarks([
-                  ...bookmarks,
-                  {
-                    id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-                    name: label,
-                    state,
-                    savedAt: Date.now(),
-                  },
-                ]);
+                addBookmark(state, label);
               }}
+              onAddBookmark={addBookmark}
               // WHICH PANEL A PRESET OPENS INTO — answered by asking on the
               // panel itself. The saved list used to live in the site bar,
               // above both panels, which left "which side?" genuinely
@@ -692,6 +715,7 @@ function Module({
   bookmarks,
   onToggleBookmark,
   onEnterArea,
+  onAddBookmark,
   onRemoveBookmark,
   onRenameBookmark,
   onAdd,
@@ -721,6 +745,8 @@ function Module({
   onToggleBookmark: (state: ModuleState, label: string) => void;
   /** Restoring a saved setting can mean changing area; only the app can. */
   onEnterArea: (area: 'study' | 'ear') => void;
+  /** Put a setting in the list. Never removes — see the note at the call. */
+  onAddBookmark: (state: ModuleState, label: string) => void;
   /** The list belongs to the app, so tending it does too. */
   onRemoveBookmark: (id: string) => void;
   onRenameBookmark: (id: string, name: string) => void;
@@ -853,6 +879,63 @@ function Module({
     }
   };
 
+  // A NAME FOR ANY SETTING, not just the one this panel is showing — a
+  // pasted one has to be saved under something, and it should read exactly
+  // like a setting you'd saved yourself. Everything `describe` needs is
+  // resolved from the state it's handed rather than from the panel's own.
+  const nameFor = (s: ModuleState): string => {
+    const r = ROOT_CHOICES[s.rootIndex] ?? ROOT_CHOICES[0];
+    const sc = SCALES[s.scaleId] ?? SCALES[SCALE_LIST[0].id];
+    let romans: string[] = [];
+    try {
+      romans = diatonicChords(r, sc, false).map((c) => c.roman);
+    } catch {
+      romans = [];
+    }
+    const pool = new Set(s.earQualities ?? []);
+    const families = {
+      triads: [...pool].some((id) => CHORDS[id]?.intervals.length === 3),
+      sevenths: [...pool].some((id) => CHORDS[id]?.intervals.length >= 4),
+    };
+    return describe(s, {
+      root: noteName(r),
+      scale: sc.name,
+      roman: s.degree === ALL_DEGREES ? null : (romans[s.degree] ?? null),
+      fretboard: {
+        // Named only when it isn't the guitar — see the note in describe().
+        instrument:
+          s.instrumentId && s.instrumentId !== 'guitar'
+            ? (INSTRUMENTS[s.instrumentId]?.name ?? undefined)
+            : undefined,
+        fingering: FINGERING_LABELS[s.fingering] ?? '',
+        voicing: structureName(
+          STRUCTURES.find((v) => v.id === s.structureId) ?? STRUCTURES[0],
+          s.seventh ? 4 : 3,
+        ),
+      },
+      ear: {
+        keys:
+          s.earRoots.length === ROOT_CHOICES.length
+            ? 'All keys'
+            : s.earRoots.length === 1
+              ? noteName(ROOT_CHOICES[s.earRoots[0]] ?? r)
+              : `${s.earRoots.length} keys`,
+        scales:
+          s.earScaleIds.length === 1
+            ? (SCALES[s.earScaleIds[0]]?.name ?? sc.name)
+            : `${s.earScaleIds.length} scales`,
+        qualities:
+          pool.size === 1
+            ? (CHORDS[[...pool][0]]?.short ?? '')
+            : families.triads && families.sevenths
+              ? 'Triads & Sevenths'
+              : families.sevenths
+                ? 'Sevenths'
+                : 'Triads',
+      },
+    });
+  };
+
   // GOING BACK TO A SAVED SETTING. The panel sets itself, and tells the app
   // which area that setting belongs to — a preset full of ear-training pools
   // means nothing on the fretboard, so it takes you there.
@@ -967,11 +1050,7 @@ function Module({
         /* The panel's state AS IT STANDS — which includes the area, since
            that arrives as a prop rather than living in `state`. Without it a
            folded panel in Ear Training described itself as a fretboard. */
-        summary={describe({ ...state, studyMode }, {
-          root: noteName(root),
-          scale: scale.name,
-          roman: deg === ALL_DEGREES ? null : romanLabels[deg],
-        })}
+        summary={nameFor({ ...state, studyMode })}
         action={
           <div className="panel__actions">
             {/* WHAT YOU'VE SAVED, on the panel that would load it. In the site
@@ -984,19 +1063,18 @@ function Module({
               onRestore={restoreSetting}
               onRemove={onRemoveBookmark}
               onRename={onRenameBookmark}
+              // ADD-ONLY, NOT the save button's toggle. Pressing the bookmark
+              // twice on one setting should unsave it; PASTING a setting you
+              // already have must not silently delete it, which is what
+              // reusing the toggle here did.
+              onAddShared={(incoming) => onAddBookmark(incoming, nameFor(incoming))}
             />
             <SaveBookmark
               saved={bookmarks.some((b) => sameSetting(b.state, state))}
-              onToggle={() =>
-                onToggleBookmark(
-                  moduleState(),
-                  describe(moduleState(), {
-                    root: noteName(root),
-                    scale: scale.name,
-                    roman: deg === ALL_DEGREES ? null : romanLabels[deg],
-                  }),
-                )
-              }
+              onToggle={() => {
+                const now = moduleState();
+                onToggleBookmark(now, nameFor(now));
+              }}
             />
             {/* ONE MARK, TWO STATES: + adds the panel beside this one, ×
                 closes this one. It's the same question either way — how many

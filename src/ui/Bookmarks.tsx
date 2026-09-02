@@ -34,6 +34,7 @@
 import { useState } from 'react';
 import type { Bookmark, ModuleState } from './moduleState';
 import { Menu } from './Menu';
+import { copyToClipboard, decodeState, shareUrl } from './shareCode';
 
 /** The mark itself: a ribbon with a notch cut from the bottom. */
 export function BookmarkIcon({ filled = false }: { filled?: boolean }) {
@@ -86,15 +87,51 @@ export function BookmarksMenu({
   onRestore,
   onRemove,
   onRename,
+  onAddShared,
 }: {
   list: Bookmark[];
   onRestore: (state: ModuleState) => void;
   onRemove: (id: string) => void;
   onRename: (id: string, name: string) => void;
+  /** A setting that arrived on the clipboard — saved under a name the app
+   *  works out, the same way a fresh save is named. */
+  onAddShared: (state: ModuleState) => void;
 }) {
   // Which row is being renamed, if any. Renaming is a mode now rather than the
   // row's permanent state — see the note on the name button below.
   const [editing, setEditing] = useState<string | null>(null);
+  // Which row just had its link copied, so the mark can say so for a moment.
+  const [copied, setCopied] = useState<string | null>(null);
+  // What's been typed into the paste field. See the note by it below.
+  const [pasteText, setPasteText] = useState('');
+  const [pasteFailed, setPasteFailed] = useState(false);
+
+  const copyLink = async (b: Bookmark) => {
+    const ok = await copyToClipboard(shareUrl(b.state));
+    if (!ok) return;
+    setCopied(b.id);
+    window.setTimeout(() => setCopied((id) => (id === b.id ? null : id)), 1600);
+  };
+
+  // A FIELD, NOT A PASTE BUTTON.
+  //
+  // The button was tried first: one press, read the clipboard, done. It reads
+  // beautifully and it doesn't work — Safari and Firefox both refuse
+  // `readText` in most circumstances, which is a reasonable thing for a
+  // browser to do about the clipboard, so most people would have got a button
+  // that silently did nothing and a fallback field appearing underneath it.
+  //
+  // A field has none of that. It works in every browser, it needs no
+  // permission, and it's VISIBLE — you can see that pasting a code is a thing
+  // this menu does, which a mark you have to recognise never quite says.
+  const accept = (text: string): boolean => {
+    const found = decodeState(text);
+    if (!found) return false;
+    onAddShared(found);
+    setPasteText('');
+    setPasteFailed(false);
+    return true;
+  };
 
   const restore = (b: Bookmark, close: () => void) => {
     // The panel does the rest — setting itself, and putting the page back
@@ -126,8 +163,44 @@ export function BookmarksMenu({
         </svg>
       }
     >
-      {(close) =>
-        list.length === 0 ? (
+      {(close) => (
+        <>
+        {/* THE WAY IN, above the list, because that's the order it's used in:
+            you paste something and then it's there. */}
+        <form
+          className="menu__paste"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!accept(pasteText)) setPasteFailed(true);
+          }}
+        >
+          <input
+            className="menu__rename"
+            value={pasteText}
+            placeholder="Paste a link or code"
+            aria-label="Paste a shared setting"
+            onChange={(e) => {
+              setPasteText(e.target.value);
+              setPasteFailed(false);
+            }}
+            onKeyDown={(e) => {
+              // Escape here means "never mind this field", not "shut the
+              // menu" — the nearer of the two things it could mean.
+              if (e.key === 'Escape' && pasteText) {
+                e.stopPropagation();
+                setPasteText('');
+                setPasteFailed(false);
+              }
+            }}
+          />
+          <button className="menu__remove" type="submit" aria-label="Add it">
+            ↵
+          </button>
+        </form>
+        {pasteFailed && (
+          <p className="menu__note-bad">That isn't a setting from this app.</p>
+        )}
+        {list.length === 0 ? (
           <p className="menu__empty">
             Nothing saved yet. The bookmark in a panel's corner keeps whatever
             it's set to.
@@ -180,6 +253,20 @@ export function BookmarksMenu({
                     <span className="menu__name">{b.name}</span>
                   </button>
                 )}
+                {/* COPY THE LINK TO THIS ONE. A setting lives in one browser
+                    and nowhere else, which is the honest thing to say about it
+                    and also a real limit — the setting you've just found is
+                    often the thing you most want to hand to a student. The
+                    mark confirms in place rather than in a message somewhere
+                    else, because that's where you were looking. */}
+                <button
+                  className="menu__remove"
+                  onClick={() => copyLink(b)}
+                  aria-label={`Copy a link to ${b.name}`}
+                  title="Copy a link to this setting"
+                >
+                  {copied === b.id ? '✓' : '⧉'}
+                </button>
                 <button
                   className="menu__remove"
                   onClick={() => onRemove(b.id)}
@@ -191,8 +278,9 @@ export function BookmarksMenu({
               </li>
             ))}
           </ul>
-        )
-      }
+        )}
+        </>
+      )}
     </Menu>
   );
 }

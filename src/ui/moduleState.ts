@@ -206,14 +206,55 @@ export function saveBookmarks(list: Bookmark[]): void {
  */
 export function describe(
   state: ModuleState,
-  parts: { root: string; scale: string; roman: string | null },
+  parts: {
+    root: string;
+    scale: string;
+    roman: string | null;
+    /**
+     * EAR TRAINING DESCRIBES A POOL, NOT A PLACE. On the fretboard a panel is
+     * set to one key and one scale, so naming them names it. A listening drill
+     * is set to a RANGE of them, and the useful summary is what might be
+     * played at you — which keys, which scales, which qualities.
+     *
+     * Worded by the caller, because turning "eight of twelve roots" into
+     * "8 keys" needs the data files and this one deliberately imports none.
+     */
+    ear?: { keys: string; scales: string; qualities: string };
+    /**
+     * WHAT THE NECK ISN'T ALREADY SAYING. A folded panel sits directly above
+     * its fretboard, and the fretboard's own header already gives you the key,
+     * the scale and the position you're in — so repeating those is the one
+     * thing a summary shouldn't do. What's invisible below is which fingering
+     * system cut the boxes, how the chords are voiced, and (when it isn't the
+     * guitar) what you're holding.
+     */
+    fretboard?: { instrument?: string; fingering: string; voicing?: string };
+  },
 ): string {
-  const bits = [`${parts.root} ${parts.scale}`];
   if (state.studyMode === 'ear') {
-    bits.push('Ear');
-  } else {
-    if (parts.roman) bits.push(parts.roman);
-    if (state.view === 'harmony') bits.push(state.seventh ? 'Sevenths' : 'Triads');
+    // It used to say "C Major · Ear", where "Ear" told you the thing you had
+    // just chosen in the nav and nothing about what you were drilling.
+    const bits = parts.ear
+      ? [parts.ear.keys, parts.ear.scales, parts.ear.qualities]
+      : [`${parts.root} ${parts.scale}`];
+    // Hard and Medium are worth saying; Easy is the resting state and saying
+    // so on every line would be noise.
+    if (state.earDifficulty === 'hard') bits.push('Hard');
+    else if (state.earDifficulty === 'medium') bits.push('Medium');
+    return bits.filter(Boolean).join(' · ');
+  }
+  const bits: string[] = [];
+  // The instrument only when it ISN'T the guitar — the same rule Easy follows
+  // above. A default said out loud on every line is noise; a departure from it
+  // is the whole point, and with two panels open it's what tells them apart.
+  if (parts.fretboard?.instrument) bits.push(parts.fretboard.instrument);
+  bits.push(`${parts.root} ${parts.scale}`);
+  if (parts.roman) bits.push(parts.roman);
+  if (state.view === 'harmony') {
+    bits.push(state.seventh ? 'Sevenths' : 'Triads');
+    if (parts.fretboard?.voicing) bits.push(parts.fretboard.voicing);
+  } else if (parts.fretboard?.fingering) {
+    bits.push(parts.fretboard.fingering);
   }
   return bits.join(' · ');
 }

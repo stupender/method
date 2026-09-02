@@ -1969,3 +1969,15 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   painted itself, so the mark grew solid bars out of the top and bottom. A
   mask says what was meant: the disc is the shape, the strings take away from
   it, and nothing exists outside the circle.
+- **`overflow: hidden` for rounded corners clips everything else too.** The
+  panel had it so its title strip's fill stopped at the 4px radius; the day a
+  menu moved into that strip, the menu was clipped to the panel — and a folded
+  panel is 40px tall, so it vanished entirely. Round the thing that paints to
+  the edge instead.
+- **Most browsers refuse `navigator.clipboard.readText`.** Writing is allowed
+  on a user gesture; reading mostly isn't, and reasonably so. A "paste" button
+  is therefore a button that silently does nothing for most people — a plain
+  input field needs no permission and is visible besides.
+- **A toggle and an add are different verbs.** Reusing the save button's
+  toggle for "paste a shared setting" meant pasting a setting you already had
+  silently DELETED it.

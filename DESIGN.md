@@ -196,6 +196,25 @@ only reason to shut it: once you've set a key and a fingering you're looking at
 the NECK, and six rows you're no longer touching sit between you and it. The
 viewport now decides only which way it OPENS.
 
+**A setting is a thing you can send.** A saved setting lives in one browser and
+nowhere else — the honest thing to say about it, and a real limit, because the
+setting you've just found is often what you most want to hand a student. So
+every row in the saved list has a Copy mark that puts a link on the clipboard,
+and the list opens with a field to paste one into. (A paste MARK was tried and
+dropped: Safari and Firefox both refuse `clipboard.readText`, so it would have
+silently done nothing for most people. A field needs no permission, works
+everywhere, and is visible — which a mark you have to recognise never is.) The
+code rides in the URL's hash, so a shared link works on GitHub Pages with no
+routing, and opening one lands you in the area it was made in.
+
+**A folded panel says what the neck doesn't.** It sits directly above its own
+fretboard, whose header already gives the key, the scale and the position — so
+repeating those is the one thing the summary shouldn't do. What's invisible
+below is the fingering system, the voicing, and (when it isn't the guitar) what
+you're holding. In Ear Training there's no neck and no single setting at all,
+so it describes the POOL instead: `All keys · Major · Triads & Sevenths · Hard`.
+Defaults stay silent — a guitar isn't named, and neither is Easy.
+
 **What a panel's title strip carries**: the saved list, the save mark, and
 `+` / `×`. All three are about THIS panel. The saved list moved off the site
 bar because up there it couldn't say which panel a preset should load into —
