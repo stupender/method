@@ -2004,3 +2004,13 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   clefs reported 161 units tall and appeared to overflow the SVG by 30; the
   visible drawing was nowhere near it. Measure the thin wide `path`s (the
   staff lines) to find the real geometry.
+- **Safari runs a smooth programmatic scroll to the end whatever you do.**
+  Chrome cancels `window.scrollTo({behavior:'smooth'})` the moment you touch
+  the wheel; Safari doesn't, so the page drags itself back under you and feels
+  like it won't let you scroll. Any programmatic scroll of the WINDOW — the
+  thing the user is also driving — has to be instant.
+- **Two jobs sharing one number.** The focus line sits 90px below the neck
+  because the card you're READING is a little down the page from where it
+  appears; aiming a JUMP at the same line left a 90px band above the section
+  you asked for, full of the previous section's tail. Same measurement, two
+  purposes, two numbers.

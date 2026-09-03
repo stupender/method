@@ -945,9 +945,15 @@ function Module({
     // Put the page back where it was, once the new setting has actually laid
     // out — a saved place is a place on a page that doesn't exist yet at the
     // moment of restoring.
+    //
+    // INSTANT, for the same reason the section jump is (see goTo in
+    // useScrollFocus.ts): Safari runs a smooth programmatic scroll to the end
+    // whatever you do, so restoring a setting and then reaching for the wheel
+    // meant being dragged back. And this one is on a 90ms timer, so it could
+    // land after you'd already started scrolling.
     if (typeof saved.scrollY === 'number') {
       const y = saved.scrollY;
-      setTimeout(() => window.scrollTo({ top: y, behavior: 'smooth' }), 90);
+      setTimeout(() => window.scrollTo({ top: y, behavior: 'auto' }), 90);
     }
   };
 

@@ -49,9 +49,20 @@ export function useScrollFocus(
   // those names pressable turns the rail into a table of contents, and the
   // list of elements it needs is the one this hook is already holding.
   //
-  // It aims at the FOCUS LINE rather than the top of the window, so arriving
-  // by pressing a mark leaves the page exactly where arriving by scrolling
-  // would have — the section under the neck, and that section lit on it.
+  // IT LANDS UNDER THE NECK, not at the focus line.
+  //
+  // Those are two different jobs and they were sharing a number. The focus
+  // line sits 90px below the neck because the card you're READING is a little
+  // way down the page from where it first appears — right for deciding what
+  // you're on while you scroll. Aiming a jump at it, though, left a 90px band
+  // between the neck and the section you asked for, and that band was full of
+  // the PREVIOUS section's tail: you pressed "B Locrian" and arrived looking
+  // at the last two bars of A Aeolian.
+  //
+  // So a jump aims the section's top just under the neck. `measure` still
+  // finds the right card afterwards — it straddles the focus line, so its
+  // distance is zero and it wins outright.
+  const LANDING_GAP = 14;
   const goTo = (index: number) => {
     const el = items.current[index];
     if (!el) return;
@@ -60,15 +71,18 @@ export function useScrollFocus(
       el.closest('.module')?.querySelector('.neckpanel') ??
       document.querySelector('.neckpanel');
     // Where the neck comes to rest once it's stuck: under the site bar.
-    const line =
+    const restingBottom =
       (bar?.getBoundingClientRect().height ?? 0) +
-      (neck?.getBoundingClientRect().height ?? 0) +
-      90;
+      (neck?.getBoundingClientRect().height ?? 0);
     window.scrollTo({
-      top: window.scrollY + el.getBoundingClientRect().top - line,
-      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
-        ? 'auto'
-        : 'smooth',
+      top: window.scrollY + el.getBoundingClientRect().top - restingBottom - LANDING_GAP,
+      // INSTANT, NOT SMOOTH. Chrome cancels a smooth programmatic scroll the
+      // moment you touch the wheel; Safari does not — it runs the animation to
+      // the end and drags the page back under you, which is exactly the "it
+      // loops back and won't let me scroll further" this was doing. A jump can
+      // never fight you, and for a table of contents a jump is what every
+      // other one does anyway.
+      behavior: 'auto',
     });
   };
 
