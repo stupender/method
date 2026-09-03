@@ -44,6 +44,7 @@ import {
   Stave,
   StaveConnector,
   StaveNote,
+  Stem,
   TabNote,
   TabStave,
   Voice,
@@ -135,6 +136,57 @@ const STAFF_PX = 10;
 /** VexFlow's own unit: the distance between two staff lines, before scaling. */
 const STAFF_UNITS = 10;
 
+// ============================================================================
+// WHICH WAY THE STEMS POINT
+// ----------------------------------------------------------------------------
+// Left to itself VexFlow gave every note an up stem, so a run climbing to the
+// 15th fret grew a forest of stems reaching far above the staff — and the
+// higher the register, the more ridiculous.
+//
+// The convention is old and unambiguous (Gould, *Behind Bars*; Read; Ross):
+//
+//   A SINGLE NOTE below the middle line takes an UP stem, on the right of the
+//   head. On or above the middle line it takes a DOWN stem, on the left. A
+//   note sitting exactly ON the middle line goes down.
+//
+//   A BEAMED GROUP shares one direction, decided by the note FURTHEST from
+//   the middle line — not by a majority, and not by the first note. Where the
+//   furthest above and the furthest below are equally far, it goes down.
+//
+// The middle line depends on the clef: B4 in treble, D3 in bass. Everything
+// here is in WRITTEN pitch, so the guitar's 8vb is already accounted for by
+// `writtenOctave`.
+// ============================================================================
+const LETTER_STEP: Record<string, number> = {
+  C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6,
+};
+/** A note's position on the diatonic ladder, counting from C0. */
+const stepOf = (p: PlacedNote, keyboard: boolean) =>
+  LETTER_STEP[p.note.letter] + 7 * writtenOctave(p, keyboard);
+/** The middle line of each clef, on that same ladder. */
+const MIDDLE_LINE = {
+  treble: LETTER_STEP.B + 7 * 4, // B4
+  bass: LETTER_STEP.D + 7 * 3, // D3
+};
+
+/**
+ * The direction a note or a beamed group should take. `steps` is every note
+ * involved — one note's worth for a lone note or a chord, the whole group's
+ * for a beam.
+ */
+function stemFor(steps: number[], middle: number): number {
+  let above = 0;
+  let below = 0;
+  for (const s of steps) {
+    const d = s - middle;
+    // `>= 0` puts a note ON the middle line in the "above" camp, which is what
+    // sends it down — the convention's own tie-break, stated once here.
+    if (d >= 0) above = Math.max(above, d);
+    else below = Math.max(below, -d);
+  }
+  return above >= below ? Stem.DOWN : Stem.UP;
+}
+
 // VexFlow wants "c#/4" — letter, accidental, slash, octave. Written pitch, so
 // an octave above where the guitar sounds.
 const ACCIDENTAL_CODE: Record<number, string> = {
@@ -172,6 +224,16 @@ function vexKey(p: PlacedNote, keyboard: boolean): string {
 // numbers, no 8vb, two staves instead of one, and rests, which the guitar
 // systems never have.
 // ============================================================================
+/**
+ * Read a note's ladder position back off a VexFlow key ("c#/4") — used on the
+ * grand staff, where the notes have already been sorted onto their two staves
+ * and it's simpler to ask them than to carry the originals alongside.
+ */
+function keyStep(key: string): number {
+  const [name, octave] = key.split('/');
+  return LETTER_STEP[name[0].toUpperCase()] + 7 * Number(octave);
+}
+
 const BASS_TOP = 84; // where the lower staff sits under the treble one
 const MIDDLE_C = 60; // C4 in MIDI — the line between the two hands
 
@@ -311,6 +373,7 @@ function drawKeyboardSystem({
       [trebleNotes, trebleSounds],
       [bassNotes, bassSounds],
     ] as const) {
+      const middle = notes === trebleNotes ? MIDDLE_LINE.treble : MIDDLE_LINE.bass;
       let run: StaveNote[] = [];
       // Fours, then pairs, and a lone note joins its neighbour rather than
       // standing off flagged at the end — the same rule, stated the same way,
@@ -327,9 +390,15 @@ function drawKeyboardSystem({
           left -= 2;
         }
         if (left === 1 && sizes.length > 0) sizes[sizes.length - 1] += 1;
+        // Stems before beams — see the note on the fretted path below.
         let at = 0;
         for (const size of sizes) {
           const group = run.slice(at, at + size);
+          const steps = group.flatMap((n) =>
+            n.getKeys().map((k) => keyStep(k)),
+          );
+          const dir = stemFor(steps, middle);
+          group.forEach((n) => n.setStemDirection(dir));
           if (group.length > 1) beams.push(new Beam(group));
           at += size;
         }
@@ -536,20 +605,21 @@ export function System({
     // space) rather than semitones, because that's what the notation is spaced
     // by: F on the top line is the last note that needs no help, and each step
     // above it is half the gap between two lines.
-    const TOP_LINE_STEP = 3 + 7 * 5; // F5, in letter-steps from C0
-    const LETTER_STEP: Record<string, number> = {
-      C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6,
-    };
+    // (`LETTER_STEP` and `stepOf` are the same ladder the stem rule counts
+    // on — see the block above them.)
+    const TOP_LINE_STEP = LETTER_STEP.F + 7 * 5; // F5
     let highestStep = TOP_LINE_STEP;
     for (const moment of moments) {
       for (const p of moment) {
-        // Written pitch, an octave above where the guitar sounds — the same
-        // `octave + 1` the keys use.
-        const step = LETTER_STEP[p.note.letter] + 7 * writtenOctave(p, keyboard);
+        const step = stepOf(p, keyboard);
         if (step > highestStep) highestStep = step;
       }
     }
     // Half a line-gap per step, plus room for the ledger line itself.
+    //
+    // LESS OF IT IS NEEDED NOW THAT STEMS TURN OVER. A high note used to carry
+    // an up stem reaching another octave above its head; pointed down, the
+    // head is the top of it, so the run stops growing the page as it climbs.
     const headroom =
       highestStep > TOP_LINE_STEP ? (highestStep - TOP_LINE_STEP) * 5 + 8 : 0;
 
@@ -744,12 +814,29 @@ export function System({
           else sizes.push(1);
         }
 
+        // STEMS BEFORE BEAMS. A beam takes its direction from the notes it's
+        // given, so the group has to agree before it's built — and they agree
+        // on whatever the note furthest from the middle line wants.
         let at = 0;
         for (const size of sizes) {
           const group = staveNotes.slice(at, at + size);
+          const steps = line
+            .slice(at, at + size)
+            .flatMap((moment) => moment.map((p) => stepOf(p, false)));
+          const dir = stemFor(steps, MIDDLE_LINE.treble);
+          group.forEach((n) => n.setStemDirection(dir));
           if (group.length > 1) beams.push(new Beam(group));
           at += size;
         }
+      } else {
+        // Not a run: one chord, drawn as a whole note. Whole notes have no
+        // stem at all, so there is nothing to point — but setting it anyway
+        // costs nothing and keeps this true if the duration ever changes.
+        staveNotes.forEach((n, i) =>
+          n.setStemDirection(
+            stemFor(line[i].map((p) => stepOf(p, false)), MIDDLE_LINE.treble),
+          ),
+        );
       }
 
       // The two staves are formatted TOGETHER so a note and its fret number

@@ -2026,3 +2026,13 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   up under you. A bug that is invisible in Chrome and obvious in Safari is very
   often this — look for something above the fold changing height, not for a
   rogue `scrollTo`.
+- **Stem direction is a rule, not a default.** VexFlow points every stem up
+  unless told otherwise, so a run climbing to the 15th fret grew stems
+  reaching an octave above the staff. The convention (Gould, *Behind Bars*):
+  below the middle line a stem points UP and sits on the right of the head; on
+  or above it points DOWN and sits on the left. A BEAMED group shares one
+  direction, decided by the note FURTHEST from the middle line — not a
+  majority, not the first note — and an exact tie goes down. The middle line is
+  B4 in treble, D3 in bass.
+- **Set stems BEFORE building the beam.** A VexFlow `Beam` reads the direction
+  off the notes it is handed, so the group has to agree first.
