@@ -2014,3 +2014,15 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   appears; aiming a JUMP at the same line left a 90px band above the section
   you asked for, full of the previous section's tail. Same measurement, two
   purposes, two numbers.
+- **An array built during render is always a new dependency.** `events` was
+  rebuilt by the parent every render, so the effect that engraves the notation
+  tore its DOM down and redrew it on EVERY parent render — and the parent
+  re-renders on every scroll, because scrolling is what lights a position.
+  Thirty scroll steps caused thirty-five full VexFlow redraws. Depending on a
+  STRING that describes the music instead took it to zero.
+- **Chrome hides layout churn that Safari doesn't.** Chrome has scroll
+  anchoring: when content above the viewport changes size it silently corrects
+  your scroll position. Safari has none, so the same churn walks the page back
+  up under you. A bug that is invisible in Chrome and obvious in Safari is very
+  often this — look for something above the fold changing height, not for a
+  rogue `scrollTo`.

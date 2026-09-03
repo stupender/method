@@ -33,7 +33,7 @@
 //     that would silently produce a wrong-looking TAB if it were missed.
 // ============================================================================
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   Accidental,
   Clef,
@@ -421,6 +421,47 @@ export function System({
   const host = useRef<HTMLDivElement>(null);
   const [measured, setMeasured] = useState<number | null>(null);
 
+  // ==========================================================================
+  // WHAT THE MUSIC IS, AS A STRING — and why the drawing hangs off it
+  // --------------------------------------------------------------------------
+  // `events` is built fresh by the parent on every render (`notes.map(...)`),
+  // so as an effect dependency it is ALWAYS different. That meant every render
+  // of the page tore this system's DOM down and had VexFlow engrave it again —
+  // and the parent re-renders on every scroll, because scrolling is what picks
+  // which position is lit.
+  //
+  // Measured: thirty scroll steps redrew the seven systems on a Scales page
+  // thirty-five times. In Harmony, with up to twenty-eight systems, it is far
+  // worse. Chrome hides the damage — it has scroll anchoring, so when content
+  // above the viewport changes size it silently corrects your scroll position.
+  // Safari has no such thing, so the same churn walked the page back up under
+  // you: "it jumps back to the previous and won't let me scroll further".
+  //
+  // So the effect depends on a DESCRIPTION of the music instead. Same notes in
+  // the same places means the same string, means no redraw — and highlighting
+  // a different card, which is all scrolling does, now costs nothing at all.
+  // ==========================================================================
+  const signature = useMemo(
+    () =>
+      events
+        .map((moment) =>
+          moment
+            .map(
+              (p) =>
+                `${p.position.stringIndex}.${p.position.fret}.` +
+                `${p.note.letter}${p.note.accidental}${p.note.octave ?? ''}`,
+            )
+            .join(','),
+        )
+        .join('|'),
+    [events],
+  );
+  // The effect reads the LATEST events through a ref rather than closing over
+  // the ones that happened to be current when the signature last changed. Same
+  // signature means the same drawing either way; this just removes the question.
+  const latest = useRef(events);
+  latest.current = events;
+
   // EVERY system measures its column now, because the size it draws at is
   // worked out from the room it has (see STAFF_PX).
   //
@@ -451,7 +492,7 @@ export function System({
     const el = host.current;
     if (!el) return;
     el.innerHTML = ''; // effects can run twice in development
-    const moments = events.filter((e) => e.length > 0);
+    const moments = latest.current.filter((e) => e.length > 0);
     if (moments.length === 0) return;
     // A single moment is a chord and gets a whole note; a run of them is read
     // as a line, and eighths beamed in fours are how a scale exercise is
@@ -751,7 +792,7 @@ export function System({
     return () => {
       el.innerHTML = '';
     };
-  }, [events, strings, staffPx, measured, keyboard]);
+  }, [signature, strings, staffPx, measured, keyboard]);
 
   return <div className="system" ref={host} aria-label="Notation and tablature" />;
 }

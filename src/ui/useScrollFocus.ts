@@ -64,26 +64,40 @@ export function useScrollFocus(
   // distance is zero and it wins outright.
   const LANDING_GAP = 14;
   const goTo = (index: number) => {
-    const el = items.current[index];
-    if (!el) return;
-    const bar = document.querySelector('.sitebar');
-    const neck =
-      el.closest('.module')?.querySelector('.neckpanel') ??
-      document.querySelector('.neckpanel');
-    // Where the neck comes to rest once it's stuck: under the site bar.
-    const restingBottom =
-      (bar?.getBoundingClientRect().height ?? 0) +
-      (neck?.getBoundingClientRect().height ?? 0);
-    window.scrollTo({
-      top: window.scrollY + el.getBoundingClientRect().top - restingBottom - LANDING_GAP,
-      // INSTANT, NOT SMOOTH. Chrome cancels a smooth programmatic scroll the
-      // moment you touch the wheel; Safari does not — it runs the animation to
-      // the end and drags the page back under you, which is exactly the "it
-      // loops back and won't let me scroll further" this was doing. A jump can
-      // never fight you, and for a table of contents a jump is what every
-      // other one does anyway.
-      behavior: 'auto',
-    });
+    // MEASURE AFTER THE PAGE HAS SETTLED, not before.
+    //
+    // Pressing a mark doesn't only scroll — it also tells the panel which
+    // section you've chosen, and the neck reports that back in its own header
+    // ("E Harmonic Major · D G B strings"). A longer name can wrap that header
+    // onto a second line, so the neck we measure BEFORE React re-renders is
+    // shorter than the neck we land under, and the section's title ends up
+    // hidden behind it. Two frames is React's commit plus the browser's layout.
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        const el = items.current[index];
+        if (!el) return;
+        const bar = document.querySelector('.sitebar');
+        const neck =
+          el.closest('.module')?.querySelector('.neckpanel') ??
+          document.querySelector('.neckpanel');
+        // Where the neck comes to rest once it's stuck: under the site bar.
+        const restingBottom =
+          (bar?.getBoundingClientRect().height ?? 0) +
+          (neck?.getBoundingClientRect().height ?? 0);
+        window.scrollTo({
+          top:
+            window.scrollY +
+            el.getBoundingClientRect().top -
+            restingBottom -
+            LANDING_GAP,
+          // INSTANT, NOT SMOOTH. Chrome cancels a smooth programmatic scroll
+          // the moment you touch the wheel; Safari runs it to the end whatever
+          // you do. A jump can never fight you, and for a table of contents a
+          // jump is what every other one does anyway.
+          behavior: 'auto',
+        });
+      }),
+    );
   };
 
   useEffect(() => {
