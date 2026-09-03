@@ -77,7 +77,28 @@ Metrics.clear();
 const BEAM_GROUP = 4;
 
 const STAFF_TOP = 0;
-const TAB_TOP = 76;
+/**
+ * HOW MUCH AIR VEXFLOW KEEPS ABOVE THE TOP STAFF LINE, in line-spaces.
+ *
+ * Its default is FOUR — forty units of blank page over every system, which is
+ * what a full score needs for the dynamics, slurs and text that live up there.
+ * There is none of that here: the only thing above the top line is the treble
+ * clef's hook, which reaches about a line and a half.
+ *
+ * So four became two, and the twenty-one units it gives back come off the top
+ * of every system on the page. On a Harmony page that's seven chord cards'
+ * worth per string set — the difference between seeing a whole set in one
+ * window and scrolling for the last of it.
+ *
+ * (Notes that climb ABOVE the staff still get their room: `headroom` below
+ * measures the highest one and pushes everything down by however far it
+ * reaches. This is the floor, not the ceiling.)
+ */
+const SPACE_ABOVE_STAFF_LN = 2;
+// Where the TAB stave sits under the notation. It comes DOWN by the same
+// twenty-one units the staff just rose by, so the gap between the two — which
+// is where down stems and ledger lines live — is exactly as it was.
+const TAB_TOP = 55;
 // VexFlow's default gap between two TAB lines.
 const TAB_LINE = 13;
 // Room below the lowest TAB line for the fret numbers that sit ON it, plus the
@@ -234,7 +255,7 @@ function keyStep(key: string): number {
   return LETTER_STEP[name[0].toUpperCase()] + 7 * Number(octave);
 }
 
-const BASS_TOP = 84; // where the lower staff sits under the treble one
+const BASS_TOP = 63; // where the lower staff sits under the treble one
 const MIDDLE_C = 60; // C4 in MIDI — the line between the two hands
 
 /**
@@ -297,14 +318,20 @@ function drawKeyboardSystem({
   const grand = staves === 'grand';
   // A single staff sits at the top on its own; a pair is braced together.
   const treble =
-    staves === 'bass' ? null : new Stave(0, STAFF_TOP + top, staveWidth);
+    staves === 'bass'
+      ? null
+      : new Stave(0, STAFF_TOP + top, staveWidth, {
+          spaceAboveStaffLn: SPACE_ABOVE_STAFF_LN,
+        });
   treble?.addClef('treble');
   treble?.setContext(ctx).draw();
 
   const bass =
     staves === 'treble'
       ? null
-      : new Stave(0, (grand ? BASS_TOP : STAFF_TOP) + top, staveWidth);
+      : new Stave(0, (grand ? BASS_TOP : STAFF_TOP) + top, staveWidth, {
+          spaceAboveStaffLn: SPACE_ABOVE_STAFF_LN,
+        });
   bass?.addClef('bass');
   bass?.setContext(ctx).draw();
 
@@ -688,7 +715,9 @@ export function System({
         return;
       }
 
-      const stave = new Stave(0, STAFF_TOP + top, staveWidth);
+      const stave = new Stave(0, STAFF_TOP + top, staveWidth, {
+        spaceAboveStaffLn: SPACE_ABOVE_STAFF_LN,
+      });
       // "8vb" is the little 8 under the clef: sounds an octave lower than
       // written, which is what guitar notation means.
       stave.addClef('treble', 'default', '8vb');
