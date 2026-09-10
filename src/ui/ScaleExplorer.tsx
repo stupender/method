@@ -34,6 +34,7 @@ export function ScaleExplorer({
   onPickRoot,
   focus,
   labelMode = 'degree',
+  staffPx,
 }: {
   /** WHICH NECK. Handed in rather than imported, which is the whole point of
    *  the instrument/tuning model: this view draws whatever it's given and
@@ -56,6 +57,8 @@ export function ScaleExplorer({
   focus?: { fret: number; seq: number };
   // What the dots say — a global display setting, owned by the view above.
   labelMode?: 'note' | 'degree';
+  /** How big to engrave the notation — see ui/NotationSize.tsx. */
+  staffPx: number;
 }) {
   // Show every position's box outlined at once (see the whole mode tile the neck).
   // STARTS ON, and comes back on whenever the system changes — see the effect
@@ -327,6 +330,7 @@ export function ScaleExplorer({
             {/* The run as notation over tablature — one note per moment, in
                 the order it's played. */}
             <System
+              staffPx={staffPx}
               events={upAndDown(pos.notes).map((n) => [n])}
               strings={instrument.stringCount}
               keyboard={keys}

@@ -58,6 +58,12 @@ import {
   type ModuleState,
 } from './ui/moduleState';
 import { stateFromUrl } from './ui/shareCode';
+import {
+  NotationSize,
+  clampStaffPx,
+  loadStaffPx,
+  saveStaffPx,
+} from './ui/NotationSize';
 import { MultiSelect } from './ui/MultiSelect';
 import { PatternExplorer } from './ui/PatternExplorer';
 import { ScaleExplorer } from './ui/ScaleExplorer';
@@ -252,6 +258,12 @@ function App() {
   // Read once, at startup, and the hash is cleared as it's read (see
   // stateFromUrl) so a reload doesn't drag you back after you've moved on.
   const shared = useRef(stateFromUrl()).current;
+  // HOW BIG THE NOTATION IS DRAWN — a reading preference, kept in this browser
+  // the way the light is. See STAFF_PX in render/System.tsx for what the
+  // number means, and ui/NotationSize.tsx for the control.
+  const [staffPx, setStaffPx] = useState(loadStaffPx);
+  useEffect(() => saveStaffPx(staffPx), [staffPx]);
+
   const [area, setArea] = useState<Area>(
     shared?.studyMode === 'ear' ? 'ear' : 'study',
   );
@@ -449,6 +461,10 @@ function App() {
             adds the next one. What's left is the only setting that really is
             the room's. */}
         <div className="sitebar__controls">
+          <NotationSize
+            value={staffPx}
+            onStep={(d) => setStaffPx((v) => clampStaffPx(v + d))}
+          />
           <ThemeToggle theme={theme} onChange={setTheme} />
         </div>
       </header>
@@ -482,6 +498,7 @@ function App() {
               songLength={current.chords.length}
               bookmarks={bookmarks}
               studyMode={area === 'ear' ? 'ear' : 'fretboard'}
+              staffPx={staffPx}
               // SAVE, OR UNSAVE. The mark in a panel's corner reports whether
               // this exact setting is in the list, so the button that draws it
               // has to be able to take it out again — otherwise pressing it
@@ -715,6 +732,7 @@ function Module({
   bookmarks,
   onToggleBookmark,
   onEnterArea,
+  staffPx,
   onAddBookmark,
   onRemoveBookmark,
   onRenameBookmark,
@@ -739,6 +757,8 @@ function Module({
    * way the instrument used to be folded in from the other direction.
    */
   studyMode: 'fretboard' | 'ear';
+  /** How big to engrave the notation — see ui/NotationSize.tsx. */
+  staffPx: number;
   /** Everything saved, so this panel can tell whether IT is one of them. */
   bookmarks: Bookmark[];
   /** Save this setting, or — if it's already saved — remove it. */
@@ -1391,6 +1411,7 @@ function Module({
 
       {studyMode === 'fretboard' && mode === 'scale' && (
         <ScaleView
+          staffPx={staffPx}
           instrument={instrument}
           tuning={tuning}
           root={root}
@@ -1414,6 +1435,7 @@ function Module({
       )}
       {studyMode === 'fretboard' && mode === 'harmony' && (
         <HarmonyView
+          staffPx={staffPx}
           instrument={instrument}
           tuning={tuning}
           root={root}
@@ -1435,6 +1457,7 @@ function Module({
 // Degree 0 is the scale itself; degree 4 of a major key is Mixolydian, etc. The
 // neck then shows that mode rooted on its own degree, in every position.
 function ScaleView({
+  staffPx,
   instrument,
   tuning,
   root,
@@ -1444,6 +1467,7 @@ function ScaleView({
   focus,
   onPickNote,
 }: {
+  staffPx: number;
   /** The neck this module draws — passes straight through. */
   instrument: Instrument;
   tuning: Tuning;
@@ -1491,6 +1515,7 @@ function ScaleView({
       {/* No title here any more: the scale's name and its notes ride on the
           fretboard itself, where they stay visible while you scroll. */}
       <ScaleExplorer
+        staffPx={staffPx}
         instrument={instrument}
         tuning={tuning}
         root={modeRoot}
@@ -1597,6 +1622,7 @@ function ChordView({ root }: { root: Note }) {
 // The degree comes from the shared selector above, so it stays put when you flip
 // between Scales and Harmony. This view just adds the triad/seventh choice.
 function HarmonyView({
+  staffPx,
   instrument,
   tuning,
   root,
@@ -1609,6 +1635,7 @@ function HarmonyView({
   onAddChord,
   songLength,
 }: {
+  staffPx: number;
   /** The neck this module draws — passes straight through to both ladders. */
   instrument: Instrument;
   tuning: Tuning;
@@ -1673,6 +1700,7 @@ function HarmonyView({
 
       {isAll ? (
         <ChordScaleLadder
+          staffPx={staffPx}
           instrument={instrument}
           tuning={tuning}
           root={root}
@@ -1684,6 +1712,7 @@ function HarmonyView({
         />
       ) : (
         <InversionLadder
+          staffPx={staffPx}
           instrument={instrument}
           tuning={tuning}
           root={selected.chordRoot}

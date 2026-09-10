@@ -73,6 +73,7 @@ export function InversionLadder({
   structure,
   gravity,
   labelMode = 'degree',
+  staffPx,
 }: {
   /** WHICH NECK. Handed in rather than imported — this view draws whatever
    *  it's given and knows nothing about guitars. */
@@ -87,6 +88,8 @@ export function InversionLadder({
   gravity: { root: Note; scale: ScaleDefinition };
   // What the dots say — a global display setting, owned by the view above.
   labelMode?: 'note' | 'degree';
+  /** How big to engrave the notation — see ui/NotationSize.tsx. */
+  staffPx: number;
 }) {
   // The selected row, as an index into the flat list of every row on the page.
   // No hover state: a row stays selected until you pick another, so the neck
@@ -390,6 +393,7 @@ export function InversionLadder({
                       {/* Notation over tablature, joined down the left —
                           one system, the way guitar music is set. */}
                       <System
+                        staffPx={staffPx}
                         events={[r.shape]}
                         strings={instrument.stringCount}
                         keyboard={keys}

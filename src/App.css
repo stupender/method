@@ -2690,3 +2690,46 @@ button.neckpanel__name:focus-visible {
     display: none;
   }
 }
+
+/* ==========================================================================
+   NOTATION SIZE — bigger or smaller engraving
+   --------------------------------------------------------------------------
+   Two marks and a stave between them, in the site bar beside the light. Both
+   are room settings: how this reads to you, remembered in this browser.
+   See ui/NotationSize.tsx.
+   ========================================================================== */
+.notationsize {
+  display: flex;
+  align-items: center;
+  /* Tighter than the bar's own gap — the three marks are ONE control, and
+     they have to read as one before they read as three. */
+  gap: 0;
+  flex: none;
+}
+/* The − and + are smaller than the bar's other marks, because a pair of them
+   flanking a third would otherwise out-weigh the light beside it. */
+.notationsize__step {
+  width: 22px;
+}
+.notationsize__step svg {
+  width: 13px;
+  height: 13px;
+}
+.notationsize__step:disabled {
+  opacity: 0.22;
+  cursor: default;
+}
+/* The stave in the middle is a LABEL, not a button: it says what the two marks
+   size. No pointer, no hover. */
+.notationsize__mark {
+  display: block;
+  width: 16px;
+  height: 16px;
+  color: var(--ink);
+  opacity: 0.5;
+}
+.notationsize__mark svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}

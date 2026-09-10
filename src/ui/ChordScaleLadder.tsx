@@ -85,6 +85,7 @@ export function ChordScaleLadder({
   structure,
   inversion,
   labelMode = 'degree',
+  staffPx,
 }: {
   /** WHICH NECK. Handed in rather than imported — this view draws whatever
    *  it's given and knows nothing about guitars. */
@@ -99,6 +100,8 @@ export function ChordScaleLadder({
   inversion: number;
   // What the dots say — a global display setting, owned by the view above.
   labelMode?: 'note' | 'degree';
+  /** How big to engrave the notation — see ui/NotationSize.tsx. */
+  staffPx: number;
 }) {
   const [pinned, setPinned] = useState<number | null>(null);
   const [playingSet, setPlayingSet] = useState<string | null>(null);
@@ -522,6 +525,7 @@ export function ChordScaleLadder({
                       {/* Notation over tablature, joined down the left —
                           one system, the way guitar music is set. */}
                       <System
+                        staffPx={staffPx}
                         events={[r.shape]}
                         strings={instrument.stringCount}
                         keyboard={keys}
