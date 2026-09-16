@@ -219,7 +219,7 @@ export function scalePositions(
 const REACH_BACK = 1; // frets below the start the hand can still reach
 const REACH_UP = 3; // ...and above it
 
-export function fiveShapes(
+export function cagedShapes(
   instrument: Instrument,
   tuning: Tuning,
   root: Note,
@@ -238,18 +238,26 @@ export function fiveShapes(
     if (scalePcs.has(((m % 12) + 12) % 12)) ladder.push(m);
   }
 
-  // WHICH DEGREES START A SHAPE. Drop the ones sitting a semitone above the
-  // degree before them — see the note above. Derived from the scale's own
-  // intervals, so a scale shaped differently (harmonic minor's augmented
-  // second) keeps the starts it should.
-  const semis = scale.intervals.map((iv) => iv.semitones);
-  const startDegrees = new Set<number>();
-  for (let d = 0; d < degreeCount; d++) {
-    const prev = (d - 1 + degreeCount) % degreeCount;
-    const step = (((semis[d] - semis[prev]) % 12) + 12) % 12;
-    if (step !== 1) startDegrees.add(d);
-  }
-
+  // EVERY DEGREE STARTS A SHAPE — including the two that sit a semitone above
+  // the one before them.
+  //
+  // Those two used to be dropped, and that's where the name CAGED comes from:
+  // in a major scale the steps E→F and B→C are semitones, so Lydian and Ionian
+  // fall out and five shapes remain. It's the orthodox account and it left the
+  // list with a hole in it — you'd read down the page and Phrygian would hand
+  // straight over to Mixolydian with no F anywhere, and the TONIC's own
+  // position missing from a page about the key.
+  //
+  // They're back, and the thing that made them look redundant is exactly what
+  // makes them worth printing: Lydian IS the Phrygian shape started on the F a
+  // semitone up, and Ionian IS the Locrian shape started on the C. Seeing that
+  // pair side by side at the same fret — the same grip, moved one fret, now
+  // spelling a different mode — teaches the CAGED idea better than leaving one
+  // of them out ever did.
+  //
+  //   Phrygian  fr.0   E:0 1 3  A:0 2 3  D:0 2 3  G:0 2    B:0 1 3  e:0
+  //   Lydian    fr.0   E:1 3    A:0 2 3  D:0 2 3  G:0 2 4  B:1 3    e:0 1
+  //
   // Walk `count` tones up from `startIdx`, staying under one hand.
   const buildBox = (startIdx: number, count: number): PlacedNote[] | null => {
     const base = ladder[startIdx] - lowOpen; // the start fret on the low string
@@ -275,7 +283,6 @@ export function fiveShapes(
     const fret = ladder[i] - lowOpen;
     if (fret < 0 || fret > fretCount) continue;
     const tone = byPitchClass.get(((ladder[i] % 12) + 12) % 12)!;
-    if (!startDegrees.has(tone.degreeIndex)) continue;
     if (positions.some((p) => p.degreeIndex === tone.degreeIndex)) continue;
 
     // Two octaves if the instrument has the strings for it, otherwise one —
@@ -292,12 +299,19 @@ export function fiveShapes(
       degreeIndex: tone.degreeIndex,
     });
   }
-  // Up the neck, in the order you'd read down a page.
-  return positions.sort((a, b) => a.lowestFret - b.lowestFret);
+  // Up the neck, in the order you'd read down a page — and where two boxes
+  // reach the same lowest fret (a semitone-apart pair shares one, since both
+  // use the same open or low strings) the one that STARTS lower comes first.
+  // That ordering used to fall out of a stable sort by accident; said out
+  // loud, it can't quietly stop being true.
+  const startFret = (p: ScalePosition) => p.notes[0].position.fret;
+  return positions.sort(
+    (a, b) => a.lowestFret - b.lowestFret || startFret(a) - startFret(b),
+  );
 }
 
 // ---- RETIRED: the old 7-box "Positional" and "Hybrid" --------------------
-// Kept only until nothing imports them. See fiveShapes above for why seven
+// Kept only until nothing imports them. See cagedShapes above for why seven
 // in-position boxes was the wrong count, and why Hybrid was identical to
 // Positional in every major-7 scale — two names for one thing.
 // ---- Systems 2 & 3: in-position boxes (Positional and Hybrid) -------------

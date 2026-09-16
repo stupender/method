@@ -1150,13 +1150,13 @@
    different ways of saying "this one is chosen". The accent bar below is still
    reserved for the row that's actually sounding, so the loud signal means
    playback and nothing else.) */
+/* THE ROW OUTLINES ITSELF. In Harmony a set is its own bordered box and can
+   simply darken it; here the positions are rows sharing ONE box, divided by
+   the 1px gaps the shelf's background shows through — so there's no border of
+   its own to darken. An inset ring draws that missing border just inside the
+   row, which lands in the same place the shared box's rule would have. */
 .tab-shelf.tab-shelf--lines .tab-card--on {
-  box-shadow: none;
-}
-.tab-shelf--lines .tab-card--on .tab-row-mark {
-  background: var(--tick-fill);
-  border-color: var(--tick-ring);
-  box-shadow: var(--tick-glow);
+  box-shadow: inset 0 0 0 1px var(--line-on);
 }
 .tab-shelf.tab-shelf--lines .tab-card--playing {
   box-shadow: inset 3px 0 0 var(--accent);
@@ -1213,6 +1213,16 @@
 }
 .workbench .voicing-set:first-child {
   border-top: 0;
+}
+/* ...WHICH LEAVES NOTHING TO DARKEN when a set is the one you're in. On the
+   page a set is a bordered box and `.voicing-set--on` simply darkens it (see
+   below); in the workbench it's a SECTION with no frame at all, only a rule
+   before the next one — so the outline has to be drawn rather than recoloured.
+   An inset ring puts it exactly where the box's own border would have been,
+   and matches what a selected position row does in Scales. */
+.workbench .voicing-set--on {
+  box-shadow: inset 0 0 0 1px var(--line-on);
+  border-radius: 4px;
 }
 .workbench .tab-shelf.tab-shelf--lines {
   border: 0;
@@ -1371,6 +1381,18 @@
   border: 1px solid var(--line);
   border-radius: 4px;
   padding: 0 14px 14px;
+  transition: border-color 0.14s ease;
+}
+/* THE BOX IS THE MARK. A lit dot in the heading used to say which set you were
+   in — but the box it heads already encloses exactly that set, so darkening
+   its outline says the same thing and adds nothing to the page. The heading's
+   own text darkens alongside it (below), which is the pair Stu asked for:
+   the words and the line around them.
+   (The per-CHORD lamp inside stays. It marks a different thing — which single
+   voicing is pinned — and two levels reading as two different marks is
+   clearer than the same dot at both.) */
+.voicing-set--on {
+  border-color: var(--line-on);
 }
 /* The set's own heading, and its own selectable thing: pressing it lights the
    whole set on the neck. */
@@ -1384,14 +1406,7 @@
 .voicing-set__head:hover .voicing-set__name {
   color: var(--ink);
 }
-/* Lit when the whole set is what's showing — the same lamp as everywhere
-   else, so "this set" and "this chord" are visibly the same kind of choice at
-   two different sizes. */
-.voicing-set__head--on .tab-row-mark {
-  background: var(--tick-fill);
-  border-color: var(--tick-ring);
-  box-shadow: var(--tick-glow);
-}
+/* The heading's words darken with the box around them — see .voicing-set--on. */
 .voicing-set__head--on .voicing-set__name {
   color: var(--ink);
 }

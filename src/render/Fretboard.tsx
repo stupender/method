@@ -61,6 +61,21 @@ export interface FretboardProps {
   // Or a GROUP of shapes, lit together — a whole string set's worth of chords,
   // say. Takes precedence over activeShapeIndex when given.
   activeShapeIndices?: readonly number[] | null;
+  /**
+   * WHEN A GROUP IS LIT, does each shape still get its joining line?
+   *
+   * It depends on what the group IS, and the caller is the only one who knows.
+   * A chord scale climbing a string set is a SEQUENCE — seven grips stepping
+   * up the neck, each line local to its own few frets, and together they read
+   * as a ladder. Every inversion of one chord in one register is a set of
+   * ALTERNATIVES — four grips stacked in the same four frets, and four lines
+   * drawn through the same small patch of neck cross each other into a
+   * scribble that says nothing the dots hadn't already said.
+   *
+   * So: lines for a sequence, dots alone for alternatives. Pinning a single
+   * shape always draws its line, because then there's only one.
+   */
+  groupLines?: boolean;
   // Called when the pointer enters/leaves a shape on the neck (index, or null).
   onShapeHover?: (index: number | null) => void;
   // Called when a whole shape is clicked (by its index) — used to play + pin it.
@@ -94,6 +109,7 @@ export function Fretboard({
   shapes,
   activeShapeIndex = null,
   activeShapeIndices = null,
+  groupLines = true,
   onShapeHover,
   onShapeTap,
   onBackgroundClick,
@@ -111,6 +127,8 @@ export function Fretboard({
       : activeShapeIndex !== null
         ? new Set([activeShapeIndex])
         : null;
+  // More than one shape lit at once, from a GROUP rather than a single pick.
+  const litAsGroup = (activeShapeIndices?.length ?? 0) > 1;
 
   // Overall canvas size derived from how many strings/frets we're drawing.
   const nutX = PAD_LEFT;
@@ -650,7 +668,9 @@ export function Fretboard({
             // "Show all" lights every box equally; otherwise the active one wins
             // and the rest dim.
             const dim = showAllShapes ? false : activeSet !== null && !isActive;
-            const drawLine = showAllShapes ? shape.length > 1 : isActive && shape.length > 1;
+            const drawLine = showAllShapes
+              ? shape.length > 1
+              : isActive && shape.length > 1 && (groupLines || !litAsGroup);
             // The connecting line, as SEGMENTS rather than one polyline, so it
             // can travel with the dots it joins.
             //

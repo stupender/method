@@ -309,6 +309,10 @@ export function InversionLadder({
               shapes={shapes}
               activeShapeIndex={pinned}
               activeShapeIndices={pinned === null ? litShapes : null}
+              // Every inversion of ONE chord, in ONE register — alternatives
+              // stacked in the same few frets, not a sequence up the neck. See
+              // `groupLines` in render/Fretboard.tsx.
+              groupLines={false}
               onBackgroundClick={() => setPinned(null)}
               labelMode={labelMode}
             />
@@ -317,7 +321,18 @@ export function InversionLadder({
           {/* One block per string set; one row per inversion inside it. */}
           <div className="voicing-sets">
             {groups.map((g, gi) => (
-              <section className="voicing-set" key={g.key} ref={focusRef(gi)}>
+              <section
+                /* THE BOX IS THE MARK. A lit dot in the heading used to say
+                   which set you were in; the box it heads already encloses
+                   exactly that set, so darkening its outline says the same
+                   thing and adds nothing. See `--line-on` in index.css. */
+                className={
+                  'voicing-set' +
+                  (pinned === null && focusedSet === gi ? ' voicing-set--on' : '')
+                }
+                key={g.key}
+                ref={focusRef(gi)}
+              >
                 {/* TWO LEVELS OF SELECTION. Click the header and the WHOLE set
                     lights on the neck — every chord it holds, all the way up.
                     Click a chord and just that one lights. Clicking the header
@@ -336,7 +351,6 @@ export function InversionLadder({
                     setFocusedSet(gi);
                   }}
                 >
-                  <span className="tab-row-mark" aria-hidden="true" />
                   {SHOW_PLAY_BUTTONS && (
                     <button
                       className="tab-play"

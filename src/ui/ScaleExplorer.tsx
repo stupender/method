@@ -11,7 +11,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { Instrument, Note, ScaleDefinition, Tuning } from '../theory/types';
-import { scalePositions, fiveShapes, octaveRuns } from '../theory/scalePositions';
+import { scalePositions, cagedShapes, octaveRuns } from '../theory/scalePositions';
 import { placeScale, realizeScale } from '../theory/scale';
 import { midiOf, noteName } from '../theory/notes';
 import { playSequence, type Sequence } from '../audio/player';
@@ -88,7 +88,7 @@ export function ScaleExplorer({
   const positions = keys
     ? octaveRuns(instrument, tuning, root, scale)
     : fingering === 'caged'
-      ? fiveShapes(instrument, tuning, root, scale)
+      ? cagedShapes(instrument, tuning, root, scale)
       : scalePositions(
           instrument,
           tuning,
@@ -309,9 +309,6 @@ export function ScaleExplorer({
             }}
           >
             <div className="tab-row-head">
-              {/* Same lamp as everything else — see the note in the ladders on
-                  why the margin bar went. */}
-              <span className="tab-row-mark" aria-hidden="true" />
               {SHOW_PLAY_BUTTONS && (
                 <button
                   className="tab-play"

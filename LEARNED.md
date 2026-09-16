@@ -2036,3 +2036,13 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   B4 in treble, D3 in bass.
 - **Set stems BEFORE building the beam.** A VexFlow `Beam` reads the direction
   off the notes it is handed, so the group has to agree first.
+- **A joining line belongs to ONE grip.** Four inversions of a chord lit at
+  once in the same register drew four 3-segment lines through the same four
+  frets, which reads as a scribble and looks like a string-placement bug. It
+  wasn't — 71,540 shapes checked, every one with pitch rising monotonically
+  with string index. Whether to draw the lines depends on what the group MEANS:
+  a sequence you play through (a chord scale climbing a string set) keeps them,
+  alternatives in one place do not. The caller is the only one who knows which.
+- **Verify a theory bug with a sweep, not a screenshot.** Dumping every chord
+  in every scale, voicing and inversion took one script and settled in seconds
+  what staring at a fretboard diagram could not.
