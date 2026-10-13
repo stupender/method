@@ -2046,3 +2046,14 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
 - **Verify a theory bug with a sweep, not a screenshot.** Dumping every chord
   in every scale, voicing and inversion took one script and settled in seconds
   what staring at a fretboard diagram could not.
+- **Two sticky blocks have to agree on one number.** A panel pinned under the
+  site bar and a neck pinned under the panel need the second `top` to equal the
+  first block's height plus the first's `top` — a pixel out either way is a
+  slit that page content scrolls through, or an overlap. Keep the number in the
+  stylesheet and have the JS READ it (`getComputedStyle(el).top`) instead of
+  recomputing the same sum, so changing a height is one edit, not two.
+- **A scroll handler that fires on every pixel should act on a CROSSING.** To
+  fold a panel when you scroll past it, don't ask "am I scrolled?" each tick —
+  that re-folds it the instant you open it. Keep the previous answer in a ref
+  and act only when it FLIPS. Same shape as an edge-triggered signal in
+  electronics: the event is the transition, not the level.
