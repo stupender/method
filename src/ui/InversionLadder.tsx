@@ -88,7 +88,7 @@ export function InversionLadder({
   gravity: { root: Note; scale: ScaleDefinition };
   // What the dots say — a global display setting, owned by the view above.
   labelMode?: 'note' | 'degree';
-  /** How big to engrave the notation — see ui/NotationSize.tsx. */
+  /** How big to engrave the notation — see ui/Settings.tsx. */
   staffPx: number;
 }) {
   // The selected row, as an index into the flat list of every row on the page.

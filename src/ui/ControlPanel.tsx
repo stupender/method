@@ -26,10 +26,13 @@
 // way it OPENS, not whether it can close.
 // ============================================================================
 
-import { useEffect, useId, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 
 /** Below this the panel STARTS folded. See the note on `open` below. */
 const NARROW = '(max-width: 640px)';
+/** Where the panel comes to rest under the site bar — matches `.panel` in
+ *  App.css, and the one number the fold-on-scroll rule below needs. */
+const STICKY_TOP = 55;
 
 // The outlined block. `title` is the eyebrow printed at its top left.
 export function ControlPanel({
@@ -74,8 +77,48 @@ export function ControlPanel({
     return () => mq.removeEventListener('change', sync);
   }, []);
 
+  // ==========================================================================
+  // IT FLOATS, AND IT GETS OUT OF THE WAY
+  // --------------------------------------------------------------------------
+  // The panel sticks under the site bar like everything else that matters all
+  // the way down the page — but seven rows of settings pinned to the top of
+  // the window would leave almost nothing for the neck. So it folds itself the
+  // moment you scroll past it, down to its one-line title strip, and the strip
+  // stays within reach: press it anywhere down the page and the rows drop over
+  // the neck like a drawer, change one thing, press it shut again.
+  //
+  // IT FOLDS ONCE PER DEPARTURE, not on every scroll. A panel that re-folded
+  // each time the page moved would shut under your hand the instant you
+  // reached for a control — so this only acts on the CROSSING, from above the
+  // threshold to below it. Open it while you're down the page and it stays
+  // open until you close it or come back to the top.
+  const wasAtTop = useRef(true);
+  const panel = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const measure = () => {
+      const el = panel.current;
+      if (!el) return;
+      // Past the point where it would start sticking — which is its own top
+      // edge reaching the bar, so the panel decides this from where it
+      // actually sits rather than from a number someone guessed.
+      const atTop = el.getBoundingClientRect().top > STICKY_TOP;
+      if (wasAtTop.current && !atTop) setOpen(false);
+      wasAtTop.current = atTop;
+    };
+    measure();
+    // CAPTURE, so a scroll inside a panel is heard too — the same reason
+    // useScrollFocus listens this way.
+    window.addEventListener('scroll', measure, { passive: true, capture: true });
+    window.addEventListener('resize', measure);
+    return () => {
+      window.removeEventListener('scroll', measure, { capture: true });
+      window.removeEventListener('resize', measure);
+    };
+  }, []);
+
   return (
     <section
+      ref={panel}
       className={open ? 'panel' : 'panel panel--folded'}
       aria-label={title}
     >

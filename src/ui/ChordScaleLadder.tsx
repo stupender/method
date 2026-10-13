@@ -100,7 +100,7 @@ export function ChordScaleLadder({
   inversion: number;
   // What the dots say — a global display setting, owned by the view above.
   labelMode?: 'note' | 'degree';
-  /** How big to engrave the notation — see ui/NotationSize.tsx. */
+  /** How big to engrave the notation — see ui/Settings.tsx. */
   staffPx: number;
 }) {
   const [pinned, setPinned] = useState<number | null>(null);

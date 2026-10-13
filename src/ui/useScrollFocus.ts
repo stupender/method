@@ -76,14 +76,19 @@ export function useScrollFocus(
       requestAnimationFrame(() => {
         const el = items.current[index];
         if (!el) return;
-        const bar = document.querySelector('.sitebar');
         const neck =
           el.closest('.module')?.querySelector('.neckpanel') ??
           document.querySelector('.neckpanel');
-        // Where the neck comes to rest once it's stuck: under the site bar.
+        // WHERE THE NECK COMES TO REST, asked of the neck itself rather than
+        // added up from what sits above it. Its sticky `top` IS that answer,
+        // and it stays the answer when something new slides in above — which
+        // it just did: the control panel floats now too, so the old
+        // bar-height-plus-neck-height sum was short by the folded strip.
+        const stickyTop = neck
+          ? parseFloat(getComputedStyle(neck).top) || 0
+          : 0;
         const restingBottom =
-          (bar?.getBoundingClientRect().height ?? 0) +
-          (neck?.getBoundingClientRect().height ?? 0);
+          stickyTop + (neck?.getBoundingClientRect().height ?? 0);
         window.scrollTo({
           top:
             window.scrollY +

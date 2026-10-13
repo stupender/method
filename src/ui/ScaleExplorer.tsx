@@ -57,7 +57,7 @@ export function ScaleExplorer({
   focus?: { fret: number; seq: number };
   // What the dots say — a global display setting, owned by the view above.
   labelMode?: 'note' | 'degree';
-  /** How big to engrave the notation — see ui/NotationSize.tsx. */
+  /** How big to engrave the notation — see ui/Settings.tsx. */
   staffPx: number;
 }) {
   // Show every position's box outlined at once (see the whole mode tile the neck).

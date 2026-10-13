@@ -58,12 +58,7 @@ import {
   type ModuleState,
 } from './ui/moduleState';
 import { stateFromUrl } from './ui/shareCode';
-import {
-  NotationSize,
-  clampStaffPx,
-  loadStaffPx,
-  saveStaffPx,
-} from './ui/NotationSize';
+import { SettingsMenu, loadStaffPx, saveStaffPx } from './ui/Settings';
 import { MultiSelect } from './ui/MultiSelect';
 import { PatternExplorer } from './ui/PatternExplorer';
 import { ScaleExplorer } from './ui/ScaleExplorer';
@@ -260,7 +255,7 @@ function App() {
   const shared = useRef(stateFromUrl()).current;
   // HOW BIG THE NOTATION IS DRAWN — a reading preference, kept in this browser
   // the way the light is. See STAFF_PX in render/System.tsx for what the
-  // number means, and ui/NotationSize.tsx for the control.
+  // number means, and ui/Settings.tsx for the control.
   const [staffPx, setStaffPx] = useState(loadStaffPx);
   useEffect(() => saveStaffPx(staffPx), [staffPx]);
 
@@ -461,10 +456,7 @@ function App() {
             adds the next one. What's left is the only setting that really is
             the room's. */}
         <div className="sitebar__controls">
-          <NotationSize
-            value={staffPx}
-            onStep={(d) => setStaffPx((v) => clampStaffPx(v + d))}
-          />
+          <SettingsMenu staffPx={staffPx} onStaffPx={setStaffPx} />
           <ThemeToggle theme={theme} onChange={setTheme} />
         </div>
       </header>
@@ -757,7 +749,7 @@ function Module({
    * way the instrument used to be folded in from the other direction.
    */
   studyMode: 'fretboard' | 'ear';
-  /** How big to engrave the notation — see ui/NotationSize.tsx. */
+  /** How big to engrave the notation — see ui/Settings.tsx. */
   staffPx: number;
   /** Everything saved, so this panel can tell whether IT is one of them. */
   bookmarks: Bookmark[];

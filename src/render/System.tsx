@@ -154,7 +154,7 @@ const TAIL = 14;
 // which means more lines, and on a phone a line is about 200px of scrolling.)
 // ============================================================================
 const STAFF_PX = 10;
-// (The site bar can move it — see ui/NotationSize.tsx, which owns the range.)
+// (The site bar can move it — see ui/Settings.tsx, which owns the sizes.)
 /** VexFlow's own unit: the distance between two staff lines, before scaling. */
 const STAFF_UNITS = 10;
 
