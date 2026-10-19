@@ -41,7 +41,16 @@
   padding: 10px 0 12px;
   background: var(--bg);
   border-bottom: 1px solid var(--line);
-  margin-bottom: 26px;
+  /* NO GAP UNDER IT. The controls panel tucks straight onto this rule and
+     shares it, so bar and panel read as one pinned masthead rather than as a
+     nameplate with a box floating below it. Areas that DON'T open with a panel
+     ask for the air themselves — see `.area`. */
+}
+
+/* An area whose first thing is ordinary page content rather than the controls
+   panel, and so wants the air back that the bar no longer carries. */
+.area {
+  margin-top: 26px;
 }
 
 .sitebar__mark {
@@ -399,13 +408,22 @@
    is the right behaviour anyway: the rows drop over the neck like a drawer,
    you change one thing, and you shut them again. Its own ground is solid for
    the same reason. See the fold-on-scroll note in ui/ControlPanel.tsx. */
+/* IT SHARES THE BAR'S RULE. The panel hangs off the hairline under the
+   nameplate instead of drawing a second one 26px below it: no top border, no
+   top corners, no gap. Two pinned blocks with a stripe of page between them
+   read as two things that happen to be stuck; one block with a divider in it
+   reads as the masthead it is. Pinned at exactly the bar's height, so the join
+   holds while you scroll and not just at rest — `--bar-h` is measured and
+   published by App.tsx, because that height changes: the bar wraps to two
+   lines on a phone. The fallback is only for the first paint. */
 .panel {
   position: sticky;
-  top: 55px;
+  top: var(--bar-h, 55px);
   z-index: 28;
   background: var(--bg);
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-top: 0;
+  border-radius: 0 0 4px 4px;
   /* Named so the rows inside can ask how wide THIS panel is — see
      `.seg__short`. With two panels open the window says nothing useful. */
   container: panel / inline-size;
@@ -417,8 +435,10 @@
   gap: 10px;
   border-bottom: 1px solid var(--line);
   background: var(--surface);
-  /* Inside the panel's own 4px, so the fill stops where the border does. */
-  border-radius: 3px 3px 0 0;
+  /* Square on top, because the panel is square on top: the strip runs right up
+     under the bar's rule. Only the bottom corners are ever rounded, and only
+     when the strip IS the whole panel — see `.panel--folded`. */
+  border-radius: 0;
   padding-right: 8px;
 }
 /* THE WHOLE TITLE STRIP IS THE HANDLE, at every width. It used to fold only
@@ -492,10 +512,10 @@
   display: none;
 }
 /* Folded, the strip IS the whole panel: no line under it separating it from
-   rows that aren't there, and all four corners are its own. */
+   rows that aren't there, and the panel's two bottom corners become its own. */
 .panel--folded .panel__head {
   border-bottom: 0;
-  border-radius: 3px;
+  border-radius: 0 0 3px 3px;
 }
 /* The title shrinks to make room for the summary beside it. */
 .panel--folded .panel__title {
@@ -730,6 +750,21 @@
   display: flex;
   flex-direction: column;
   gap: 26px;
+  /* So the panel's anchor below can be placed against the module's own top. */
+  position: relative;
+}
+/* WHERE THE PANEL'S TOP EDGE BELONGS, as a mark that stays behind when the
+   panel floats away from it. Out of flow on purpose: it has to travel with
+   whatever is scrolling — the page here, the module's own scroll box when
+   there are two — while the sticky panel holds still, and being out of flow
+   also keeps it from counting as a flex child and opening a 26px gap.
+   See the fold-on-scroll note in ui/ControlPanel.tsx. */
+.panel-anchor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
 }
 /* KEEP YOUR HEIGHT. With two panels a module becomes its own scroll box (see
    `.modules--two .module`), and a flex child inside a box with a max-height
@@ -1307,11 +1342,14 @@
    ========================================================================== */
 .neckpanel {
   position: sticky;
-  /* Clears the site bar AND the folded control panel resting on it: 55 for the
-     bar, 36 for the one-line title strip the panel folds down to. Flush on
-     purpose — a few pixels between two pinned blocks is a slit with the page
-     scrolling past inside it, which reads as a crack rather than as air. */
-  top: 91px;
+  /* Clears the site bar AND the folded control panel resting on it: the bar's
+     measured height (see `.panel`), plus 35 for the one-line title strip the
+     panel folds down to — the strip plus the panel's bottom border, its top
+     border being gone, shared with the bar. Flush on purpose, and the 35 is
+     rounded DOWN of the strip's true 35.3: a few pixels between two pinned
+     blocks is a slit with the page scrolling past inside it, which reads as a
+     crack, where a fraction of overlap is invisible. */
+  top: calc(var(--bar-h, 55px) + 35px);
   z-index: 20;
   border: 1px solid var(--line);
   border-bottom: 0;
@@ -2236,8 +2274,16 @@
   /* Reaching the end of one panel shouldn't start scrolling the page. */
   overscroll-behavior: contain;
 }
-.modules--two .neckpanel {
+/* INSIDE A BOX, THE BOX IS THE TOP. A sticky `top` is measured from whatever
+   scrolls, so the panel's page-mode 55 (the site bar's height) became 55px of
+   dead air at the top of each column, with the panel hanging below it. In a
+   scroll box there is no bar to clear: the panel rests on the box's own edge,
+   and the neck rests on the folded panel, the same stack the page makes. */
+.modules--two .panel {
   top: 0;
+}
+.modules--two .neckpanel {
+  top: 35px;
 }
 
 /* Below this, two necks side by side are too cramped to read — a fretboard is
@@ -2252,8 +2298,12 @@
     max-height: none;
     overflow-y: visible;
   }
+  /* Back on the page, so back to the page's stack: bar, folded strip, neck. */
+  .modules--two .panel {
+    top: var(--bar-h, 55px);
+  }
   .modules--two .neckpanel {
-    top: 55px;
+    top: calc(var(--bar-h, 55px) + 35px);
   }
 }
 
@@ -2457,6 +2507,13 @@
 .menu__item--on {
   color: var(--ink);
   font-weight: 600;
+}
+/* A menu row that carries a dot lights it the same way a panel row does — the
+   mark means "this is the one you're on" everywhere, or it means nothing. */
+.menu__item--on .seg__tick {
+  background: var(--tick-fill);
+  border-color: var(--tick-ring);
+  box-shadow: var(--tick-glow);
 }
 .menu__name {
   flex: 1;

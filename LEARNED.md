@@ -2057,3 +2057,23 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   that re-folds it the instant you open it. Keep the previous answer in a ref
   and act only when it FLIPS. Same shape as an edge-triggered signal in
   electronics: the event is the transition, not the level.
+- **A sticky `top` is measured from whatever scrolls, not from the window.**
+  The same panel pinned at `top: 55px` sat under the site bar on the page and
+  55px below the top of its own column when the layout put it inside a scroll
+  box — and inside that box there's no bar to clear, so the right answer there
+  is 0. Any element that can end up in a scroll container needs its offset
+  stated per context.
+- **To know whether a sticky element is stuck, leave an anchor behind.** A
+  1px, absolutely-positioned marker at the spot its top edge belongs to travels
+  with the content while the element holds still, so the gap between them IS
+  the sticking. No viewport arithmetic, no constant naming some other block's
+  height, and it works the same inside a scroll box. Absolute positioning also
+  keeps the marker from counting as a flex child and opening a gap.
+- **Measure a bar whose height isn't fixed and publish it to CSS.** The site
+  bar is 55px on a wide screen and 95px when it wraps on a phone, so everything
+  pinned under it was hiding behind it there. One `ResizeObserver` setting
+  `--bar-h` on the root, and the stylesheet does the arithmetic in `calc()`.
+- **A scripted `window.scrollTo` may fire no scroll event at all under browser
+  automation.** Two runs of the same fold-on-scroll check disagreed; counting
+  the events showed zero reaching a window listener. Drive a scroll handler
+  with a real wheel gesture, or you're testing the harness.

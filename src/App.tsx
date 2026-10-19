@@ -259,6 +259,33 @@ function App() {
   const [staffPx, setStaffPx] = useState(loadStaffPx);
   useEffect(() => saveStaffPx(staffPx), [staffPx]);
 
+  // ==========================================================================
+  // HOW TALL THE SITE BAR IS, published to the stylesheet as `--bar-h`
+  // --------------------------------------------------------------------------
+  // Everything that floats comes to rest on the bar: the controls panel sits
+  // on it, and the neck sits on the folded panel. CSS has to be told where
+  // that is, as a `top`, and the bar's height isn't a constant — on a phone it
+  // wraps to two lines and grows from 55 to 95. A hard-coded 55 meant the
+  // panel pinned itself BEHIND the bar on exactly the screen where saving
+  // space matters most.
+  //
+  // So it's measured. One observer, one custom property, and every sticky
+  // offset in App.css is written in terms of it — see `.panel` there.
+  const bar = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = bar.current;
+    if (!el) return;
+    const publish = () =>
+      document.documentElement.style.setProperty(
+        '--bar-h',
+        `${Math.round(el.getBoundingClientRect().height)}px`,
+      );
+    publish();
+    const ro = new ResizeObserver(publish);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   const [area, setArea] = useState<Area>(
     shared?.studyMode === 'ear' ? 'ear' : 'study',
   );
@@ -424,7 +451,7 @@ function App() {
           and wasted a third of a phone screen on a tool you open to look at a
           fretboard. Now it's a nameplate: mark, name, motto, and the room
           setting on the right, over a hairline. Everything below it is work. */}
-      <header className="sitebar">
+      <header className="sitebar" ref={bar}>
         <Mark className="sitebar__mark" variant="triad" press />
         <h1 className="sitebar__name">Fretboard Constellations</h1>
         {/* BETA — a LABEL, not a control. It was a mailto and it grew a
@@ -545,7 +572,7 @@ function App() {
         </div>
       </div>
       {READY.play && (
-      <div hidden={area !== 'song'}>
+      <div className="area" hidden={area !== 'song'}>
         <SongBook
           songs={songs}
           currentId={currentId}

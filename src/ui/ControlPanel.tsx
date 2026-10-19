@@ -30,9 +30,6 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 
 /** Below this the panel STARTS folded. See the note on `open` below. */
 const NARROW = '(max-width: 640px)';
-/** Where the panel comes to rest under the site bar — matches `.panel` in
- *  App.css, and the one number the fold-on-scroll rule below needs. */
-const STICKY_TOP = 55;
 
 // The outlined block. `title` is the eyebrow printed at its top left.
 export function ControlPanel({
@@ -89,21 +86,32 @@ export function ControlPanel({
   //
   // IT FOLDS ONCE PER DEPARTURE, not on every scroll. A panel that re-folded
   // each time the page moved would shut under your hand the instant you
-  // reached for a control — so this only acts on the CROSSING, from above the
-  // threshold to below it. Open it while you're down the page and it stays
-  // open until you close it or come back to the top.
-  const wasAtTop = useRef(true);
+  // reached for a control — so this only acts on the CROSSING, from at rest to
+  // floating. Open it while you're down the page and it stays open until you
+  // close it or come back to the top.
+  //
+  // HOW IT KNOWS IT'S FLOATING: an anchor, left behind at the spot the panel's
+  // top edge belongs to. The anchor scrolls; the sticky panel doesn't; so any
+  // daylight between them IS the floating. Asking instead whether the panel
+  // had reached some pixel from the top of the window meant naming the site
+  // bar's height here as well as in the stylesheet — and it was simply wrong
+  // in the side-by-side layout, where each module scrolls inside its own box
+  // and there's no bar to clear. Two elements and a subtraction need no number
+  // at all, and are right in both.
+  const wasAtRest = useRef(true);
   const panel = useRef<HTMLElement>(null);
+  const anchor = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const measure = () => {
       const el = panel.current;
-      if (!el) return;
-      // Past the point where it would start sticking — which is its own top
-      // edge reaching the bar, so the panel decides this from where it
-      // actually sits rather than from a number someone guessed.
-      const atTop = el.getBoundingClientRect().top > STICKY_TOP;
-      if (wasAtTop.current && !atTop) setOpen(false);
-      wasAtTop.current = atTop;
+      const at = anchor.current;
+      if (!el || !at) return;
+      // Half a pixel of slack: sticky offsets and zoom levels land on
+      // fractions, and an exact comparison would flicker on them.
+      const atRest =
+        el.getBoundingClientRect().top - at.getBoundingClientRect().top < 0.5;
+      if (wasAtRest.current && !atRest) setOpen(false);
+      wasAtRest.current = atRest;
     };
     measure();
     // CAPTURE, so a scroll inside a panel is heard too — the same reason
@@ -117,48 +125,54 @@ export function ControlPanel({
   }, []);
 
   return (
-    <section
-      ref={panel}
-      className={open ? 'panel' : 'panel panel--folded'}
-      aria-label={title}
-    >
-      <div className="panel__head">
-        {/* The title strip IS the handle on a phone — the whole width of it,
-            rather than a small chevron to aim at. On a desktop this button is
-            still here but the stylesheet gives it nothing to do, because the
-            rows are never hidden there. */}
-        <button
-          className="panel__fold"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          aria-controls={rowsId}
-        >
-          {/* THE ARROW LEADS. It sits at the far left of the strip and stays
-              exactly there whether the panel is open or shut — only its
-              direction changes. A control that moves when you use it makes you
-              find it again every time; anchored, you can open and close the
-              panel without your thumb leaving the spot. */}
-          <span className="panel__chevron" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path
-                d="M6 9.5 12 15.5 18 9.5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </span>
-          <span className="panel__title">{title}</span>
-          {!open && summary && <span className="panel__summary">{summary}</span>}
-        </button>
-        {action}
-      </div>
-      <div className="panel__rows" id={rowsId}>
-        {children}
-      </div>
-    </section>
+    <>
+      {/* The mark the panel floats away from — see above. It draws nothing. */}
+      <div ref={anchor} className="panel-anchor" aria-hidden="true" />
+      <section
+        ref={panel}
+        className={open ? 'panel' : 'panel panel--folded'}
+        aria-label={title}
+      >
+        <div className="panel__head">
+          {/* The title strip IS the handle on a phone — the whole width of it,
+              rather than a small chevron to aim at. On a desktop this button is
+              still here but the stylesheet gives it nothing to do, because the
+              rows are never hidden there. */}
+          <button
+            className="panel__fold"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            aria-controls={rowsId}
+          >
+            {/* THE ARROW LEADS. It sits at the far left of the strip and stays
+                exactly there whether the panel is open or shut — only its
+                direction changes. A control that moves when you use it makes
+                you find it again every time; anchored, you can open and close
+                the panel without your thumb leaving the spot. */}
+            <span className="panel__chevron" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M6 9.5 12 15.5 18 9.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+            <span className="panel__title">{title}</span>
+            {!open && summary && (
+              <span className="panel__summary">{summary}</span>
+            )}
+          </button>
+          {action}
+        </div>
+        <div className="panel__rows" id={rowsId}>
+          {children}
+        </div>
+      </section>
+    </>
   );
 }
 
