@@ -15,6 +15,7 @@ import { useEffect, useRef } from 'react';
 import type { Instrument, Tuning, PlacedNote } from '../theory/types';
 import { noteName } from '../theory/notes';
 import { NECK_ANIMATION } from '../ui/flags';
+import { shapesCross } from './crossing';
 import './Fretboard.css';
 
 // --- Geometry constants (in SVG user units) -------------------------------
@@ -64,16 +65,21 @@ export interface FretboardProps {
   /**
    * WHEN A GROUP IS LIT, does each shape still get its joining line?
    *
-   * It depends on what the group IS, and the caller is the only one who knows.
-   * A chord scale climbing a string set is a SEQUENCE — seven grips stepping
-   * up the neck, each line local to its own few frets, and together they read
-   * as a ladder. Every inversion of one chord in one register is a set of
-   * ALTERNATIVES — four grips stacked in the same four frets, and four lines
-   * drawn through the same small patch of neck cross each other into a
-   * scribble that says nothing the dots hadn't already said.
+   * true — ALWAYS. For a SEQUENCE, like a chord scale climbing a string set:
+   * seven grips stepping up the neck read as a ladder, lines and all.
    *
-   * So: lines for a sequence, dots alone for alternatives. Pinning a single
-   * shape always draws its line, because then there's only one.
+   * false — ONLY IF THEY DON'T CROSS. For ALTERNATIVES, like every inversion of
+   * one chord in one register. Three triad inversions spread up the neck sit
+   * apart, and their lines help you read each grip. Four drop-3 inversions
+   * share the same few frets, and their lines run through each other into a
+   * scribble that says nothing the dots hadn't said. So the group keeps its
+   * lines until two of them would form an X — see render/crossing.ts.
+   *
+   * (This used to mean "never" for alternatives, which fixed the drop-3
+   * scribble and took the lines off every triad with it.)
+   *
+   * Pinning a single shape always draws its line, because then there's only
+   * one.
    */
   groupLines?: boolean;
   // Called when the pointer enters/leaves a shape on the neck (index, or null).
@@ -129,6 +135,15 @@ export function Fretboard({
         : null;
   // More than one shape lit at once, from a GROUP rather than a single pick.
   const litAsGroup = (activeShapeIndices?.length ?? 0) > 1;
+  // Would the lit group's lines cross each other? Only asked when the caller
+  // hasn't said "always" (see `groupLines` above) — a sequence keeps its lines
+  // regardless, so there's nothing to check.
+  const groupTangles =
+    litAsGroup &&
+    !groupLines &&
+    shapesCross(
+      (activeShapeIndices ?? []).map((i) => shapes?.[i] ?? []).filter((s) => s.length > 1),
+    );
 
   // Overall canvas size derived from how many strings/frets we're drawing.
   const nutX = PAD_LEFT;
@@ -670,7 +685,7 @@ export function Fretboard({
             const dim = showAllShapes ? false : activeSet !== null && !isActive;
             const drawLine = showAllShapes
               ? shape.length > 1
-              : isActive && shape.length > 1 && (groupLines || !litAsGroup);
+              : isActive && shape.length > 1 && !groupTangles;
             // The connecting line, as SEGMENTS rather than one polyline, so it
             // can travel with the dots it joins.
             //

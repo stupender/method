@@ -898,10 +898,10 @@
   white-space: normal;
   overflow-wrap: break-word;
 }
-/* THE RING GOES INSIDE. A segmented cell clips its own overflow (see below),
-   and an outline is painted OUTSIDE the border box — so the default 2px offset
-   put the ring exactly where the cell cuts it off, leaving three sides of a
-   box. Inset by the same amount, it lands on the cell's own edge. */
+/* THE RING GOES INSIDE. Cells sit edge to edge, and an outline is painted
+   OUTSIDE the border box — so the default 2px offset drew the focus ring over
+   the neighbouring cells (and, when cells clipped, cut it to three sides of a
+   box). Inset by the same amount, it lands on the cell's own edge. */
 .seg__btn:focus-visible {
   outline-offset: -2px;
   border-radius: 0;
@@ -915,10 +915,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  /* The CELL clips, so a long name can't spill into its neighbour. The label
-     inside must NOT clip — that's what cut the dot's glow off flat — and the
-     dot sits far enough from this edge that the halo clears it. */
-  overflow: hidden;
+  /* NOTHING CLIPS HERE. The cell used to hide its overflow so a long name
+     couldn't spill into its neighbour — but labels wrap now and break long
+     words (see "WRAP, DON'T CUT"), so nothing overflows to begin with: audited
+     at 1440, 1100, 768, 390 and 320 wide, one panel and two, across Fretboard,
+     Harmony and Ear Training, zero labels outside their cells. What the clip
+     DID still cut was the lit dot's lamp — its ring and bloom reach about
+     12px, more than the row's padding — so the guard went once it guarded
+     nothing. */
 }
 /* ON A PHONE, WRAP THE WORDS RATHER THAN CUT THEM.
    Wrapping costs nothing here: the cell is already as wide as the row allows
@@ -962,9 +966,16 @@
   flex: none;
   border: 1px solid var(--line);
   background: transparent;
+  /* The glow comes up with the lamp rather than snapping on after it. */
   transition:
     background 0.12s ease,
-    border-color 0.12s ease;
+    border-color 0.12s ease,
+    box-shadow 0.18s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .seg__tick {
+    transition: none;
+  }
 }
 .seg__btn--picked {
   color: var(--ink);

@@ -309,9 +309,11 @@ export function InversionLadder({
               shapes={shapes}
               activeShapeIndex={pinned}
               activeShapeIndices={pinned === null ? litShapes : null}
-              // Every inversion of ONE chord, in ONE register — alternatives
-              // stacked in the same few frets, not a sequence up the neck. See
-              // `groupLines` in render/Fretboard.tsx.
+              // Every inversion of ONE chord, in ONE register — alternatives,
+              // not a sequence up the neck. So their lines are drawn only while
+              // they don't cross: triads spread apart keep them, drop-3s that
+              // share the same frets drop them. See `groupLines` in
+              // render/Fretboard.tsx.
               groupLines={false}
               onBackgroundClick={() => setPinned(null)}
               labelMode={labelMode}

@@ -417,7 +417,9 @@ export function placeVoicingByStringSet(
     ...placeOnStringSets(instrument, tuning, voices, contiguous, REACH_SPAN),
     ...placeOnStringSets(instrument, tuning, voices, skipping, MAX_SPAN),
   ];
-  if (reachable.length > 0) return sortByStringSet(bestPerRegister(reachable));
+  if (reachable.length > 0) {
+    return sortByStringSet(bestPerRegister(reachable, structure.dropFromTop === 3));
+  }
 
   // Beyond even that: the best grip on each contiguous set, so a hard voicing
   // still shows everywhere it's possible rather than in one arbitrary place.
@@ -435,21 +437,44 @@ export function placeVoicingByStringSet(
 // awkward novelties nobody would choose, and blocks appeared holding a single
 // chord because only one inversion happened to fit some odd skip.
 //
-// So: the least-stretch grip wins its register, and a SKIPPED string carries a
-// penalty — it must be more than a fret and a half easier than the adjacent
-// grip to be worth showing. That's the difference between a drop 3, where
-// skipping the A string turns a six-fret stretch into a one-fret grab, and a
-// drop 2, where skipping just makes an easy shape harder.
+// So: the least-stretch grip wins its register, and a grip OFF ITS VOICING'S
+// HOME pays a penalty — it must be more than a fret and a half easier than the
+// one at home to be worth showing.
+//
+// WHERE HOME IS DEPENDS ON THE VOICING. For close and drop 2 it's adjacent
+// strings, and skipping one just makes an easy shape harder. For DROP 3 it's
+// the skipped string, every time: dropping the third voice an octave leaves a
+// sixth or wider between the bass and the next voice, and the skip is what
+// lines that gap up with the strings — the E_D G B and A_G B E grips every
+// guitarist learns. The penalty used to fall on skipping whatever the voicing,
+// and that was invisible on the minor 7ths (their adjacent grips are too wide
+// to compete) and broke the major 7ths: Cmaj7 with the 7th in the bass sits at
+// 7-5-5-5 on E_D G B, a two-fret span, but paid 1.5 for the skip and lost to
+// 7-10-10-9 stretched up E A D G — exactly the grip CLAUDE.md says a drop 3
+// must not take. One inversion on a different string set from its siblings,
+// and their lines crossed on the neck.
 //
 // This is the placement principle from CLAUDE.md, restored: it was removed
 // wholesale to fix a different bug (the chord scale needed every string set,
 // not the best one), which threw out the rule along with the problem.
 const SKIP_PENALTY = 1.5;
-function bestPerRegister(shapes: PlacedNote[][]): PlacedNote[][] {
+function bestPerRegister(
+  shapes: PlacedNote[][],
+  /** True for drop 3, whose home is a skipped string. See above. */
+  skipIsHome: boolean,
+): PlacedNote[][] {
   const cost = (shape: PlacedNote[]) => {
     const strings = shape.map((p) => p.position.stringIndex).sort((a, b) => a - b);
     const adjacent = strings.every((s, i) => i === 0 || s === strings[i - 1] + 1);
-    return fretSpan(shape) + (adjacent ? 0 : SKIP_PENALTY);
+    // A drop 3's home skips the string RIGHT ABOVE THE BASS and is adjacent
+    // after that — E_D G B, A_G B E. Skipping somewhere else (A D _ B e) puts
+    // the gap in the wrong place, which is as far from home as no skip at all.
+    const dropThreeHome =
+      strings.length > 1 &&
+      strings[1] === strings[0] + 2 &&
+      strings.every((s, i) => i < 2 || s === strings[i - 1] + 1);
+    const home = skipIsHome ? dropThreeHome : adjacent;
+    return fretSpan(shape) + (home ? 0 : SKIP_PENALTY);
   };
   const best = new Map<number, PlacedNote[]>();
   for (const shape of shapes) {

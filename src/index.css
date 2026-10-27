@@ -74,13 +74,24 @@
      they get away with it because a lamp isn't a hue you have to read: it's
      either lit or it isn't, and there are no degree dots in this panel to
      confuse it with. Everything else structural stays ink.
-     On paper it's a plain amber disc — no gradient, no halo. Ink on a page has
-     no light source, and both of those read as a rendered button rather than a
-     printed mark. The lamp belongs to the night, where the dot really is the
-     light and the dark around it gives the glow somewhere to fall. */
+
+     THE SAME LAMP AS SOUNDSCAPE AND BECOMING. Stu, 2026-10-27: a solid dot,
+     then a semi-transparent outer circle imitating the glow of an LED. So:
+     a solid core (fill and border the same, no gradient), a tight translucent
+     ring that gives the lamp its edge, and a soft bloom beyond it. Both outer
+     layers are box-shadows, so nothing is added to the dot's box and no row
+     moves when it lights.
+     This replaces an older rule that paper got a plain disc and only the night
+     got a glow, on the theory that ink has no light source. Read across three
+     apps, the lamp is the family's selection mark, and a mark that changes
+     shape between themes is two marks. Paper's glow is the quieter of the two;
+     on near-black a lamp reads dimmer, so night gives it a little more —
+     the same strengths Becoming uses for its menu. */
   --tick-fill: #b46218;
-  --tick-ring: #a2570f;
-  --tick-glow: none;
+  --tick-ring: #b46218;
+  --tick-glow:
+    0 0 0 2.5px rgba(180, 98, 24, 0.18),
+    0 0 7px 2px rgba(180, 98, 24, 0.3);
   --tint-soft: rgba(31, 28, 23, 0.04); /* barely-there panel wash */
   --tint-mid: rgba(31, 28, 23, 0.08);
   --shadow: rgba(31, 28, 23, 0.16);
@@ -221,14 +232,15 @@
     --accent: #d9d2c4;
     --accent-bg: rgba(217, 210, 196, 0.14);
     /* At night the dots are the only lit things in a dark box, so they behave
-    like the LEDs they resemble: a hot centre falling off to the edge, and the
-    faintest halo around it. Kept very low — this is a panel of small switches
-    catching the light, not the neon the fretboard dots were rescued from. */
-    --tick-fill: radial-gradient(circle at 50% 38%, #fbf7ee 0%, #d9d2c4 62%);
-    --tick-ring: #d9d2c4;
+    like the LEDs they resemble — the same lamp as paper (see the note there),
+    a solid core in a ring and a bloom, given a little more light because a
+    lamp reads dimmer on near-black. Still small switches catching the light,
+    not the neon the fretboard dots were rescued from. */
+    --tick-fill: #ece6d9;
+    --tick-ring: #ece6d9;
     --tick-glow:
-    0 0 3px rgba(217, 210, 196, 0.55),
-    0 0 8px rgba(217, 210, 196, 0.22);
+      0 0 0 2.5px rgba(217, 210, 196, 0.26),
+      0 0 9px 3px rgba(217, 210, 196, 0.42);
     --tint-soft: rgba(236, 231, 220, 0.04);
     --tint-mid: rgba(236, 231, 220, 0.08);
     --shadow: rgba(0, 0, 0, 0.5);
@@ -318,14 +330,15 @@
   --accent: #d9d2c4;
   --accent-bg: rgba(217, 210, 196, 0.14);
   /* At night the dots are the only lit things in a dark box, so they behave
-  like the LEDs they resemble: a hot centre falling off to the edge, and the
-  faintest halo around it. Kept very low — this is a panel of small switches
-  catching the light, not the neon the fretboard dots were rescued from. */
-  --tick-fill: radial-gradient(circle at 50% 38%, #fbf7ee 0%, #d9d2c4 62%);
-  --tick-ring: #d9d2c4;
+  like the LEDs they resemble — the same lamp as paper (see the note there),
+  a solid core in a ring and a bloom, given a little more light because a
+  lamp reads dimmer on near-black. Still small switches catching the light,
+  not the neon the fretboard dots were rescued from. */
+  --tick-fill: #ece6d9;
+  --tick-ring: #ece6d9;
   --tick-glow:
-  0 0 3px rgba(217, 210, 196, 0.55),
-  0 0 8px rgba(217, 210, 196, 0.22);
+    0 0 0 2.5px rgba(217, 210, 196, 0.26),
+    0 0 9px 3px rgba(217, 210, 196, 0.42);
   --tint-soft: rgba(236, 231, 220, 0.04);
   --tint-mid: rgba(236, 231, 220, 0.08);
   --shadow: rgba(0, 0, 0, 0.5);

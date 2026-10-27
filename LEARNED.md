@@ -2077,3 +2077,33 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   automation.** Two runs of the same fold-on-scroll check disagreed; counting
   the events showed zero reaching a window listener. Drive a scroll handler
   with a real wheel gesture, or you're testing the harness.
+- **The scribble was crossing, not grouping.** The September fix turned off
+  joining lines whenever several inversions were lit at once — which cured
+  the drop-3 tangle and took the lines off every triad with it (0 of 35
+  Roman-numeral views drew a line). What actually makes a scribble is two
+  grips' lines forming an X. So the test is now geometry: draw a lit group's
+  lines unless a segment of one grip crosses a segment of another
+  (render/crossing.ts — fret and string coordinates, since scaling and
+  flipping a picture never adds or removes a crossing). 33 of 35 views get
+  their lines back; the two that don't are exactly the overlapping drop-3s.
+  When a rule fixes a complaint, check what else the rule touches.
+- **A drop 3's home is the skipped string.** The per-register picker charged
+  1.5 frets for skipping a string — right for drop 2, backwards for drop 3,
+  whose sixth-or-wider gap above the bass is exactly what the skip lines up
+  with. Minor 7ths never showed it (their adjacent grips were too wide to
+  compete); major 7ths did: Cmaj7 with the 7th in the bass sits at 7-5-5-5 on
+  E_D G B but lost to 7-10-10-9 up E A D G, so one inversion sat on a
+  different string set from its siblings and their lines crossed. Now a drop
+  3's home is "skip the string right above the bass, adjacent after that",
+  and anything else pays the penalty. Swept all 900 drop-3 grips: string
+  sets mixing within a register went 60 → 0, none lost, 36 got narrower, 12
+  (augmented-major 7ths) one fret wider. Stu spotted it by comparing the
+  major 7ths with the minor 7ths — the chords that worked showed the rule.
+- **A glow needs room nobody clips.** The lit dot became the LED lamp from
+  Soundscape and Becoming — solid core, a translucent ring, a soft bloom, all
+  box-shadow so nothing moves. A box-shadow paints outside the element, so
+  any ancestor with `overflow: hidden` cuts it off flat, and the segmented
+  cells had exactly that: a guard against long labels spilling, from before
+  labels learned to wrap. An audit (19 layouts, 1440 → 320 wide) found zero
+  labels outside their cells, so the guard went. Check what a clip is still
+  protecting before keeping it, and before adding a glow.
