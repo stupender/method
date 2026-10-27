@@ -69,8 +69,9 @@ data  →  theory logic  →  rendering  →  audio  →  UI / state
 TypeScript + React + Vite + Web Audio. VexFlow for notation (added 2026-08-27:
 the chord voicings are drawn as a staff + TAB system by `render/ChordSystem.tsx`). Plain
 CSS with a small palette of CSS variables in `src/index.css`. Deploy: GitHub
-Pages via `npm run deploy` (the `gh-pages` package). `vite.config.ts` `base`
-must match the repo name (`/method/`).
+Pages via `npm run deploy` (the `gh-pages` package), live at
+https://fretboardconstellations.beingsound.studio/ — `public/CNAME` carries the
+domain and `vite.config.ts` `base` is `/` (see MAINTENANCE.md).
 
 ## Build plan (stop at each checkpoint for Stu to run & ask questions)
 

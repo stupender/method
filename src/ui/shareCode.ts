@@ -15,7 +15,7 @@
 // ships on GitHub Pages: a hash never reaches a server, so a shared link works
 // with no routing at all.
 //
-//     https://stupender.github.io/method/#s=1eyJpbnN0cnVtZW50SWQiOiJndWl0…
+//     https://fretboardconstellations.beingsound.studio/#s=1eyJpbnN0cnVtZW50SWQiOiJndWl0…
 //
 // THE LEADING "1" IS A VERSION. If the shape ever changes past what a merge
 // over the defaults can absorb, a "2" can mean something else and old links

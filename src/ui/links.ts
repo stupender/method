@@ -18,6 +18,12 @@ export const BEING_SOUND = 'https://beingsound.studio';
  */
 export const SUBSTACK = 'https://beingsound.substack.com';
 
+/**
+ * One-to-one lessons. This app is a map; the teaching is the other half, so
+ * the footer offers it once, quietly, after the Substack.
+ */
+export const LESSONS = 'https://beingsound.studio/music-lessons';
+
 /** Shown beside the copyright. */
 export const AUTHOR = 'Stu Pender';
 

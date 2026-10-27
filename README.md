@@ -11,7 +11,7 @@ think, the more you can play.
 
 ## Live
 
-Deployed via GitHub Pages: https://stupender.github.io/method/
+Deployed via GitHub Pages: https://fretboardconstellations.beingsound.studio/
 
 ## Tech
 

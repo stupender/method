@@ -44,6 +44,7 @@ import {
   BEING_SOUND,
   FEEDBACK_EMAIL,
   FEEDBACK_SUBJECT,
+  LESSONS,
   SUBSTACK,
 } from './ui/links';
 import { alreadyAsked, markDismissed } from './ui/asked';
@@ -639,12 +640,30 @@ function App() {
           {/* One invitation, and only once there's somewhere to send people.
               See ui/links.ts — an unset address renders nothing at all rather
               than a link that goes nowhere. */}
-          {SUBSTACK && (
+          {/* One sentence for both outward links, rather than two lines each
+              opening with the same name. Either clause drops out on its own if
+              its URL is unset — the empty-means-hidden rule in ui/links.ts. */}
+          {(SUBSTACK || LESSONS) && (
             <p>
-              Stu writes about practice and music at{' '}
-              <a href={SUBSTACK} target="_blank" rel="noreferrer">
-                his Substack
-              </a>
+              Stu{' '}
+              {SUBSTACK && (
+                <>
+                  writes about listening and expression at{' '}
+                  <a href={SUBSTACK} target="_blank" rel="noreferrer">
+                    his Substack
+                  </a>
+                </>
+              )}
+              {SUBSTACK && LESSONS && ', and '}
+              {LESSONS && (
+                <>
+                  offers{' '}
+                  <a href={LESSONS} target="_blank" rel="noreferrer">
+                    1:1 music lessons
+                  </a>{' '}
+                  through Being Sound
+                </>
+              )}
               .
             </p>
           )}

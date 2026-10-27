@@ -17,10 +17,10 @@ createRoot(document.getElementById('root')!).render(
 // app's own first paint for the same connection, and there is nothing the
 // worker can do for a visitor who hasn't finished arriving yet.
 //
-// BASE_URL rather than '/': this is served from a sub-path (/method/), so the
-// worker has to be registered at that path or its scope won't cover the app.
-// Vite substitutes the value at build time, so it stays right if the path
-// changes.
+// BASE_URL rather than a hard-coded '/': the app has lived at a sub-path
+// (/method/) and now lives at a root, and the worker must be registered where
+// the app is or its scope won't cover it. Vite substitutes the value at build
+// time, so it stays right whichever it is.
 //
 // A failure here is not worth surfacing — it means no offline and no install
 // prompt, and the app itself works exactly as before. Common in a private

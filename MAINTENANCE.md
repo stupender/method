@@ -25,12 +25,25 @@ npm run deploy   # runs build, then publishes dist/ to the gh-pages branch
 `deploy` uses the `gh-pages` package. It builds, then pushes the contents of
 `dist/` to a branch called `gh-pages`, which GitHub serves.
 
-**One-time GitHub setup** (already done at project start): the repo exists under
-the `stupender` account, and in the repo's *Settings → Pages*, the source is the
-`gh-pages` branch. The live URL is https://stupender.github.io/method/.
+**One-time GitHub setup** (already done): the repo exists under the `stupender`
+account, and in the repo's *Settings → Pages*, the source is the `gh-pages`
+branch.
 
-**Important:** `vite.config.ts` has `base: '/method/'`. This must match the repo
-name. If the repo is renamed, update `base` or the deployed site's links break.
+**The live URL is https://fretboardconstellations.beingsound.studio/** — the
+app's own address under Being Sound. Three things make that work, and all three
+must agree:
+
+1. `public/CNAME` holds the domain. Vite copies `public/` into `dist/`, so every
+   deploy carries it; without it, a deploy would quietly drop the custom domain.
+2. A DNS record at the domain's registrar: `CNAME fretboardconstellations →
+   stupender.github.io.` (beingsound.studio's DNS is with Google Domains'
+   successor, Squarespace Domains).
+3. `vite.config.ts` has `base: '/'`, because the app sits at the root of that
+   address. (It was `/method/` while the app lived at
+   stupender.github.io/method/, which now redirects here.)
+
+The beingsound.studio main site used to carry a built copy of the app in
+`fretboard-constellations/`; that path now redirects to the address above.
 
 ## Where things live
 

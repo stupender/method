@@ -846,10 +846,10 @@ picked with it in mind — which is the other argument against GA.
 
 **Stage 0 — before anything is sold.** Cheap, and each part is worth doing
 even if nothing is ever charged for.
-- **A domain.** `stupender.github.io/method/` is already a live URL and already
-  works, so nothing is BLOCKED on this — but a name is worth ~£10/yr before it
-  goes to a room full of guitarists. Pages takes a custom domain and issues
-  HTTPS itself; it's a `CNAME` file and a DNS record.
+- ~~**A domain.**~~ **Done 2026-10-27:** fretboardconstellations.beingsound.studio,
+  a subdomain of Being Sound rather than a new name — a `CNAME` file and one DNS
+  record, with Pages issuing HTTPS. The old stupender.github.io/method/ address
+  redirects to it.
 - **Shareable preset links** (see the note above). This is the growth
   mechanism, and a better one than any referral scheme: someone sends "look at
   this" and it opens on exactly what they meant.

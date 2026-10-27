@@ -7,9 +7,11 @@ export default defineConfig({
   plugins: [react()],
 
   // `base` is the URL path the built app is served from once deployed.
-  // GitHub Pages serves a project repo at  https://stupender.github.io/method/
-  // ...so every asset link in the built site must be prefixed with "/method/".
-  // In local dev Vite ignores this and serves from "/", so `npm run dev` is unaffected.
-  // If you ever rename the repo, change this string to match the new repo name.
-  base: '/method/',
+  // The app lives at the ROOT of its own address:
+  //   https://fretboardconstellations.beingsound.studio/
+  // so asset links start at "/". (It used to be "/method/", when GitHub Pages
+  // served it at stupender.github.io/method/ — that address now redirects
+  // here, because public/CNAME gives the repo's Pages site its own domain.)
+  // In local dev Vite serves from "/" either way, so `npm run dev` is unaffected.
+  base: '/',
 })
