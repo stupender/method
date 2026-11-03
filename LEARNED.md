@@ -2107,3 +2107,10 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   labels learned to wrap. An audit (19 layouts, 1440 → 320 wide) found zero
   labels outside their cells, so the guard went. Check what a clip is still
   protecting before keeping it, and before adding a glow.
+- **A custom property can belong to one element, not the page.** The panel
+  measures itself and writes `--panel-h` on its OWN module; the neck below
+  reads it in its sticky `top`. Set on `:root` it would have been one value
+  for two side-by-side panels of different heights. So opening the panel
+  pushes the neck down instead of covering it — and the auto-fold on scroll
+  is gone: it looked right in a demo and got in the way in real lessons.
+  Square corners now come from one token, `--radius: 0`.

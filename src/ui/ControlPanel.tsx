@@ -78,101 +78,85 @@ export function ControlPanel({
   // IT FLOATS, AND IT GETS OUT OF THE WAY
   // --------------------------------------------------------------------------
   // The panel sticks under the site bar like everything else that matters all
-  // the way down the page — but seven rows of settings pinned to the top of
-  // the window would leave almost nothing for the neck. So it folds itself the
-  // moment you scroll past it, down to its one-line title strip, and the strip
-  // stays within reach: press it anywhere down the page and the rows drop over
-  // the neck like a drawer, change one thing, press it shut again.
+  // the way down the page, and the neck sticks DIRECTLY UNDER THE PANEL,
+  // whatever height the panel is right now: folded it's one line, open it's
+  // every row. So opening it anywhere down the page pushes the neck down
+  // rather than dropping over it, and folding it lets the neck rise again.
   //
-  // IT FOLDS ONCE PER DEPARTURE, not on every scroll. A panel that re-folded
-  // each time the page moved would shut under your hand the instant you
-  // reached for a control — so this only acts on the CROSSING, from at rest to
-  // floating. Open it while you're down the page and it stays open until you
-  // close it or come back to the top.
+  // It used to fold itself the moment you scrolled past it, and to open as a
+  // drawer laid over the neck. In real lessons both got in the way — the panel
+  // shut when you didn't ask it to, and the drawer hid the very fretboard you
+  // had opened it to change (Stu, 2026-11-03). Now it only folds when you fold
+  // it.
   //
-  // HOW IT KNOWS IT'S FLOATING: an anchor, left behind at the spot the panel's
-  // top edge belongs to. The anchor scrolls; the sticky panel doesn't; so any
-  // daylight between them IS the floating. Asking instead whether the panel
-  // had reached some pixel from the top of the window meant naming the site
-  // bar's height here as well as in the stylesheet — and it was simply wrong
-  // in the side-by-side layout, where each module scrolls inside its own box
-  // and there's no bar to clear. Two elements and a subtraction need no number
-  // at all, and are right in both.
-  const wasAtRest = useRef(true);
+  // So the panel tells the stylesheet its height, as `--panel-h` on its own
+  // module — not on the page, because with two modules side by side each panel
+  // is its own height — and `.neckpanel` adds it to its sticky `top`. Measured
+  // rather than written down, because the height depends on how many rows the
+  // panel has and how they wrap. Rounded DOWN: a fraction of overlap between
+  // the two pinned blocks is invisible, a fraction of gap is a slit with the
+  // page scrolling through it.
   const panel = useRef<HTMLElement>(null);
-  const anchor = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const measure = () => {
-      const el = panel.current;
-      const at = anchor.current;
-      if (!el || !at) return;
-      // Half a pixel of slack: sticky offsets and zoom levels land on
-      // fractions, and an exact comparison would flicker on them.
-      const atRest =
-        el.getBoundingClientRect().top - at.getBoundingClientRect().top < 0.5;
-      if (wasAtRest.current && !atRest) setOpen(false);
-      wasAtRest.current = atRest;
-    };
-    measure();
-    // CAPTURE, so a scroll inside a panel is heard too — the same reason
-    // useScrollFocus listens this way.
-    window.addEventListener('scroll', measure, { passive: true, capture: true });
-    window.addEventListener('resize', measure);
-    return () => {
-      window.removeEventListener('scroll', measure, { capture: true });
-      window.removeEventListener('resize', measure);
-    };
+    const el = panel.current;
+    const host = el?.parentElement;
+    if (!el || !host) return;
+    const publish = () =>
+      host.style.setProperty(
+        '--panel-h',
+        `${Math.floor(el.getBoundingClientRect().height)}px`,
+      );
+    publish();
+    const ro = new ResizeObserver(publish);
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
 
   return (
-    <>
-      {/* The mark the panel floats away from — see above. It draws nothing. */}
-      <div ref={anchor} className="panel-anchor" aria-hidden="true" />
-      <section
-        ref={panel}
-        className={open ? 'panel' : 'panel panel--folded'}
-        aria-label={title}
-      >
-        <div className="panel__head">
-          {/* The title strip IS the handle on a phone — the whole width of it,
-              rather than a small chevron to aim at. On a desktop this button is
-              still here but the stylesheet gives it nothing to do, because the
-              rows are never hidden there. */}
-          <button
-            className="panel__fold"
-            onClick={() => setOpen((v) => !v)}
-            aria-expanded={open}
-            aria-controls={rowsId}
-          >
-            {/* THE ARROW LEADS. It sits at the far left of the strip and stays
-                exactly there whether the panel is open or shut — only its
-                direction changes. A control that moves when you use it makes
-                you find it again every time; anchored, you can open and close
-                the panel without your thumb leaving the spot. */}
-            <span className="panel__chevron" aria-hidden="true">
-              <svg viewBox="0 0 24 24">
-                <path
-                  d="M6 9.5 12 15.5 18 9.5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
-            <span className="panel__title">{title}</span>
-            {!open && summary && (
-              <span className="panel__summary">{summary}</span>
-            )}
-          </button>
-          {action}
-        </div>
-        <div className="panel__rows" id={rowsId}>
-          {children}
-        </div>
-      </section>
-    </>
+    <section
+      ref={panel}
+      className={open ? 'panel' : 'panel panel--folded'}
+      aria-label={title}
+    >
+      <div className="panel__head">
+        {/* The title strip IS the handle on a phone — the whole width of it,
+            rather than a small chevron to aim at. On a desktop this button is
+            still here but the stylesheet gives it nothing to do, because the
+            rows are never hidden there. */}
+        <button
+          className="panel__fold"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-controls={rowsId}
+        >
+          {/* THE ARROW LEADS. It sits at the far left of the strip and stays
+              exactly there whether the panel is open or shut — only its
+              direction changes. A control that moves when you use it makes
+              you find it again every time; anchored, you can open and close
+              the panel without your thumb leaving the spot. */}
+          <span className="panel__chevron" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M6 9.5 12 15.5 18 9.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <span className="panel__title">{title}</span>
+          {!open && summary && (
+            <span className="panel__summary">{summary}</span>
+          )}
+        </button>
+        {action}
+      </div>
+      <div className="panel__rows" id={rowsId}>
+        {children}
+      </div>
+    </section>
   );
 }
 

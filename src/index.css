@@ -180,9 +180,13 @@
   --tab-fret-size: 12px;
 
   /* Shape language: the boards are circles and printed grids, not lozenges.
-     One small radius everywhere reads as ink on a page; 999px reads as an app
-     chrome. Circles stay circles (the mark, the fretboard dots). */
-  --radius: 2px;
+     SQUARE CORNERS, everywhere a box has a corner. This was a small 2px
+     radius, and alongside the boxes that were already square it left messy
+     little gaps — worst where a rounded selection box sat inside a square
+     one (Stu, 2026-11-03). Every corner in the app reads this one token, so
+     the shape language is set here and nowhere else. Circles stay circles
+     (the mark, the fretboard dots, the lit lamps, the play buttons). */
+  --radius: 0;
 
   /* The identity mark — a riso ink blot on paper, the moon at night. */
   --mark-ink: #33468a;
