@@ -33,9 +33,19 @@ export interface Bar {
 }
 
 export interface Progression {
+  /**
+   * Never empty: the first bar is the panel's setting even before there's a
+   * progression, so the panel always has something to be.
+   */
   bars: Bar[];
   /** The id of the bar the panel is showing. */
   selected: string;
+  /**
+   * WHETHER THERE IS A PROGRESSION AT ALL. False until you add a bar, and
+   * false again when you × the only one left: the strip of bars goes away and
+   * the panel carries on as it was. Pressing + makes the panel bar 1.
+   */
+  started: boolean;
 }
 
 const STORAGE_KEY = 'method.progression.v1';
@@ -74,14 +84,16 @@ export function loadProgression(): Progression {
         const selected = bars.some((b) => b.id === parsed.selected)
           ? (parsed.selected as string)
           : bars[0].id;
-        return { bars, selected };
+        // Saved before `started` existed: every saved progression was shown.
+        const started = typeof parsed.started === 'boolean' ? parsed.started : true;
+        return { bars, selected, started };
       }
     }
   } catch {
     // Unreadable store: fall through to a fresh progression.
   }
   const first = makeBar();
-  return { bars: [first], selected: first.id };
+  return { bars: [first], selected: first.id, started: false };
 }
 
 export function saveProgression(p: Progression): void {

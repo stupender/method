@@ -93,6 +93,9 @@ export function Dock({
                   fn ? `, ${fn.label}` : ''
                 }, ${bar.summary.keyName}`}
               >
+                {/* THE PANEL'S OWN MARK: a pick-one row, so a dot before the
+                    word, lit like a lamp on the bar you're in. */}
+                <span className="seg__tick" aria-hidden="true" />
                 <span className="dock__sym">{bar.summary.symbol ?? bar.summary.keyName}</span>
                 {fn && (
                   <span className={visitor ? 'dock__fn dock__fn--visitor' : 'dock__fn'}>
@@ -102,14 +105,14 @@ export function Dock({
                 {/* A whole-key bar already says its key in big type. */}
                 {bar.summary.symbol && <span className="dock__key">{bar.summary.keyName}</span>}
               </button>
-              {/* Only the selected bar can be removed, and never the last one —
-                  a progression with no bars has no panel to show. */}
-              {on && bars.length > 1 && (
+              {/* Only the selected bar can be removed. × on the only one left
+                  puts the progression away (the panel stays as it was). */}
+              {on && (
                 <button
                   className="dock__remove"
                   onClick={() => onRemove(bar.id)}
-                  aria-label={`Remove bar ${i + 1}`}
-                  title="Remove this bar"
+                  aria-label={bars.length > 1 ? `Remove bar ${i + 1}` : 'Clear the progression'}
+                  title={bars.length > 1 ? 'Remove this bar' : 'Clear the progression'}
                 >
                   ×
                 </button>

@@ -369,12 +369,14 @@ function App() {
   // across the page.
   //
   // A SHARED LINK ADDS A BAR rather than replacing what's there, so opening a
-  // link someone sent you never throws away a progression you'd built.
+  // link someone sent you never throws away a progression you'd built. With
+  // no progression there's nothing to keep, so the link just becomes the panel.
   const [progression, setProgression] = useState<Progression>(() => {
     const p = loadProgression();
     if (shared && shared.studyMode !== 'ear') {
       const bar = makeBar({ ...shared, studyMode: 'fretboard' });
-      return { bars: [...p.bars, bar], selected: bar.id };
+      if (!p.started) return { bars: [bar], selected: bar.id, started: false };
+      return { bars: [...p.bars, bar], selected: bar.id, started: true };
     }
     return p;
   });
@@ -405,14 +407,16 @@ function App() {
       bars: p.bars.map((b) => (b.id === p.selected ? { ...b, state } : b)),
     }));
   // + BAR: a copy of the selected bar, placed right after it, and selected.
+  // With no progression yet, + starts one: the panel as it stands is bar 1.
   const addBar = () =>
     setProgression((p) => {
+      if (!p.started) return { ...p, started: true };
       const at = p.bars.findIndex((b) => b.id === p.selected);
       const source = p.bars[at] ?? p.bars[0];
       const bar = makeBar(source.state);
       const bars = [...p.bars];
       bars.splice(at + 1, 0, bar);
-      return { bars, selected: bar.id };
+      return { bars, selected: bar.id, started: true };
     });
   // + ON A CHORD'S TAB CARD: that chord, as a new bar at the END of the
   // progression — and the selection stays where it is. You're browsing the
@@ -421,17 +425,20 @@ function App() {
   const addChordBar = (degree: number) =>
     setProgression((p) => {
       const source = p.bars.find((b) => b.id === p.selected) ?? p.bars[0];
-      return { ...p, bars: [...p.bars, makeBar({ ...source.state, degree })] };
+      // With no progression yet, the panel as it stands becomes bar 1 and the
+      // chord comes after it — the same as adding to a progression of one.
+      return { ...p, bars: [...p.bars, makeBar({ ...source.state, degree })], started: true };
     });
-  // Remove a bar; its neighbour takes the selection. Never the last bar.
+  // Remove a bar; its neighbour takes the selection. × on the ONLY bar puts
+  // the progression away: the strip goes, the panel stays exactly as it was.
   const removeBar = (id: string) =>
     setProgression((p) => {
-      if (p.bars.length <= 1) return p;
+      if (p.bars.length <= 1) return { ...p, started: false };
       const at = p.bars.findIndex((b) => b.id === id);
       const bars = p.bars.filter((b) => b.id !== id);
       const selected =
         p.selected === id ? bars[Math.min(at, bars.length - 1)].id : p.selected;
-      return { bars, selected };
+      return { bars, selected, started: true };
     });
   // RESTORING A SAVED SETTING goes where the setting belongs: a fretboard
   // setting replaces the selected bar, an ear setting goes to Ear Training's
@@ -582,7 +589,11 @@ function App() {
 
   return (
     <main
-      className={area === 'study' && !BARS_ON_TOP ? 'page page--wide page--docked' : 'page page--wide'}
+      className={
+        area === 'study' && !BARS_ON_TOP && progression.started
+          ? 'page page--wide page--docked'
+          : 'page page--wide'
+      }
     >
       {/* THE SITE BAR. This used to be a full-height centred masthead — a big
           moon, a 44px title, a lede — which looked handsome on a landing page
@@ -653,7 +664,7 @@ function App() {
               onChange={updateSelectedBar}
               onAddBar={addBar}
               onAddChordBar={addChordBar}
-              above={BARS_ON_TOP ? barsStrip('top') : undefined}
+              above={BARS_ON_TOP && progression.started ? barsStrip('top') : undefined}
               {...moduleShared}
             />
           )}
@@ -661,7 +672,7 @@ function App() {
       </div>
       {/* The bars at the bottom of the screen — unless they sit on top of the
           control panel instead (BARS_ON_TOP, ui/flags.ts). */}
-      {area === 'study' && !BARS_ON_TOP && barsStrip('bottom')}
+      {area === 'study' && !BARS_ON_TOP && progression.started && barsStrip('bottom')}
       {READY.play && (
       <div className="area" hidden={area !== 'song'}>
         <SongBook
@@ -1246,8 +1257,8 @@ function Module({
               <button
                 className="panel__act panel__act--add"
                 onClick={onAddBar}
-                aria-label="Add a bar after this one"
-                title="Add a bar — a copy of this one"
+                aria-label="Add this setting as a bar"
+                title="Add this as a bar"
               >
                 +
               </button>
