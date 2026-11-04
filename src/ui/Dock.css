@@ -1,0 +1,175 @@
+/* ==========================================================================
+   Dock.css — the progression strip pinned to the bottom of the screen
+   ========================================================================== */
+
+.dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Above the page's own floating blocks; below the site bar's menus. */
+  z-index: 29;
+  background: var(--bg);
+  border-top: 1px solid var(--line-on);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+/* Lined up with the page's own column, so the bars sit under the panel. */
+.dock__inner {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 max(24px, env(safe-area-inset-right, 0px)) 0
+    max(24px, env(safe-area-inset-left, 0px));
+}
+
+.dock__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+}
+.dock__title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.dock__reads {
+  font-size: 12px;
+  color: var(--muted);
+}
+.dock__add {
+  margin-left: auto;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line-on);
+  border-radius: var(--radius);
+  padding: 2px 10px;
+  cursor: pointer;
+}
+.dock__add:hover {
+  border-color: var(--ink);
+}
+
+/* THE BARS. One cell each, edge to edge like the measures of a chart. More
+   bars than fit scroll sideways inside the dock — never the page. */
+.dock__bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(120px, 1fr);
+  overflow-x: auto;
+  border-top: 1px solid var(--line);
+}
+.dock__cell {
+  position: relative;
+  border-left: 1px solid var(--line);
+  min-width: 0;
+}
+.dock__cell:first-child {
+  border-left: 0;
+}
+.dock__bar {
+  display: grid;
+  gap: 1px;
+  width: 100%;
+  min-width: 0;
+  padding: 6px 12px 8px;
+  text-align: left;
+  font: inherit;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.dock__bar:hover {
+  background: var(--tint-soft);
+}
+/* THE BOX IS THE MARK: the selected bar is outlined dark, the app's existing
+   way of saying "this one". Colour can't do it here — the seven scale
+   degrees own every hue on the page, so a coloured bar would read as one. */
+.dock__cell--on .dock__bar {
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+.dock__no {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.dock__sym {
+  font-family: var(--serif);
+  font-size: 19px;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dock__meta {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  min-width: 0;
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.dock__fn {
+  font-weight: 700;
+}
+/* A visitor from outside the key says so in ink, not grey. */
+.dock__fn--visitor {
+  color: var(--ink);
+}
+.dock__key {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dock__remove {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.dock__remove:hover {
+  color: var(--ink);
+}
+.dock__bar:focus-visible,
+.dock__add:focus-visible,
+.dock__remove:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+}
+
+/* On a phone: a little tighter, and the bars swipe sideways. */
+@media (max-width: 640px) {
+  .dock__inner {
+    padding-left: max(14px, env(safe-area-inset-left, 0px));
+    padding-right: max(14px, env(safe-area-inset-right, 0px));
+  }
+  .dock__bars {
+    grid-auto-columns: minmax(104px, 1fr);
+  }
+  .dock__sym {
+    font-size: 17px;
+  }
+}

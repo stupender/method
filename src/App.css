@@ -26,6 +26,13 @@
 .page--wide {
   max-width: 1040px;
 }
+/* ROOM FOR THE DOCK. The progression strip is fixed to the bottom of the
+   screen (ui/Dock.tsx) and reports its height as `--dock-h`, so the page
+   leaves that much space below its last line and nothing ends up hidden
+   behind it. */
+.page--docked {
+  padding-bottom: calc(64px + var(--dock-h, 0px));
+}
 
 /* FLOATING, so the app's name and the light switch are still there at the
    bottom of a long page. It paints its own background because the page scrolls
@@ -752,10 +759,8 @@
   flex-direction: column;
   gap: 26px;
 }
-/* KEEP YOUR HEIGHT. With two panels a module becomes its own scroll box (see
-   `.modules--two .module`), and a flex child inside a box with a max-height
-   will happily SHRINK to fit rather than let the box scroll — squashing the
-   fretboard instead of giving it a scrollbar. */
+/* KEEP YOUR HEIGHT. A flex child will happily SHRINK to fit its box rather
+   than let the page scroll — squashing the fretboard instead. */
 .module > * {
   flex: none;
   /* AND LET THEM BE NARROWER THAN THEIR CONTENTS. A flex child defaults to
@@ -2236,12 +2241,12 @@
    menu (see "A MENU IS A SMALL PANEL" below).
    ========================================================================== */
 /* ==========================================================================
-   MODULES — one panel and its neck, or two side by side
+   MODULES — one panel and its neck
    --------------------------------------------------------------------------
    Each module is self-contained: its own CONTROLS, its own floating neck, its
-   own systems. Two of them is a grid of two, not a special "compare" mode —
-   which is why this is barely any CSS. The work that made it cheap was
-   moving a panel's settings into one object it owns (see ui/moduleState.ts).
+   own systems. There is one on screen at a time — the selected bar's, or Ear
+   Training's (see ui/bars.ts). There used to be an option for two side by
+   side; "+ Bar" in the dock replaced it.
    ========================================================================== */
 .modules {
   display: grid;
@@ -2254,76 +2259,7 @@
 .modules > * {
   min-width: 0;
 }
-.modules--two {
-  grid-template-columns: 1fr 1fr;
-  align-items: start;
-}
-
-/* EACH SIDE SCROLLS ON ITS OWN, so you can hold one place on the left and
-   range around on the right — which is the point of having two: comparing
-   parts that aren't at the same depth in their lists. Each module becomes its
-   own scroll box, and its floating neck sticks to the top of THAT box rather
-   than to the page.
-
-   Only when there are two. A single module scrolls with the page, as it
-   should — a lone panel in a scroll box would be a window inside a window. */
-.modules--two .module {
-  max-height: calc(100vh - 96px);
-  overflow-y: auto;
-  /* Reaching the end of one panel shouldn't start scrolling the page. */
-  overscroll-behavior: contain;
-}
-/* INSIDE A BOX, THE BOX IS THE TOP. A sticky `top` is measured from whatever
-   scrolls, so the panel's page-mode 55 (the site bar's height) became 55px of
-   dead air at the top of each column, with the panel hanging below it. In a
-   scroll box there is no bar to clear: the panel rests on the box's own edge,
-   and the neck rests on the panel, the same stack the page makes. */
-.modules--two .panel {
-  top: 0;
-}
-.modules--two .neckpanel {
-  top: var(--panel-h, 35px);
-}
-
-/* Below this, two necks side by side are too cramped to read — a fretboard is
-   a wide thing — so they stack and you scroll between them instead. */
-@media (max-width: 1100px) {
-  .modules--two {
-    grid-template-columns: 1fr;
-  }
-  /* Stacked, they're back to being part of one page: two scroll boxes above
-     each other would mean scrolling inside a thing you're scrolling past. */
-  .modules--two .module {
-    max-height: none;
-    overflow-y: visible;
-  }
-  /* Back on the page, so back to the page's stack: bar, folded strip, neck. */
-  .modules--two .panel {
-    top: var(--bar-h, 55px);
-  }
-  .modules--two .neckpanel {
-    top: calc(var(--bar-h, 55px) + var(--panel-h, 35px));
-  }
-}
-
-/* The page opens out when there are two, since the default measure is set for
-   reading one column of text and two fretboards need more than that.
-   ONLY WHERE THEY'RE ACTUALLY SIDE BY SIDE. This used to apply at every width,
-   which was wrong twice over on a phone: the modules are stacked below 1100px
-   so there's no second column to make room for, and `min(96vw, …)` on a 375px
-   screen resolves to 360px — NARROWER than the viewport. The page then
-   centred itself inside its own window and every gutter on the page grew by
-   7px, so turning on two panels quietly re-laid-out a single-column phone
-   view that hadn't changed shape at all.
-   Keyed to 1101px to meet the `max-width: 1100px` rule above exactly; the two
-   describe the same boundary and have to move together. */
-@media (min-width: 1101px) {
-  .page--split {
-    max-width: min(96vw, 1760px);
-  }
-}
-
-/* A panel's own controls: bookmark, add a second, close. */
+/* A panel's own controls: the saved list and the bookmark. */
 .panel__actions {
   display: flex;
   align-items: center;
@@ -2769,13 +2705,8 @@ button.neckpanel__name:focus-visible {
   opacity: 1;
 }
 
-/* WHERE IT DOESN'T BELONG.
-   Two panels side by side is a comparison, not a document — and there would
-   be two rails claiming one margin. Narrow windows have no margin to put it
-   in at all, and a rail overlapping the music is worse than no rail. */
-.modules--two .pagemarks {
-  display: none;
-}
+/* WHERE IT DOESN'T BELONG. Narrow windows have no margin to put it in at all,
+   and a rail overlapping the music is worse than no rail. */
 /* The page is 1040px at its widest and centred, so below about 1100 there is
    no margin left to put a rail in — and marks sitting on top of the music are
    worse than no marks. (Above it, the TICKS live in the margin and only the
