@@ -6,18 +6,21 @@
 // teach from one bar, the whole progression is still there to point at, and
 // the fretboard above keeps all its room.
 //
-// Pick a bar and everything above becomes that bar: its panel, its neck, its
-// notation. "+ Bar" adds a copy of the selected bar right after it, because
-// the useful move is "set one up, then change one thing". (This replaced the
-// "+" that opened a second panel side by side.)
+// NOTHING BUT THE BARS (Stu, 2026-11-04). No title, no header row, no button:
+// each bar is one line — the chord, then its job in the song and its key in
+// small type — and the strip is exactly as wide as the page's column. The key
+// the progression "reads in" is still worked out, and said to screen readers
+// in the strip's label, but not printed: the function labels already say it.
+//
+// Adding a bar lives where the music is, not down here: the "+" in the
+// control panel's header copies the current bar, and the "+" on a chord's
+// TAB card adds that chord. Pick a bar here and everything above becomes it.
 //
 // This is the BARS height. A second height, SHAPES — a small fretboard in
-// every bar (sketch C) — comes next; the dock is laid out so it can grow into
-// it without the bars moving.
+// every bar (sketch C) — comes next.
 //
-// The dock reports its own height as `--dock-h` on the page, so the page can
-// leave that much room at the bottom and nothing scrolls out of reach behind
-// it — the same idea as `--bar-h` for the site bar.
+// The dock reports its own height as `--dock-h`, so the page leaves that much
+// room at the bottom and nothing scrolls out of reach behind it.
 // ============================================================================
 
 import { useEffect, useRef } from 'react';
@@ -31,7 +34,6 @@ export function Dock({
   keyName,
   functions,
   onSelect,
-  onAdd,
   onRemove,
 }: {
   /** In order: each bar's id and what it says. */
@@ -42,7 +44,6 @@ export function Dock({
   /** One per bar: its job in that key, or null. */
   functions: (Interpretation | null)[];
   onSelect: (id: string) => void;
-  onAdd: () => void;
   onRemove: (id: string) => void;
 }) {
   const dock = useRef<HTMLElement>(null);
@@ -63,64 +64,54 @@ export function Dock({
   }, []);
 
   return (
-    <nav className="dock" ref={dock} aria-label="Progression">
-      <div className="dock__inner">
-        <div className="dock__head">
-          <span className="dock__title">Progression</span>
-          {/* WHICH KEY THE SONG READS IN — the one every bar's function label
-              is measured against. Said once, here, rather than on every bar. */}
-          {keyName && <span className="dock__reads">reads in {keyName}</span>}
-          <button className="dock__add" onClick={onAdd}>
-            + Bar
-          </button>
-        </div>
-        <ol className="dock__bars">
-          {bars.map((bar, i) => {
-            const on = bar.id === selectedId;
-            const fn = functions[i];
-            // A chord the key explains on its own (ii, V) is said quietly; a
-            // VISITOR from outside it (V/V, iv borrowed from minor) is said
-            // louder, because that's the bar a student needs explained.
-            const visitor = fn && fn.kind !== 'diatonic';
-            return (
-              <li key={bar.id} className={on ? 'dock__cell dock__cell--on' : 'dock__cell'}>
-                <button
-                  className="dock__bar"
-                  onClick={() => onSelect(bar.id)}
-                  aria-current={on ? 'true' : undefined}
-                  aria-label={`Bar ${i + 1}: ${bar.summary.symbol ?? bar.summary.keyName}${
-                    fn ? `, ${fn.label}` : ''
-                  }, ${bar.summary.keyName}`}
-                >
-                  <span className="dock__no">{i + 1}</span>
-                  <span className="dock__sym">{bar.summary.symbol ?? bar.summary.keyName}</span>
-                  <span className="dock__meta">
-                    {fn && (
-                      <span className={visitor ? 'dock__fn dock__fn--visitor' : 'dock__fn'}>
-                        {fn.label}
-                      </span>
-                    )}
-                    {/* A whole-key bar already says its key in big type. */}
-                    {bar.summary.symbol && <span className="dock__key">{bar.summary.keyName}</span>}
+    <nav
+      className="dock"
+      ref={dock}
+      aria-label={keyName ? `Progression, reads in ${keyName}` : 'Progression'}
+    >
+      <ol className="dock__bars">
+        {bars.map((bar, i) => {
+          const on = bar.id === selectedId;
+          const fn = functions[i];
+          // A chord the key explains on its own (ii, V) is said quietly; a
+          // VISITOR from outside it (V/V, iv borrowed from minor) is said in
+          // ink, because that's the bar a student needs explained.
+          const visitor = fn && fn.kind !== 'diatonic';
+          return (
+            <li key={bar.id} className={on ? 'dock__cell dock__cell--on' : 'dock__cell'}>
+              <button
+                className="dock__bar"
+                onClick={() => onSelect(bar.id)}
+                aria-current={on ? 'true' : undefined}
+                aria-label={`Bar ${i + 1}: ${bar.summary.symbol ?? bar.summary.keyName}${
+                  fn ? `, ${fn.label}` : ''
+                }, ${bar.summary.keyName}`}
+              >
+                <span className="dock__sym">{bar.summary.symbol ?? bar.summary.keyName}</span>
+                {fn && (
+                  <span className={visitor ? 'dock__fn dock__fn--visitor' : 'dock__fn'}>
+                    {fn.label}
                   </span>
-                </button>
-                {/* Only the selected bar can be removed, and never the last
-                    one — a progression with no bars has no panel to show. */}
-                {on && bars.length > 1 && (
-                  <button
-                    className="dock__remove"
-                    onClick={() => onRemove(bar.id)}
-                    aria-label={`Remove bar ${i + 1}`}
-                    title="Remove this bar"
-                  >
-                    ×
-                  </button>
                 )}
-              </li>
-            );
-          })}
-        </ol>
-      </div>
+                {/* A whole-key bar already says its key in big type. */}
+                {bar.summary.symbol && <span className="dock__key">{bar.summary.keyName}</span>}
+              </button>
+              {/* Only the selected bar can be removed, and never the last one —
+                  a progression with no bars has no panel to show. */}
+              {on && bars.length > 1 && (
+                <button
+                  className="dock__remove"
+                  onClick={() => onRemove(bar.id)}
+                  aria-label={`Remove bar ${i + 1}`}
+                  title="Remove this bar"
+                >
+                  ×
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ol>
     </nav>
   );
 }

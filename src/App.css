@@ -1206,6 +1206,33 @@
 .tab-card--on .tab-row-roman {
   color: var(--ink);
 }
+/* + THIS CHORD AS A BAR, at the far end of a card's title row. Quiet until
+   you reach for it: a plain plus in the muted ink, darkening on hover — the
+   same weight as the panel's own marks, so the cards don't sprout buttons. */
+.tab-add {
+  margin-left: auto;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  font: inherit;
+  font-size: 17px;
+  line-height: 1;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.tab-add:hover {
+  color: var(--ink);
+  border-color: var(--line-on);
+}
+.tab-add:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+}
 
 /* No background wash on a selected row — a table of tracks should sit still,
    and a tinted row reads as "something is happening here" when nothing is.

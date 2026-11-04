@@ -86,6 +86,7 @@ export function ChordScaleLadder({
   inversion,
   labelMode = 'degree',
   staffPx,
+  onAddBar,
 }: {
   /** WHICH NECK. Handed in rather than imported — this view draws whatever
    *  it's given and knows nothing about guitars. */
@@ -102,6 +103,11 @@ export function ChordScaleLadder({
   labelMode?: 'note' | 'degree';
   /** How big to engrave the notation — see ui/Settings.tsx. */
   staffPx: number;
+  /**
+   * Add one of these chords to the progression, by its degree in the key.
+   * Given only where there's a progression to add to (the Fretboard's bars).
+   */
+  onAddBar?: (degree: number) => void;
 }) {
   const [pinned, setPinned] = useState<number | null>(null);
   const [playingSet, setPlayingSet] = useState<string | null>(null);
@@ -531,6 +537,23 @@ export function ChordScaleLadder({
                           {r.degree.chord.symbol}
                         </span>
                         <span className="tab-row-roman">{r.degree.roman}</span>
+                        {/* + THIS CHORD AS A BAR. On the card itself, so you
+                            add exactly the chord you're looking at; it goes
+                            to the end of the progression and you stay here,
+                            so I, IV, V can be added one after another. */}
+                        {onAddBar && (
+                          <button
+                            className="tab-add"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onAddBar(r.degree.degree);
+                            }}
+                            aria-label={`Add ${noteName(r.degree.chordRoot)}${r.degree.chord.symbol} as a bar`}
+                            title="Add as a bar"
+                          >
+                            +
+                          </button>
+                        )}
                       </div>
                       {/* Notation over tablature, joined down the left —
                           one system, the way guitar music is set. */}

@@ -414,6 +414,15 @@ function App() {
       bars.splice(at + 1, 0, bar);
       return { bars, selected: bar.id };
     });
+  // + ON A CHORD'S TAB CARD: that chord, as a new bar at the END of the
+  // progression — and the selection stays where it is. You're browsing the
+  // chord scale; clicking + on I, then IV, then V builds the progression in
+  // order without yanking the page to each new bar.
+  const addChordBar = (degree: number) =>
+    setProgression((p) => {
+      const source = p.bars.find((b) => b.id === p.selected) ?? p.bars[0];
+      return { ...p, bars: [...p.bars, makeBar({ ...source.state, degree })] };
+    });
   // Remove a bar; its neighbour takes the selection. Never the last bar.
   const removeBar = (id: string) =>
     setProgression((p) => {
@@ -628,6 +637,8 @@ function App() {
               initial={selectedBar.state}
               studyMode="fretboard"
               onChange={updateSelectedBar}
+              onAddBar={addBar}
+              onAddChordBar={addChordBar}
               {...moduleShared}
             />
           )}
@@ -640,7 +651,6 @@ function App() {
           keyName={reading.keyName}
           functions={reading.functions}
           onSelect={(id) => setProgression((p) => ({ ...p, selected: id }))}
-          onAdd={addBar}
           onRemove={removeBar}
         />
       )}
@@ -839,6 +849,8 @@ function Module({
   songLength,
   initial,
   onChange,
+  onAddBar,
+  onAddChordBar,
   bookmarks,
   onToggleBookmark,
   onRestore,
@@ -859,6 +871,10 @@ function Module({
    * setting while it's on screen; this is how it's remembered when it isn't.
    */
   onChange?: (state: ModuleState) => void;
+  /** Add a bar after this one — a copy of this panel. Only for a bar's panel. */
+  onAddBar?: () => void;
+  /** Add the chord on this degree as a bar at the end of the progression. */
+  onAddChordBar?: (degree: number) => void;
   /**
    * WHICH AREA THIS PANEL IS IN — the fretboard, or the listening drill.
    *
@@ -1210,6 +1226,19 @@ function Module({
                 onToggleBookmark(now, nameFor(now));
               }}
             />
+            {/* + A BAR, beside the bookmark: a copy of this panel, added right
+                after it and opened, so the move is "set one up, change one
+                thing". It lives on the panel because a bar IS a panel. */}
+            {onAddBar && (
+              <button
+                className="panel__act panel__act--add"
+                onClick={onAddBar}
+                aria-label="Add a bar after this one"
+                title="Add a bar — a copy of this one"
+              >
+                +
+              </button>
+            )}
           </div>
         }
       >
@@ -1532,6 +1561,7 @@ function Module({
           inversion={harmonyInversion}
           onAddChord={onAddChord}
           songLength={songLength}
+          onAddChordBar={onAddChordBar}
         />
       )}
     </section>
@@ -1719,6 +1749,7 @@ function HarmonyView({
   inversion,
   onAddChord,
   songLength,
+  onAddChordBar,
 }: {
   staffPx: number;
   /** The neck this module draws — passes straight through to both ladders. */
@@ -1734,6 +1765,8 @@ function HarmonyView({
   inversion: number;
   onAddChord: (rootIndex: number, chordId: string) => void;
   songLength: number;
+  /** Add a chord of this key, by degree, as a bar. */
+  onAddChordBar?: (degree: number) => void;
 }) {
   // The diatonic chords of this key + scale — derived, not stored. Switching the
   // global scale type (major, harmonic minor, ...) changes the whole harmony set.
@@ -1794,6 +1827,7 @@ function HarmonyView({
           structure={structure}
           inversion={inversion}
           labelMode="note"
+          onAddBar={onAddChordBar}
         />
       ) : (
         <InversionLadder
