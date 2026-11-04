@@ -755,9 +755,24 @@
    own — look above and you'll find those declarations gone rather than
    overridden here. */
 .module {
+  /* The space between a module's blocks, named so the rule below can take it
+     back exactly. */
+  --module-gap: 26px;
   display: flex;
   flex-direction: column;
-  gap: 26px;
+  gap: var(--module-gap);
+}
+/* THE PANEL SITS ON THE FRETBOARD. The panel and the neck are one instrument —
+   what you set and what it does — so they touch, at the top of the page as
+   well as once the neck pins under the panel while you scroll. The workbench
+   (the box holding the neck and everything below it) gives back the module's
+   gap, and drops its top border so the panel's bottom hairline is the single
+   line between them instead of two stacked. (Stu, 2026-11-04.)
+   Only the workbench: Ear Training's quiz has no fretboard, and keeps its
+   breathing room. */
+.module > .workbench {
+  margin-top: calc(-1 * var(--module-gap));
+  border-top: 0;
 }
 /* KEEP YOUR HEIGHT. A flex child will happily SHRINK to fit its box rather
    than let the page scroll — squashing the fretboard instead. */
