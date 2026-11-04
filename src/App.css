@@ -1206,9 +1206,10 @@
 .tab-card--on .tab-row-roman {
   color: var(--ink);
 }
-/* + THIS CHORD AS A BAR, at the far end of a card's title row. Quiet until
-   you reach for it: a plain plus in the muted ink, darkening on hover — the
-   same weight as the panel's own marks, so the cards don't sprout buttons. */
+/* + THIS CHORD AS A BAR, at the far end of a card's title row. Barely there
+   until you reach for it (Stu, 2026-11-04): a thin plus in ink at about a
+   third of its strength, darkening to full ink on hover — no box, no outline,
+   so the cards don't sprout buttons. Same look as the panel's own +. */
 .tab-add {
   margin-left: auto;
   flex: none;
@@ -1217,19 +1218,22 @@
   display: grid;
   place-items: center;
   font: inherit;
-  font-size: 17px;
+  font-size: 18px;
+  font-weight: 300;
   line-height: 1;
-  color: var(--muted);
+  color: var(--ink);
+  opacity: 0.35;
   background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius);
+  border: 0;
   cursor: pointer;
+  transition: opacity 0.12s ease;
 }
 .tab-add:hover {
-  color: var(--ink);
-  border-color: var(--line-on);
+  opacity: 1;
 }
+/* Keyboard focus still gets a visible ring and full ink. */
 .tab-add:focus-visible {
+  opacity: 1;
   outline: 2px solid var(--ink);
   outline-offset: -2px;
 }
@@ -2319,8 +2323,18 @@
    is about how many panels there are. A little air says so. */
 .panel__actions .panel__act--add {
   margin-left: 7px;
-  font-size: 19px;
+  font-size: 20px;
+  /* Lighter than the panel's other marks — the same thin, faint + as the
+     chord cards, darkening on hover (the shared `.panel__act:hover`). */
+  font-weight: 300;
+  opacity: 0.35;
   line-height: 1;
+}
+/* Said outright rather than left to the shared `.panel__act:hover` further
+   down, which only wins by coming later in the file. */
+.panel__actions .panel__act--add:hover,
+.panel__actions .panel__act--add:focus-visible {
+  opacity: 1;
 }
 /* Same rule as the bar's controls: the icon IS the button. See the note there. */
 .panel__act {
