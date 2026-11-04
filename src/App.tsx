@@ -8,7 +8,7 @@
 // for using them. Within Study, a Mode picks Scales vs Harmony.
 // ============================================================================
 
-import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
+import { useEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react';
 import type {
   Instrument,
   Note,
@@ -64,7 +64,7 @@ import { MultiSelect } from './ui/MultiSelect';
 import { PatternExplorer } from './ui/PatternExplorer';
 import { ScaleExplorer } from './ui/ScaleExplorer';
 import { Segmented } from './ui/Segmented';
-import { SHOW_ADD_TO_PLAY, SHOW_KEYBOARD } from './ui/flags';
+import { BARS_ON_TOP, SHOW_ADD_TO_PLAY, SHOW_KEYBOARD } from './ui/flags';
 import { ThemeToggle } from './ui/ThemeToggle';
 import { SongView, type ChartChord } from './ui/SongView';
 import { PracticeCards, type PracticeCard } from './ui/PracticeCards';
@@ -566,9 +566,23 @@ function App() {
       writeBookmarks(bookmarks.map((b) => (b.id === id ? { ...b, name } : b))),
   };
 
+  // THE PROGRESSION'S BARS, ready to put wherever BARS_ON_TOP says: fixed to
+  // the bottom of the screen, or as the first row of the control panel.
+  const barsStrip = (placement: 'bottom' | 'top') => (
+    <Dock
+      placement={placement}
+      bars={progression.bars.map((b, i) => ({ id: b.id, summary: summaries[i] }))}
+      selectedId={selectedBar.id}
+      keyName={reading.keyName}
+      functions={reading.functions}
+      onSelect={(id) => setProgression((p) => ({ ...p, selected: id }))}
+      onRemove={removeBar}
+    />
+  );
+
   return (
     <main
-      className={area === 'study' ? 'page page--wide page--docked' : 'page page--wide'}
+      className={area === 'study' && !BARS_ON_TOP ? 'page page--wide page--docked' : 'page page--wide'}
     >
       {/* THE SITE BAR. This used to be a full-height centred masthead — a big
           moon, a 44px title, a lede — which looked handsome on a landing page
@@ -639,21 +653,15 @@ function App() {
               onChange={updateSelectedBar}
               onAddBar={addBar}
               onAddChordBar={addChordBar}
+              above={BARS_ON_TOP ? barsStrip('top') : undefined}
               {...moduleShared}
             />
           )}
         </div>
       </div>
-      {area === 'study' && (
-        <Dock
-          bars={progression.bars.map((b, i) => ({ id: b.id, summary: summaries[i] }))}
-          selectedId={selectedBar.id}
-          keyName={reading.keyName}
-          functions={reading.functions}
-          onSelect={(id) => setProgression((p) => ({ ...p, selected: id }))}
-          onRemove={removeBar}
-        />
-      )}
+      {/* The bars at the bottom of the screen — unless they sit on top of the
+          control panel instead (BARS_ON_TOP, ui/flags.ts). */}
+      {area === 'study' && !BARS_ON_TOP && barsStrip('bottom')}
       {READY.play && (
       <div className="area" hidden={area !== 'song'}>
         <SongBook
@@ -851,6 +859,7 @@ function Module({
   onChange,
   onAddBar,
   onAddChordBar,
+  above,
   bookmarks,
   onToggleBookmark,
   onRestore,
@@ -875,6 +884,9 @@ function Module({
   onAddBar?: () => void;
   /** Add the chord on this degree as a bar at the end of the progression. */
   onAddChordBar?: (degree: number) => void;
+  /** Anything to show inside the control panel's box, above its title strip —
+   *  the progression's bars, when they sit on top (BARS_ON_TOP). */
+  above?: ReactNode;
   /**
    * WHICH AREA THIS PANEL IS IN — the fretboard, or the listening drill.
    *
@@ -1192,6 +1204,7 @@ function Module({
           yet. The view + ChordExplorer are kept below for a future, less
           key-centric section; re-add 'chord' to the list to show it.) */}
       <ControlPanel
+        above={above}
         /* What a folded panel says on a phone — the same facts the rows carry,
            in the order they're read: key, then which degree is home, then what
            you're looking at. `describe` already writes exactly this line for a

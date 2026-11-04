@@ -71,3 +71,11 @@ export const NECK_ANIMATION = false;
  * `layout: 'keys'` note in theory/types.ts.
  */
 export const SHOW_KEYBOARD = false;
+
+/**
+ * WHERE THE PROGRESSION'S BARS SIT. true: on top of the control panel, inside
+ * its box, floating with it (Stu, 2026-11-04: "let's try the chords/bars above
+ * the control panel"). false: in a dock pinned to the bottom of the screen,
+ * which is how they were first built. One switch, so the two can be compared.
+ */
+export const BARS_ON_TOP = true;

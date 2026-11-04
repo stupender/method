@@ -2114,3 +2114,8 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   pushes the neck down instead of covering it — and the auto-fold on scroll
   is gone: it looked right in a demo and got in the way in real lessons.
   Square corners now come from one token, `--radius: 0`.
+- **A slot prop** (2026-11-04) — a component can take a piece of page as a prop
+  (`above: ReactNode`) and draw it wherever it likes. The control panel draws
+  the progression's bars inside its own box that way, so they float with it
+  without the panel knowing anything about bars. `BARS_ON_TOP` in ui/flags.ts
+  switches back to the bottom dock.

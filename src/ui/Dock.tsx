@@ -19,8 +19,10 @@
 // This is the BARS height. A second height, SHAPES — a small fretboard in
 // every bar (sketch C) — comes next.
 //
-// The dock reports its own height as `--dock-h`, so the page leaves that much
-// room at the bottom and nothing scrolls out of reach behind it.
+// TWO PLACES IT CAN SIT (BARS_ON_TOP in ui/flags.ts). At the BOTTOM it's fixed
+// to the screen and reports its height as `--dock-h`, so the page leaves that
+// much room and nothing scrolls out of reach behind it. On TOP it's an ordinary
+// row inside the control panel's box, which floats it for free.
 // ============================================================================
 
 import { useEffect, useRef } from 'react';
@@ -29,6 +31,7 @@ import type { BarSummary } from './bars';
 import './Dock.css';
 
 export function Dock({
+  placement = 'bottom',
   bars,
   selectedId,
   keyName,
@@ -36,6 +39,8 @@ export function Dock({
   onSelect,
   onRemove,
 }: {
+  /** Fixed to the bottom of the screen, or a row on top of the control panel. */
+  placement?: 'bottom' | 'top';
   /** In order: each bar's id and what it says. */
   bars: { id: string; summary: BarSummary }[];
   selectedId: string;
@@ -49,7 +54,8 @@ export function Dock({
   const dock = useRef<HTMLElement>(null);
   useEffect(() => {
     const el = dock.current;
-    if (!el) return;
+    // Only the bottom dock covers the page and needs room left for it.
+    if (!el || placement !== 'bottom') return;
     const root = document.documentElement;
     const publish = () =>
       root.style.setProperty('--dock-h', `${Math.ceil(el.getBoundingClientRect().height)}px`);
@@ -61,11 +67,11 @@ export function Dock({
       // Gone from the page (another area), so the page needs no room for it.
       root.style.removeProperty('--dock-h');
     };
-  }, []);
+  }, [placement]);
 
   return (
     <nav
-      className="dock"
+      className={placement === 'top' ? 'dock dock--top' : 'dock'}
       ref={dock}
       aria-label={keyName ? `Progression, reads in ${keyName}` : 'Progression'}
     >

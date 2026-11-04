@@ -36,6 +36,7 @@ export function ControlPanel({
   title = 'Control Panel',
   action,
   summary,
+  above,
   children,
 }: {
   title?: string;
@@ -52,6 +53,13 @@ export function ControlPanel({
    * know any music, so the caller writes this.
    */
   summary?: ReactNode;
+  /**
+   * Drawn INSIDE the panel's box, above its title strip — the progression's
+   * bars, when they sit on top of the panel (see BARS_ON_TOP in ui/flags.ts).
+   * Inside rather than beside, so they float with the panel, stay in view
+   * when it's folded, and count towards the height the neck pins under.
+   */
+  above?: ReactNode;
   children: ReactNode;
 }) {
   // Starts closed on a phone, open everywhere else, and after that it's
@@ -118,6 +126,7 @@ export function ControlPanel({
       className={open ? 'panel' : 'panel panel--folded'}
       aria-label={title}
     >
+      {above}
       <div className="panel__head">
         {/* The title strip IS the handle on a phone — the whole width of it,
             rather than a small chevron to aim at. On a desktop this button is

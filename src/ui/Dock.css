@@ -133,3 +133,24 @@
     font-size: 17px;
   }
 }
+
+/* ON TOP OF THE CONTROL PANEL (BARS_ON_TOP). An ordinary row inside the
+   panel's box — the panel floats, so the bars float with it — with a hairline
+   between the bars and the panel's title strip. Nothing fixed, no width of its
+   own, no room to leave at the bottom of the page. */
+.dock--top {
+  position: static;
+  left: auto;
+  bottom: auto;
+  transform: none;
+  width: auto;
+  z-index: auto;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0;
+}
+@media (max-width: 640px) {
+  .dock--top {
+    width: auto;
+  }
+}
