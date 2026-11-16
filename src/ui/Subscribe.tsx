@@ -23,6 +23,11 @@
 //   footer     — quiet and permanent, for everyone who never saves anything.
 //
 // Asked once, then never again: saving or dismissing is remembered.
+//
+// UPDATE 2026-11-16: only the FOOTER is shown now. Stu wants nothing to pop up
+// at people in the app; the Being Sound site already asks for an email before
+// it links here. The invitation variant (and ui/asked.ts) stay in the code,
+// unused, in case it comes back — App.tsx no longer renders it.
 // ============================================================================
 
 import { useState } from 'react';
