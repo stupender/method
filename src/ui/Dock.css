@@ -203,15 +203,14 @@
   /* The tabs shrink, then scroll, before they push the + off the end. */
   flex: 0 1 auto;
   min-width: 0;
-  /* A breath of paper above the tabs, under the site bar's rule. */
-  padding-top: 6px;
+  /* No paper above the tabs (Stu, 2026-11-16): they run right up to the site
+     bar's rule, which is their top edge. */
 }
 /* THE + AFTER THE LAST TAB — thin and faint at rest, full ink on hover, no
    box: the same + as the chord cards and the panel strip. */
 .dock__add {
   flex: none;
   width: 36px;
-  margin-top: 6px;
   display: grid;
   place-items: center;
   font: inherit;
@@ -256,21 +255,19 @@
 .dock--top .dock__bar:hover {
   background: var(--tint-soft);
 }
-/* The open tab: the panel strip's own shade, a hairline up both sides and
-   across the top, and nothing along the bottom. The first tab skips its left
-   side — the panel's own border is already there. */
+/* The open tab: the panel strip's own shade, a hairline up both sides, and
+   nothing along the bottom. No line across its top — the site bar's rule is
+   right there already. The first tab skips its left side too: the panel's own
+   border is already there. */
 .dock--top .dock__cell--on .dock__bar,
 .dock--top .dock__cell--on .dock__bar:hover {
   background: var(--surface);
   box-shadow:
     inset 1px 0 0 var(--line),
-    inset -1px 0 0 var(--line),
-    inset 0 1px 0 var(--line);
+    inset -1px 0 0 var(--line);
 }
 .dock--top .dock__cell--on:first-child .dock__bar {
-  box-shadow:
-    inset -1px 0 0 var(--line),
-    inset 0 1px 0 var(--line);
+  box-shadow: inset -1px 0 0 var(--line);
 }
 @media (max-width: 640px) {
   .dock--top {
