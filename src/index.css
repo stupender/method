@@ -243,16 +243,18 @@
     /* Neutral at night too — see the note on the paper accent. */
     --accent: #d4d4d4;
     --accent-bg: rgba(212, 212, 212, 0.12);
-    /* THE LAMP KEEPS ITS COLOUR AT NIGHT — the paper's amber, lifted to read on
-       the black, the way Becoming's lamp keeps its terracotta. It was a cream
-       white, which on near-black looked like a glow-in-the-dark sticker. The
-       ring and bloom are a little stronger than paper's, because a lamp reads
-       dimmer on black. */
-    --tick-fill: #d8823f;
-    --tick-ring: #d8823f;
+    /* A RED LAMP AT NIGHT (Stu, 2026-11-16: "more of the red, than the
+       orange") — an LED red, the way Becoming's lamp keeps a warm colour on
+       its black. It was a cream white, which on near-black looked like a
+       glow-in-the-dark sticker, then briefly the paper's amber. Brighter and
+       more saturated than the 1st degree's red ink (10.5 ΔE apart), so a lit
+       lamp never reads as a degree dot. The ring and bloom are a little
+       stronger than paper's, because a lamp reads dimmer on black. */
+    --tick-fill: #e15a50;
+    --tick-ring: #e15a50;
     --tick-glow:
-      0 0 0 2.5px rgba(216, 130, 63, 0.26),
-      0 0 9px 3px rgba(216, 130, 63, 0.38);
+      0 0 0 2.5px rgba(225, 90, 80, 0.26),
+      0 0 9px 3px rgba(225, 90, 80, 0.38);
     --tint-soft: rgba(255, 255, 255, 0.035);
     --tint-mid: rgba(255, 255, 255, 0.07);
     --shadow: rgba(0, 0, 0, 0.5);
@@ -353,16 +355,18 @@
   /* Neutral at night too — see the note on the paper accent. */
   --accent: #d4d4d4;
   --accent-bg: rgba(212, 212, 212, 0.12);
-  /* THE LAMP KEEPS ITS COLOUR AT NIGHT — the paper's amber, lifted to read on
-     the black, the way Becoming's lamp keeps its terracotta. It was a cream
-     white, which on near-black looked like a glow-in-the-dark sticker. The
-     ring and bloom are a little stronger than paper's, because a lamp reads
-     dimmer on black. */
-  --tick-fill: #d8823f;
-  --tick-ring: #d8823f;
+  /* A RED LAMP AT NIGHT (Stu, 2026-11-16: "more of the red, than the
+     orange") — an LED red, the way Becoming's lamp keeps a warm colour on
+     its black. It was a cream white, which on near-black looked like a
+     glow-in-the-dark sticker, then briefly the paper's amber. Brighter and
+     more saturated than the 1st degree's red ink (10.5 ΔE apart), so a lit
+     lamp never reads as a degree dot. The ring and bloom are a little
+     stronger than paper's, because a lamp reads dimmer on black. */
+  --tick-fill: #e15a50;
+  --tick-ring: #e15a50;
   --tick-glow:
-    0 0 0 2.5px rgba(216, 130, 63, 0.26),
-    0 0 9px 3px rgba(216, 130, 63, 0.38);
+    0 0 0 2.5px rgba(225, 90, 80, 0.26),
+    0 0 9px 3px rgba(225, 90, 80, 0.38);
   --tint-soft: rgba(255, 255, 255, 0.035);
   --tint-mid: rgba(255, 255, 255, 0.07);
   --shadow: rgba(0, 0, 0, 0.5);

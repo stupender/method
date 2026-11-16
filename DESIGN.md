@@ -294,8 +294,8 @@ full study, with live specimens, is published as an artifact:
   grey lines and strings and grey grain. Stu: the indigo version was "way too
   blue", and its pale degree dots looked "like glow in the dark". So the dots
   are the paper's riso inks again, as mid-tone chips with light numbers
-  (printed colour on a dark sheet, not lamps), and the amber survives as the
-  one light source: the moon mark and the lit selector lamps.
+  (printed colour on a dark sheet, not lamps). The light sources are few: the
+  amber moon mark, and the lit selector lamps, which glow LED red at night.
 
 The boards VALIDATE the existing coral accent (it sits in the dominant hue
 family) — Method wasn't off-direction, it was **under-supplied**: what was
