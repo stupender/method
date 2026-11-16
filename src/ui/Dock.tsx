@@ -43,8 +43,8 @@ function Cross() {
 }
 function Plus() {
   return (
-    <svg className="dock__glyph" width="13" height="13" viewBox="0 0 13 13" aria-hidden="true">
-      <path d="M6.5 0 V13 M0 6.5 H13" stroke="currentColor" strokeWidth="1.2" fill="none" />
+    <svg className="dock__glyph" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+      <path d="M5 0 V10 M0 5 H10" stroke="currentColor" strokeWidth="1.2" fill="none" />
     </svg>
   );
 }

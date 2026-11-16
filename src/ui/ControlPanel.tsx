@@ -37,6 +37,8 @@ export function ControlPanel({
   action,
   summary,
   above,
+  initialOpen,
+  onOpenChange,
   children,
 }: {
   title?: string;
@@ -60,6 +62,14 @@ export function ControlPanel({
    * when it's folded, and count towards the height the neck pins under.
    */
   above?: ReactNode;
+  /**
+   * Open or folded when it first appears. Left out, it follows the screen:
+   * open on a desktop, folded on a phone. A bar's panel passes what that bar
+   * remembers (see `panelOpen` in ui/bars.ts).
+   */
+  initialOpen?: boolean;
+  /** Told whenever the panel opens or folds, so whoever owns it can remember. */
+  onOpenChange?: (open: boolean) => void;
   children: ReactNode;
 }) {
   // Starts closed on a phone, open everywhere else, and after that it's
@@ -68,8 +78,14 @@ export function ControlPanel({
   // not a folded version of it — so a deliberate fold survives everything
   // short of that.
   const [open, setOpen] = useState(
-    () => !window.matchMedia?.(NARROW).matches,
+    () => initialOpen ?? !window.matchMedia?.(NARROW).matches,
   );
+  // Open or fold, and say so. Every change goes through here, so the owner
+  // hears about the breakpoint flips below as well as the button.
+  const changeOpen = (next: boolean) => {
+    setOpen(next);
+    onOpenChange?.(next);
+  };
   // The rows' id, for `aria-controls`. Generated rather than built from the
   // title, which has a space in it now ("Control Panel") and wouldn't make a
   // valid id.
@@ -77,7 +93,7 @@ export function ControlPanel({
   useEffect(() => {
     const mq = window.matchMedia?.(NARROW);
     if (!mq) return;
-    const sync = () => setOpen(!mq.matches);
+    const sync = () => changeOpen(!mq.matches);
     mq.addEventListener('change', sync);
     return () => mq.removeEventListener('change', sync);
   }, []);
@@ -134,7 +150,7 @@ export function ControlPanel({
             rows are never hidden there. */}
         <button
           className="panel__fold"
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => changeOpen(!open)}
           aria-expanded={open}
           aria-controls={rowsId}
         >

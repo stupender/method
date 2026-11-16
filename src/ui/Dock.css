@@ -200,8 +200,10 @@
 }
 .dock--top .dock__bars {
   display: flex;
-  /* The tabs shrink, then scroll, before they push the + off the end. */
-  flex: 0 1 auto;
+  /* The row of tabs takes all the room up to the +, which keeps the + in the
+     corner and each tab at a tab's width. More tabs than fit shrink, then
+     scroll, rather than push the + off the end. */
+  flex: 1 1 auto;
   min-width: 0;
   /* No paper above the tabs (Stu, 2026-11-16): they run right up to the site
      bar's rule, which is their top edge. */
@@ -210,7 +212,11 @@
    box: the same + as the chord cards and the panel strip. */
 .dock__add {
   flex: none;
-  width: 36px;
+  /* IN THE CORNER: at the far right of the strip, over the panel strip's own
+     marks, rather than trailing the last tab — centred over the bookmark mark
+     below it, so the strip's right edge reads as one column. */
+  width: 34px;
+  margin-right: 4px;
   display: grid;
   place-items: center;
   font: inherit;

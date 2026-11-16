@@ -414,7 +414,8 @@ function App() {
     setProgression((p) => {
       if (!p.started) return { ...p, started: true };
       const source = p.bars.find((b) => b.id === p.selected) ?? p.bars[0];
-      const bar = makeBar(source.state);
+      // A copy is folded or open like the bar it copies.
+      const bar = { ...makeBar(source.state), panelOpen: source.panelOpen };
       return { bars: [...p.bars, bar], selected: bar.id, started: true };
     });
   // + ON A CHORD'S TAB CARD: that chord, as a new bar at the END of the
@@ -426,8 +427,15 @@ function App() {
       const source = p.bars.find((b) => b.id === p.selected) ?? p.bars[0];
       // With no progression yet, the panel as it stands becomes bar 1 and the
       // chord comes after it — the same as adding to a progression of one.
-      return { ...p, bars: [...p.bars, makeBar({ ...source.state, degree })], started: true };
+      const bar = { ...makeBar({ ...source.state, degree }), panelOpen: source.panelOpen };
+      return { ...p, bars: [...p.bars, bar], started: true };
     });
+  // The open bar's panel was opened or folded: remember it on that bar.
+  const rememberPanelOpen = (open: boolean) =>
+    setProgression((p) => ({
+      ...p,
+      bars: p.bars.map((b) => (b.id === p.selected ? { ...b, panelOpen: open } : b)),
+    }));
   // Remove a bar; its neighbour takes the selection. × on the ONLY bar puts
   // the progression away: the strip goes, the panel stays exactly as it was.
   const removeBar = (id: string) =>
@@ -667,6 +675,9 @@ function App() {
               // end of them; with no progression (or the bars at the bottom)
               // it's in the panel's title strip instead.
               onAddBar={BARS_ON_TOP && progression.started ? undefined : addBar}
+              // EACH TAB REMEMBERS ITS PANEL, open or folded.
+              panelOpen={selectedBar.panelOpen}
+              onPanelOpenChange={rememberPanelOpen}
               onAddChordBar={addChordBar}
               above={BARS_ON_TOP && progression.started ? barsStrip('top') : undefined}
               {...moduleShared}
@@ -875,6 +886,8 @@ function Module({
   onAddBar,
   onAddChordBar,
   above,
+  panelOpen,
+  onPanelOpenChange,
   bookmarks,
   onToggleBookmark,
   onRestore,
@@ -902,6 +915,10 @@ function Module({
   /** Anything to show inside the control panel's box, above its title strip —
    *  the progression's bars, when they sit on top (BARS_ON_TOP). */
   above?: ReactNode;
+  /** This bar's panel: open or folded when it appears (absent = the default). */
+  panelOpen?: boolean;
+  /** Told when this panel is opened or folded, so the bar remembers. */
+  onPanelOpenChange?: (open: boolean) => void;
   /**
    * WHICH AREA THIS PANEL IS IN — the fretboard, or the listening drill.
    *
@@ -1220,6 +1237,8 @@ function Module({
           key-centric section; re-add 'chord' to the list to show it.) */}
       <ControlPanel
         above={above}
+        initialOpen={panelOpen}
+        onOpenChange={onPanelOpenChange}
         /* What a folded panel says on a phone — the same facts the rows carry,
            in the order they're read: key, then which degree is home, then what
            you're looking at. `describe` already writes exactly this line for a

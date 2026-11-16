@@ -30,6 +30,18 @@ export interface Bar {
    * appears, so a new `rev` is how the app says "start over from this".
    */
   rev: number;
+  /**
+   * WHETHER THIS BAR'S CONTROL PANEL IS OPEN OR FOLDED, so switching tabs
+   * keeps each one how you left it — fold two bars and you can flip between
+   * their fretboards with nothing in the way (Stu, 2026-11-16). Absent until
+   * you first open or fold it; then the panel's usual default (open on a
+   * desktop, folded on a phone) applies.
+   *
+   * Kept on the BAR, not in its setting (`state`), because it's how you were
+   * looking at the bar, not what the bar is: a bookmark or a shared link of
+   * the same setting shouldn't carry it.
+   */
+  panelOpen?: boolean;
 }
 
 export interface Progression {
@@ -78,6 +90,7 @@ export function loadProgression(): Progression {
         .map((b) => ({
           id: b.id,
           rev: 0,
+          panelOpen: typeof b.panelOpen === 'boolean' ? b.panelOpen : undefined,
           state: { ...defaultModuleState(FALLBACK_SCALE), ...b.state },
         }));
       if (bars.length > 0) {

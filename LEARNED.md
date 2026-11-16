@@ -2126,3 +2126,9 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   closer than 10 "ΔE" (a measure of how different two colours look). Pale
   colours on black read as glowing, so night dots are mid-tone ink with light
   numbers instead.
+- **Remembering UI state per item** (2026-11-16) — the control panel still owns
+  whether it's open, but it can be told how to START (`initialOpen`) and it
+  reports every change (`onOpenChange`). The app stores the answer on each bar
+  (`panelOpen` in ui/bars.ts), so switching tabs keeps each panel as you left it.
+  It lives on the bar, not in the bar's setting, so bookmarks and shared links
+  don't carry it.
