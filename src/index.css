@@ -6,8 +6,9 @@
 
      PAPER — riso ink on warm oatmeal stock. Terracotta, tan, sand, with a
              slate-blue cool pole. Printed, grainy, physical.
-     NIGHT — an indigo-black field with a single amber source: firelight, the
-             moon, a lamp under a shelf of records. Deep teal and violet.
+     NIGHT — a neutral near-black, as in Soundscape and Becoming (it was an
+             indigo-black until 2026-11-16). The same riso inks, printed on a
+             dark sheet; one amber source — the moon mark, the lit lamps.
 
    EVERY colour in the app comes from the tokens below, and every token is
    defined twice — once for each world. That is the whole trick: no component
@@ -169,6 +170,8 @@
   /* ---- PAPER: texture --------------------------------------------------- */
   --grain-opacity: 0.28; /* the style sheet's tooth */
   --grain-blend: multiply;
+  /* The noise itself — a token so night can swap in a grey version. */
+  --grain-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
 
   /* ---- Type ------------------------------------------------------------- */
   /* Newsreader + Karla (loaded in index.html), each with the system stack that
@@ -209,90 +212,97 @@
    ========================================================================== */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='paper']) {
-    --bg: #14151d;
-    --surface: #1e202b;
-    --surface-sunk: #0e0f16;
-    --neck: #1a1c26;
-    --line: #2b2f3d;
-    --tab-line: #363b4d;
-    --string: #4a5063;
-    --inlay: #2a2f3e;
+    /* A NEUTRAL NEAR-BLACK, as in Soundscape and Becoming (Stu, 2026-11-16:
+       "way too blue"). It was an indigo-black — #14151d, with slate lines,
+       blue-grey strings and a blue glow behind the page. Now every ground,
+       line and string is a true grey: the family's night is charcoal, and the
+       only colour on it is the colour that means something. */
+    --bg: #171717;
+    --surface: #1f1f1f;
+    --surface-sunk: #111111;
+    --neck: #1b1b1b;
+    --line: #2b2b2b;
+    --tab-line: #363636;
+    --string: #4d4d4d;
+    --inlay: #2e2e2e;
+    --line-on: #5e5e5e;
     /* Keys at night are LIT, not inverted: a keyboard under a stage lamp.
-     The white stays the lighter of the two, because a keyboard the other way
-     round is not a keyboard. */
-  --line-on: #5a6478;
-  --key-white: #b9bcca;
-  --key-black: #23262f;
-  --key-edge: #8f94a3;
+       The white stays the lighter of the two, because a keyboard the other
+       way round is not a keyboard. */
+    --key-white: #c6c6c6;
+    --key-black: #262626;
+    --key-edge: #8c8c8c;
 
-    --ink: #ece7dc;
-    --muted: #938c7e;
-    --on-ink: #14151d;
-    --note-label: #14151d;
+    /* Neutral type, as Becoming found: warm-tinted type on a neutral black
+       reads as a colour cast, not as warmth. */
+    --ink: #e2e2e2;
+    --muted: #979797;
+    --on-ink: #171717;
+    --note-label: #f2f0ec;
 
-    /* Neutral at night too — see the note on the paper accent. The amber was 15
-       delta-E from the 2nd degree, which is nearer than most of the degrees are
-       to each other. */
-    --accent: #d9d2c4;
-    --accent-bg: rgba(217, 210, 196, 0.14);
-    /* At night the dots are the only lit things in a dark box, so they behave
-    like the LEDs they resemble — the same lamp as paper (see the note there),
-    a solid core in a ring and a bloom, given a little more light because a
-    lamp reads dimmer on near-black. Still small switches catching the light,
-    not the neon the fretboard dots were rescued from. */
-    --tick-fill: #ece6d9;
-    --tick-ring: #ece6d9;
+    /* Neutral at night too — see the note on the paper accent. */
+    --accent: #d4d4d4;
+    --accent-bg: rgba(212, 212, 212, 0.12);
+    /* THE LAMP KEEPS ITS COLOUR AT NIGHT — the paper's amber, lifted to read on
+       the black, the way Becoming's lamp keeps its terracotta. It was a cream
+       white, which on near-black looked like a glow-in-the-dark sticker. The
+       ring and bloom are a little stronger than paper's, because a lamp reads
+       dimmer on black. */
+    --tick-fill: #d8823f;
+    --tick-ring: #d8823f;
     --tick-glow:
-      0 0 0 2.5px rgba(217, 210, 196, 0.26),
-      0 0 9px 3px rgba(217, 210, 196, 0.42);
-    --tint-soft: rgba(236, 231, 220, 0.04);
-    --tint-mid: rgba(236, 231, 220, 0.08);
+      0 0 0 2.5px rgba(216, 130, 63, 0.26),
+      0 0 9px 3px rgba(216, 130, 63, 0.38);
+    --tint-soft: rgba(255, 255, 255, 0.035);
+    --tint-mid: rgba(255, 255, 255, 0.07);
     --shadow: rgba(0, 0, 0, 0.5);
 
     --heat-0: #e8b072;
     --heat-1: #b8794e;
     --heat-2: #35708a;
-    --heat-3: #3b3f66;
-    --on-heat-0: #14151d;
-    --on-heat-1: #14151d;
-    --on-heat-2: #ece7dc;
-    --on-heat-3: #ece7dc;
+    --heat-3: #4a4d66;
+    --on-heat-0: #171717;
+    --on-heat-1: #171717;
+    --on-heat-2: #e2e2e2;
+    --on-heat-3: #e2e2e2;
 
     --fn-blues: #d9a05a;
     --fn-secondary: #e8785c;
     --fn-borrowed: #4fb3c9;
     --fn-tritone: #9a92e0;
 
-    --deg-1: #be7173;
-    --deg-2: #c49166;
-    --deg-3: #d2c889;
-    --deg-4: #76a371;
-    --deg-5: #43aad0;
-    --deg-6: #a6aae6;
-    --deg-7: #b37ba9;
-  /* THE NIGHT RAMP, spaced by measurement rather than by eye. The old set had
-     orange and yellow only 16 ΔE apart and indigo and violet 12 — close enough
-     that two dots on the same fret could read as one colour. Same ROYGBIV
-     order, but with the crowded ends opened up (red-to-yellow and
-     blue-to-violet both had too little of the hue circle between them), every
-     neighbouring pair now at least 26 ΔE apart, and chroma capped so it stays
-     riso rather than going neon. Yellow keeps its lightness on purpose: a dark
-     yellow is an olive.
+    /* THE DEGREES AT NIGHT ARE INK, NOT LIGHT (Stu, 2026-11-16: the dots
+       "get kind of weird, like glow in the dark"). They were pale pastels
+       carrying dark numbers — on black, a pale disc reads as something
+       luminous, and a field of them (worse, the faded ones) looked like
+       glow-in-the-dark stickers. Now they're the paper's own riso inks, the
+       same seven hues, set as mid-tone chips with LIGHT numbers, as on paper:
+       printed colour on a dark sheet, not lamps.
 
-     And the LABEL FLIPS. At night the dots are light and the page is dark, so
-     dark ink is the readable choice on all seven. The old set inherited the
-     paper rule — light ink, dark on the two palest — which put a light label
-     on a light dot at about 2:1. Dark ink is 4.7:1 at worst.
+       Chosen by measurement: hue held near each paper ink; lightness and
+       chroma moderate (riso, never neon); every dot at least 3.4:1 against the
+       black and 3.3:1 against its number; and every pair of degrees at least
+       10 OKLab ΔE apart — further apart than the paper set (6.0) or the old
+       night set (7.7). The 3 stays a light marigold with a dark number, as on
+       paper: a dark yellow is an olive.
 
-     Previous values: #d9846a #dba666 #c0a044 #94bc85 #5b9fbd #a3a7d1 #b99bc6. */
+       Previous (pastel) values: #be7173 #c49166 #d2c889 #76a371 #43aad0
+       #a6aae6 #b37ba9. */
+    --deg-1: #ac524d; /* R */
+    --deg-2: #bf702b; /* O */
+    --deg-3: #e2b450; /* Y — carries a dark number */
+    --deg-4: #668c5e; /* G */
+    --deg-5: #238cb3; /* B */
+    --deg-6: #5769a7; /* I */
+    --deg-7: #9a6b99; /* V */
 
-    --deg-1-ink: #201a12;
-    --deg-2-ink: #201a12;
-    --deg-3-ink: #201a12;
-    --deg-4-ink: #201a12;
-    --deg-5-ink: #201a12;
-    --deg-6-ink: #201a12;
-    --deg-7-ink: #201a12;
+    --deg-1-ink: var(--note-label);
+    --deg-2-ink: var(--note-label);
+    --deg-3-ink: #1a1712;
+    --deg-4-ink: var(--note-label);
+    --deg-5-ink: var(--note-label);
+    --deg-6-ink: var(--note-label);
+    --deg-7-ink: var(--note-label);
 
     --correct: #6fa564;
     --wrong: #d9695c;
@@ -301,96 +311,108 @@
     --mark-glow: rgba(240, 197, 131, 0.34);
     --mark-glow-far: rgba(240, 197, 131, 0.13);
 
-    --grain-opacity: 0.05;
-    --grain-blend: normal;
+    /* Grey grain, laid on softly — Becoming's night grain. The paper grain
+       is coloured noise; screened over a neutral black it read as static and
+       tinted things, so at night the colour is taken out (saturate 0) and it
+       can only make the black a little uneven. */
+    --grain-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+    --grain-opacity: 0.4;
+    --grain-blend: soft-light;
   }
 }
 
 :root[data-theme='night'] {
-  --bg: #14151d;
-  --surface: #1e202b;
-  --surface-sunk: #0e0f16;
-  --neck: #1a1c26;
-  --line: #2b2f3d;
-  --tab-line: #363b4d;
-  --string: #4a5063;
-  --inlay: #2a2f3e;
+  /* A NEUTRAL NEAR-BLACK, as in Soundscape and Becoming (Stu, 2026-11-16:
+     "way too blue"). It was an indigo-black — #14151d, with slate lines,
+     blue-grey strings and a blue glow behind the page. Now every ground,
+     line and string is a true grey: the family's night is charcoal, and the
+     only colour on it is the colour that means something. */
+  --bg: #171717;
+  --surface: #1f1f1f;
+  --surface-sunk: #111111;
+  --neck: #1b1b1b;
+  --line: #2b2b2b;
+  --tab-line: #363636;
+  --string: #4d4d4d;
+  --inlay: #2e2e2e;
+  --line-on: #5e5e5e;
   /* Keys at night are LIT, not inverted: a keyboard under a stage lamp.
-     The white stays the lighter of the two, because a keyboard the other way
-     round is not a keyboard. */
-  --line-on: #5a6478;
-  --key-white: #b9bcca;
-  --key-black: #23262f;
-  --key-edge: #8f94a3;
+     The white stays the lighter of the two, because a keyboard the other
+     way round is not a keyboard. */
+  --key-white: #c6c6c6;
+  --key-black: #262626;
+  --key-edge: #8c8c8c;
 
-  --ink: #ece7dc;
-  --muted: #938c7e;
-  --on-ink: #14151d;
-  --note-label: #14151d;
+  /* Neutral type, as Becoming found: warm-tinted type on a neutral black
+     reads as a colour cast, not as warmth. */
+  --ink: #e2e2e2;
+  --muted: #979797;
+  --on-ink: #171717;
+  --note-label: #f2f0ec;
 
-  /* Neutral at night too — see the note on the paper accent. The amber was 15
-     delta-E from the 2nd degree, which is nearer than most of the degrees are
-     to each other. */
-  --accent: #d9d2c4;
-  --accent-bg: rgba(217, 210, 196, 0.14);
-  /* At night the dots are the only lit things in a dark box, so they behave
-  like the LEDs they resemble — the same lamp as paper (see the note there),
-  a solid core in a ring and a bloom, given a little more light because a
-  lamp reads dimmer on near-black. Still small switches catching the light,
-  not the neon the fretboard dots were rescued from. */
-  --tick-fill: #ece6d9;
-  --tick-ring: #ece6d9;
+  /* Neutral at night too — see the note on the paper accent. */
+  --accent: #d4d4d4;
+  --accent-bg: rgba(212, 212, 212, 0.12);
+  /* THE LAMP KEEPS ITS COLOUR AT NIGHT — the paper's amber, lifted to read on
+     the black, the way Becoming's lamp keeps its terracotta. It was a cream
+     white, which on near-black looked like a glow-in-the-dark sticker. The
+     ring and bloom are a little stronger than paper's, because a lamp reads
+     dimmer on black. */
+  --tick-fill: #d8823f;
+  --tick-ring: #d8823f;
   --tick-glow:
-    0 0 0 2.5px rgba(217, 210, 196, 0.26),
-    0 0 9px 3px rgba(217, 210, 196, 0.42);
-  --tint-soft: rgba(236, 231, 220, 0.04);
-  --tint-mid: rgba(236, 231, 220, 0.08);
+    0 0 0 2.5px rgba(216, 130, 63, 0.26),
+    0 0 9px 3px rgba(216, 130, 63, 0.38);
+  --tint-soft: rgba(255, 255, 255, 0.035);
+  --tint-mid: rgba(255, 255, 255, 0.07);
   --shadow: rgba(0, 0, 0, 0.5);
 
   --heat-0: #e8b072;
   --heat-1: #b8794e;
   --heat-2: #35708a;
-  --heat-3: #3b3f66;
-  --on-heat-0: #14151d;
-  --on-heat-1: #14151d;
-  --on-heat-2: #ece7dc;
-  --on-heat-3: #ece7dc;
+  --heat-3: #4a4d66;
+  --on-heat-0: #171717;
+  --on-heat-1: #171717;
+  --on-heat-2: #e2e2e2;
+  --on-heat-3: #e2e2e2;
 
   --fn-blues: #d9a05a;
   --fn-secondary: #e8785c;
   --fn-borrowed: #4fb3c9;
   --fn-tritone: #9a92e0;
 
-  --deg-1: #be7173;
-  --deg-2: #c49166;
-  --deg-3: #d2c889;
-  --deg-4: #76a371;
-  --deg-5: #43aad0;
-  --deg-6: #a6aae6;
-  --deg-7: #b37ba9;
-  /* THE NIGHT RAMP, spaced by measurement rather than by eye. The old set had
-     orange and yellow only 16 ΔE apart and indigo and violet 12 — close enough
-     that two dots on the same fret could read as one colour. Same ROYGBIV
-     order, but with the crowded ends opened up (red-to-yellow and
-     blue-to-violet both had too little of the hue circle between them), every
-     neighbouring pair now at least 26 ΔE apart, and chroma capped so it stays
-     riso rather than going neon. Yellow keeps its lightness on purpose: a dark
-     yellow is an olive.
+  /* THE DEGREES AT NIGHT ARE INK, NOT LIGHT (Stu, 2026-11-16: the dots
+     "get kind of weird, like glow in the dark"). They were pale pastels
+     carrying dark numbers — on black, a pale disc reads as something
+     luminous, and a field of them (worse, the faded ones) looked like
+     glow-in-the-dark stickers. Now they're the paper's own riso inks, the
+     same seven hues, set as mid-tone chips with LIGHT numbers, as on paper:
+     printed colour on a dark sheet, not lamps.
 
-     And the LABEL FLIPS. At night the dots are light and the page is dark, so
-     dark ink is the readable choice on all seven. The old set inherited the
-     paper rule — light ink, dark on the two palest — which put a light label
-     on a light dot at about 2:1. Dark ink is 4.7:1 at worst.
+     Chosen by measurement: hue held near each paper ink; lightness and
+     chroma moderate (riso, never neon); every dot at least 3.4:1 against the
+     black and 3.3:1 against its number; and every pair of degrees at least
+     10 OKLab ΔE apart — further apart than the paper set (6.0) or the old
+     night set (7.7). The 3 stays a light marigold with a dark number, as on
+     paper: a dark yellow is an olive.
 
-     Previous values: #d9846a #dba666 #c0a044 #94bc85 #5b9fbd #a3a7d1 #b99bc6. */
+     Previous (pastel) values: #be7173 #c49166 #d2c889 #76a371 #43aad0
+     #a6aae6 #b37ba9. */
+  --deg-1: #ac524d; /* R */
+  --deg-2: #bf702b; /* O */
+  --deg-3: #e2b450; /* Y — carries a dark number */
+  --deg-4: #668c5e; /* G */
+  --deg-5: #238cb3; /* B */
+  --deg-6: #5769a7; /* I */
+  --deg-7: #9a6b99; /* V */
 
-  --deg-1-ink: #201a12;
-  --deg-2-ink: #201a12;
-  --deg-3-ink: #201a12;
-  --deg-4-ink: #201a12;
-  --deg-5-ink: #201a12;
-  --deg-6-ink: #201a12;
-  --deg-7-ink: #201a12;
+  --deg-1-ink: var(--note-label);
+  --deg-2-ink: var(--note-label);
+  --deg-3-ink: #1a1712;
+  --deg-4-ink: var(--note-label);
+  --deg-5-ink: var(--note-label);
+  --deg-6-ink: var(--note-label);
+  --deg-7-ink: var(--note-label);
 
   --correct: #6fa564;
   --wrong: #d9695c;
@@ -399,8 +421,13 @@
   --mark-glow: rgba(240, 197, 131, 0.34);
   --mark-glow-far: rgba(240, 197, 131, 0.13);
 
-  --grain-opacity: 0.05;
-  --grain-blend: normal;
+  /* Grey grain, laid on softly — Becoming's night grain. The paper grain
+     is coloured noise; screened over a neutral black it read as static and
+     tinted things, so at night the colour is taken out (saturate 0) and it
+     can only make the black a little uneven. */
+  --grain-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grain-opacity: 0.4;
+  --grain-blend: soft-light;
 }
 
 * {
@@ -414,42 +441,15 @@ body {
   min-height: 100vh;
 }
 
-/* At night the ground gets depth — the boards' night images always have a
-   horizon or a glow behind the subject, never flat black. It goes on :root,
-   not body: body's box stops where the content does, which left a visible
-   seam across the page near the bottom of a long view. */
-:root[data-theme='night'] {
-  background:
-    radial-gradient(120% 80% at 50% -10%, #1e2030 0%, rgba(30, 32, 48, 0) 60%),
-    var(--bg);
-  background-attachment: fixed;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='paper']) {
-    background:
-      radial-gradient(120% 80% at 50% -10%, #1e2030 0%, rgba(30, 32, 48, 0) 60%),
-      var(--bg);
-    background-attachment: fixed;
-  }
-}
-/* …and body must then be transparent so it doesn't paint over it. */
-:root[data-theme='night'] body {
-  background: transparent;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='paper']) body {
-    background: transparent;
-  }
-}
-
 /* PAPER GRAIN — a fine noise tile laid over everything so the ground reads as
    printed stock rather than flat colour. Generated by SVG (feTurbulence) in a
    data URI: no image file to load or maintain. Two details make it behave:
      - `fixed`, so it sits still like the paper the app is printed on instead
        of sliding around with the content;
      - `pointer-events: none`, so it never swallows a click.
-   On paper it MULTIPLIES (ink soaking into stock); at night it SCREENS
-   (starfield haze), because multiplying into a dark ground does nothing. */
+   On paper it MULTIPLIES (ink soaking into stock); at night it's grey noise
+   laid on with SOFT-LIGHT, because multiplying into a dark ground does
+   nothing and coloured noise on black reads as static. */
 body::after {
   content: '';
   position: fixed;
@@ -458,7 +458,7 @@ body::after {
   pointer-events: none;
   opacity: var(--grain-opacity);
   mix-blend-mode: var(--grain-blend);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-image: var(--grain-image);
 }
 
 @media (prefers-reduced-motion: reduce) {

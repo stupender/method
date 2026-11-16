@@ -2119,3 +2119,10 @@ becomes `STUDY_GUIDE.md` in the final teaching session. Newest at the bottom.
   the progression's bars inside its own box that way, so they float with it
   without the panel knowing anything about bars. `BARS_ON_TOP` in ui/flags.ts
   switches back to the bottom dock.
+- **Choosing colours by measurement** (2026-11-16) — the night dot colours were
+  picked by a small script, not by eye: keep each paper ink's hue, then search
+  lightness and saturation for a set where every dot contrasts with the black
+  ground (≥ 3.4:1) and with its number (≥ 3.3:1), and where no two degrees are
+  closer than 10 "ΔE" (a measure of how different two colours look). Pale
+  colours on black read as glowing, so night dots are mid-tone ink with light
+  numbers instead.

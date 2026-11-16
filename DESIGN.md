@@ -289,6 +289,13 @@ full study, with live specimens, is published as an artifact:
   that survives is amber: firelight, moonlight, a lamp under a shelf of
   records, against deep teal and indigo. **This is the half that isn't built**,
   and it's exactly the "constellations + bioluminescence" backlog line.
+  **Night as built (2026-11-16):** not indigo after all — a neutral
+  near-black (`#171717`), the same charcoal Soundscape and Becoming use, with
+  grey lines and strings and grey grain. Stu: the indigo version was "way too
+  blue", and its pale degree dots looked "like glow in the dark". So the dots
+  are the paper's riso inks again, as mid-tone chips with light numbers
+  (printed colour on a dark sheet, not lamps), and the amber survives as the
+  one light source: the moon mark and the lit selector lamps.
 
 The boards VALIDATE the existing coral accent (it sits in the dominant hue
 family) — Method wasn't off-direction, it was **under-supplied**: what was

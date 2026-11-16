@@ -11,7 +11,7 @@
   height: auto;
   display: block;
   /* The neck is its own surface, a clear step away from the page ground in
-     whichever world we're in (warm board on paper, deep slate at night). */
+     whichever world we're in (warm board on paper, charcoal at night). */
   background: var(--neck);
   border-radius: var(--radius);
 }
