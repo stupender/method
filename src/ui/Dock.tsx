@@ -30,6 +30,25 @@ import type { Interpretation } from '../theory/suggest';
 import type { BarSummary } from './bars';
 import './Dock.css';
 
+// THE × AND THE +, DRAWN rather than typed. A font sets "×" and "+" a little
+// below the middle of its line, so as text they never quite centre on the
+// tab beside the chord; two crossed strokes centre exactly. They take the
+// button's text colour (currentColor), so hover still darkens them.
+function Cross() {
+  return (
+    <svg className="dock__glyph" width="9" height="9" viewBox="0 0 9 9" aria-hidden="true">
+      <path d="M1 1 L8 8 M8 1 L1 8" stroke="currentColor" strokeWidth="1.2" fill="none" />
+    </svg>
+  );
+}
+function Plus() {
+  return (
+    <svg className="dock__glyph" width="13" height="13" viewBox="0 0 13 13" aria-hidden="true">
+      <path d="M6.5 0 V13 M0 6.5 H13" stroke="currentColor" strokeWidth="1.2" fill="none" />
+    </svg>
+  );
+}
+
 export function Dock({
   placement = 'bottom',
   bars,
@@ -118,7 +137,7 @@ export function Dock({
                 aria-label={bars.length > 1 ? `Remove bar ${i + 1}` : 'Clear the progression'}
                 title={bars.length > 1 ? 'Remove this bar' : 'Clear the progression'}
               >
-                ×
+                <Cross />
               </button>
             </li>
           );
@@ -133,7 +152,7 @@ export function Dock({
           aria-label="Add a bar — a copy of this one"
           title="Add a bar"
         >
-          +
+          <Plus />
         </button>
       )}
     </nav>

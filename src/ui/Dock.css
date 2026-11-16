@@ -50,7 +50,9 @@
   gap: 8px;
   width: 100%;
   min-width: 0;
-  padding: 7px 28px 8px 12px;
+  /* Equal above and below, so the tab's middle line is its true middle — the
+     line the dot, chord, numeral, × and + all centre on. */
+  padding: 7.5px 28px 7.5px 12px;
   text-align: left;
   font: inherit;
   color: var(--muted);
@@ -118,12 +120,15 @@
 .dock__remove:hover {
   color: var(--ink);
 }
-/* The dot and the chord sit on the same line; the small words share the
-   chord's baseline. */
+/* THE DOT, THE CHORD AND ITS NUMERAL ALL CENTRED on the tab's middle line
+   (Stu, 2026-11-16), rather than the small words sitting down on the big
+   chord's baseline. Each is set solid (line-height 1) so its box is just its
+   letters, and the row centres the boxes. */
 .dock__sym,
 .dock__fn,
 .dock__key {
-  align-self: baseline;
+  align-self: center;
+  line-height: 1;
 }
 .dock__bar:focus-visible,
 .dock__remove:focus-visible {
@@ -142,6 +147,12 @@
   .dock__sym {
     font-size: 17px;
   }
+}
+
+/* The drawn × and + (see Cross and Plus in Dock.tsx): a block, so no text
+   line adds space under them and the button centres just the strokes. */
+.dock__glyph {
+  display: block;
 }
 
 /* A × on every bar, like a browser tab's: always on the open bar, and on the
