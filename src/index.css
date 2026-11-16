@@ -88,11 +88,14 @@
      shape between themes is two marks. Paper's glow is the quieter of the two;
      on near-black a lamp reads dimmer, so night gives it a little more —
      the same strengths Becoming uses for its menu. */
-  --tick-fill: #b46218;
-  --tick-ring: #b46218;
+  /* RED, by day as by night (Stu, 2026-11-16). It was an amber, #b46218.
+     A vivid LED red — 3.76:1 on the paper, and 9.1 ΔE clear of the 1st
+     degree's duller brick red, so a lit lamp reads as a lamp. */
+  --tick-fill: #d9453e;
+  --tick-ring: #d9453e;
   --tick-glow:
-    0 0 0 2.5px rgba(180, 98, 24, 0.18),
-    0 0 7px 2px rgba(180, 98, 24, 0.3);
+    0 0 0 2.5px rgba(217, 69, 62, 0.18),
+    0 0 7px 2px rgba(217, 69, 62, 0.3);
   --tint-soft: rgba(31, 28, 23, 0.04); /* barely-there panel wash */
   --tint-mid: rgba(31, 28, 23, 0.08);
   --shadow: rgba(31, 28, 23, 0.16);
@@ -246,7 +249,7 @@
     /* A RED LAMP AT NIGHT (Stu, 2026-11-16: "more of the red, than the
        orange") — an LED red, the way Becoming's lamp keeps a warm colour on
        its black. It was a cream white, which on near-black looked like a
-       glow-in-the-dark sticker, then briefly the paper's amber. Brighter and
+       glow-in-the-dark sticker, then briefly amber. Brighter and
        more saturated than the 1st degree's red ink (10.5 ΔE apart), so a lit
        lamp never reads as a degree dot. The ring and bloom are a little
        stronger than paper's, because a lamp reads dimmer on black. */
@@ -358,7 +361,7 @@
   /* A RED LAMP AT NIGHT (Stu, 2026-11-16: "more of the red, than the
      orange") — an LED red, the way Becoming's lamp keeps a warm colour on
      its black. It was a cream white, which on near-black looked like a
-     glow-in-the-dark sticker, then briefly the paper's amber. Brighter and
+     glow-in-the-dark sticker, then briefly amber. Brighter and
      more saturated than the 1st degree's red ink (10.5 ΔE apart), so a lit
      lamp never reads as a degree dot. The ring and bloom are a little
      stronger than paper's, because a lamp reads dimmer on black. */
