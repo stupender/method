@@ -47,7 +47,6 @@ import {
   LESSONS,
   SUBSTACK,
 } from './ui/links';
-import { alreadyAsked, markDismissed } from './ui/asked';
 import { BookmarksMenu, SaveBookmark } from './ui/Bookmarks';
 import {
   defaultModuleState,
@@ -481,12 +480,6 @@ function App() {
   // instrument made impossible.)
 
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => loadBookmarks());
-  // THE ONE TIME THIS APP ASKS FOR ANYTHING. Saving your first setting is the
-  // moment the offer is true — what you just saved lives in this browser and
-  // nowhere else — so that's when the invitation appears, and only then. Not
-  // on arrival: the first ten seconds are the point of the whole thing and
-  // shouldn't be spent on a form. See Subscribe.tsx.
-  const [invite, setInvite] = useState(false);
   // PUT ONE IN THE LIST. Separate from the save button's toggle on purpose:
   // pressing the bookmark twice on one setting should unsave it, but pasting a
   // setting you already have must not silently delete it.
@@ -502,9 +495,6 @@ function App() {
     ]);
   };
   const writeBookmarks = (next: Bookmark[]) => {
-    if (bookmarks.length === 0 && next.length === 1 && !alreadyAsked()) {
-      setInvite(true);
-    }
     setBookmarks(next);
     saveBookmarks(next);
   };
@@ -804,18 +794,12 @@ function App() {
             © {new Date().getFullYear()} {AUTHOR}. Being Sound.
           </p>
         </div>
+        {/* THE ONLY PLACE THIS APP ASKS FOR ANYTHING: a quiet line in the
+            footer, free to ignore. Nothing pops up — the corner invitation
+            that used to arrive after your first saved setting is retired
+            (Stu, 2026-11-16). See Subscribe.tsx. */}
         <Subscribe variant="footer" />
       </footer>
-
-      {invite && (
-        <Subscribe
-          variant="invitation"
-          onClose={() => {
-            markDismissed();
-            setInvite(false);
-          }}
-        />
-      )}
     </main>
   );
 }
