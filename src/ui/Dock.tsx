@@ -38,6 +38,7 @@ export function Dock({
   functions,
   onSelect,
   onRemove,
+  onAdd,
 }: {
   /** Fixed to the bottom of the screen, or a row on top of the control panel. */
   placement?: 'bottom' | 'top';
@@ -50,6 +51,8 @@ export function Dock({
   functions: (Interpretation | null)[];
   onSelect: (id: string) => void;
   onRemove: (id: string) => void;
+  /** If given, a + after the last bar adds one (a copy of the open bar). */
+  onAdd?: () => void;
 }) {
   const dock = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -121,6 +124,18 @@ export function Dock({
           );
         })}
       </ol>
+      {/* THE NEW-TAB BUTTON: a faint + right after the last bar, as in a
+          browser. It adds a copy of the open bar at the end and opens it. */}
+      {onAdd && (
+        <button
+          className="dock__add"
+          onClick={onAdd}
+          aria-label="Add a bar — a copy of this one"
+          title="Add a bar"
+        >
+          +
+        </button>
+      )}
     </nav>
   );
 }

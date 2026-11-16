@@ -180,14 +180,47 @@
   z-index: auto;
   border: 0;
   padding: 0;
+  /* The tabs, then the + — side by side. */
+  display: flex;
+  align-items: stretch;
+  /* The line the closed tabs (and the +) stand on. Inset, so the open tab's
+     own background paints over it — that's the gap. */
+  box-shadow: inset 0 -1px 0 var(--line);
 }
 .dock--top .dock__bars {
   display: flex;
+  /* The tabs shrink, then scroll, before they push the + off the end. */
+  flex: 0 1 auto;
+  min-width: 0;
   /* A breath of paper above the tabs, under the site bar's rule. */
   padding-top: 6px;
-  /* The line the closed tabs stand on. Inset, so the open tab's own
-     background paints over it — that's the gap. */
-  box-shadow: inset 0 -1px 0 var(--line);
+}
+/* THE + AFTER THE LAST TAB — thin and faint at rest, full ink on hover, no
+   box: the same + as the chord cards and the panel strip. */
+.dock__add {
+  flex: none;
+  width: 36px;
+  margin-top: 6px;
+  display: grid;
+  place-items: center;
+  font: inherit;
+  font-size: 20px;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--ink);
+  opacity: 0.35;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.dock__add:hover {
+  opacity: 1;
+}
+.dock__add:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
 }
 .dock--top .dock__cell {
   flex: 0 1 210px;

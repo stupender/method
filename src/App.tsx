@@ -406,17 +406,16 @@ function App() {
       ...p,
       bars: p.bars.map((b) => (b.id === p.selected ? { ...b, state } : b)),
     }));
-  // + BAR: a copy of the selected bar, placed right after it, and selected.
-  // With no progression yet, + starts one: the panel as it stands is bar 1.
+  // + BAR: a copy of the selected bar, added at the END and opened — like a
+  // browser's new-tab button, which is where this + sits (at the end of the
+  // tabs). With no progression yet, + starts one: the panel as it stands is
+  // bar 1.
   const addBar = () =>
     setProgression((p) => {
       if (!p.started) return { ...p, started: true };
-      const at = p.bars.findIndex((b) => b.id === p.selected);
-      const source = p.bars[at] ?? p.bars[0];
+      const source = p.bars.find((b) => b.id === p.selected) ?? p.bars[0];
       const bar = makeBar(source.state);
-      const bars = [...p.bars];
-      bars.splice(at + 1, 0, bar);
-      return { bars, selected: bar.id, started: true };
+      return { bars: [...p.bars, bar], selected: bar.id, started: true };
     });
   // + ON A CHORD'S TAB CARD: that chord, as a new bar at the END of the
   // progression — and the selection stays where it is. You're browsing the
@@ -584,6 +583,8 @@ function App() {
       functions={reading.functions}
       onSelect={(id) => setProgression((p) => ({ ...p, selected: id }))}
       onRemove={removeBar}
+      // On top, the + sits at the end of the tabs, like a browser's.
+      onAdd={placement === 'top' ? addBar : undefined}
     />
   );
 
@@ -662,7 +663,10 @@ function App() {
               initial={selectedBar.state}
               studyMode="fretboard"
               onChange={updateSelectedBar}
-              onAddBar={addBar}
+              // ONE + AT A TIME. While the tabs are showing, the + is at the
+              // end of them; with no progression (or the bars at the bottom)
+              // it's in the panel's title strip instead.
+              onAddBar={BARS_ON_TOP && progression.started ? undefined : addBar}
               onAddChordBar={addChordBar}
               above={BARS_ON_TOP && progression.started ? barsStrip('top') : undefined}
               {...moduleShared}
