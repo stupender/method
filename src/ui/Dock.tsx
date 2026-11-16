@@ -105,18 +105,18 @@ export function Dock({
                 {/* A whole-key bar already says its key in big type. */}
                 {bar.summary.symbol && <span className="dock__key">{bar.summary.keyName}</span>}
               </button>
-              {/* Only the selected bar can be removed. × on the only one left
-                  puts the progression away (the panel stays as it was). */}
-              {on && (
-                <button
-                  className="dock__remove"
-                  onClick={() => onRemove(bar.id)}
-                  aria-label={bars.length > 1 ? `Remove bar ${i + 1}` : 'Clear the progression'}
-                  title={bars.length > 1 ? 'Remove this bar' : 'Clear the progression'}
-                >
-                  ×
-                </button>
-              )}
+              {/* Every bar has a ×, like a browser tab: always shown on the open
+                  bar, the others only while the pointer (or keyboard) is on
+                  them. × on the only one left puts the progression away — the
+                  panel stays as it was. */}
+              <button
+                className="dock__remove"
+                onClick={() => onRemove(bar.id)}
+                aria-label={bars.length > 1 ? `Remove bar ${i + 1}` : 'Clear the progression'}
+                title={bars.length > 1 ? 'Remove this bar' : 'Clear the progression'}
+              >
+                ×
+              </button>
             </li>
           );
         })}

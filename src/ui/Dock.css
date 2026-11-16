@@ -144,10 +144,33 @@
   }
 }
 
-/* ON TOP OF THE CONTROL PANEL (BARS_ON_TOP). An ordinary row inside the
-   panel's box — the panel floats, so the bars float with it — with a hairline
-   between the bars and the panel's title strip. Nothing fixed, no width of its
-   own, no room to leave at the bottom of the page. */
+/* A × on every bar, like a browser tab's: always on the open bar, and on the
+   others only while you're on them — by pointer or by keyboard. */
+.dock__cell:not(.dock__cell--on) .dock__remove {
+  opacity: 0;
+}
+.dock__cell:hover .dock__remove,
+.dock__remove:focus-visible {
+  opacity: 1;
+}
+
+/* ==========================================================================
+   ON TOP OF THE CONTROL PANEL (BARS_ON_TOP) — the bars as BROWSER TABS
+   ==========================================================================
+   An ordinary row inside the panel's box (the panel floats, so the bars float
+   with it), drawn the way a browser draws its tabs:
+
+   - The OPEN bar is the tab you're on. It wears the same shade as the
+     "Control panel" strip right under it and has no line along its bottom, so
+     the two read as one piece — this tab, and the page it opens.
+   - The OTHER bars sit back on the plain paper, behind a hairline that runs
+     along the bottom of the whole strip — the open tab is the gap in it.
+   - Short dividers stand between the tabs at rest, and step aside on either
+     side of the open one, so it's the only tab with a full outline.
+   - Tabs are as wide as a tab, not stretched across the strip; the bare paper
+     after the last one is just room for more.
+
+   Corners stay square, like every other box in the app (--radius: 0). */
 .dock--top {
   position: static;
   left: auto;
@@ -156,11 +179,66 @@
   width: auto;
   z-index: auto;
   border: 0;
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 0;
+  padding: 0;
+}
+.dock--top .dock__bars {
+  display: flex;
+  /* A breath of paper above the tabs, under the site bar's rule. */
+  padding-top: 6px;
+  /* The line the closed tabs stand on. Inset, so the open tab's own
+     background paints over it — that's the gap. */
+  box-shadow: inset 0 -1px 0 var(--line);
+}
+.dock--top .dock__cell {
+  flex: 0 1 210px;
+  min-width: 128px;
+  border-left: 0;
+}
+/* The short dividers between tabs. */
+.dock--top .dock__cell + .dock__cell::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 25%;
+  height: 50%;
+  border-left: 1px solid var(--line);
+  pointer-events: none;
+}
+.dock--top .dock__cell--on::before,
+.dock--top .dock__cell--on + .dock__cell::before {
+  display: none;
+}
+/* The closed tabs: a faint wash on hover, like a browser's. */
+.dock--top .dock__bar:hover {
+  background: var(--tint-soft);
+}
+/* The open tab: the panel strip's own shade, a hairline up both sides and
+   across the top, and nothing along the bottom. The first tab skips its left
+   side — the panel's own border is already there. */
+.dock--top .dock__cell--on .dock__bar,
+.dock--top .dock__cell--on .dock__bar:hover {
+  background: var(--surface);
+  box-shadow:
+    inset 1px 0 0 var(--line),
+    inset -1px 0 0 var(--line),
+    inset 0 1px 0 var(--line);
+}
+.dock--top .dock__cell--on:first-child .dock__bar {
+  box-shadow:
+    inset -1px 0 0 var(--line),
+    inset 0 1px 0 var(--line);
 }
 @media (max-width: 640px) {
   .dock--top {
     width: auto;
+  }
+  .dock--top .dock__cell {
+    flex-basis: 160px;
+    min-width: 116px;
+  }
+  /* A phone tab has room for the chord and its job, not the key as well —
+     "C I" reads; "C I C M…" doesn't. The key is still in the bar's label. */
+  .dock--top .dock__key {
+    display: none;
   }
 }
