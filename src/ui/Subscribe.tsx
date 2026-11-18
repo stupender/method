@@ -135,19 +135,17 @@ export function Subscribe({
           left you to work out that the box underneath was a mailing list. The
           situation is only the reason for asking; the offer is the point, so
           the offer takes the heading and the reason follows it. */}
-      <h2 className="subscribe__title">Get updates by email</h2>
+      {/* The footer is one quiet line (2026-11-18): no heading, blurb or
+          small print, just the field and the button, like Soundscape's. */}
+      {variant === 'invitation' && (
+        <h2 className="subscribe__title">Get updates by email</h2>
+      )}
       {variant === 'invitation' && (
         <p className="subscribe__blurb">
           You've just saved a setting — and saved settings live in this browser
           only, so they won't follow you to another device. Leave your email and
           I'll tell you when they can, and when anything else worth playing with
           lands.
-        </p>
-      )}
-      {variant === 'footer' && (
-        <p className="subscribe__blurb">
-          Fretboard Constellations is in beta and still being built. Leave your
-          email to hear what's next.
         </p>
       )}
 
@@ -191,16 +189,18 @@ export function Subscribe({
         {/* The button names the thing it joins. "Join" alone leaves the reader
             to infer what they're joining. */}
         <button className="pill pill--on" type="submit" disabled={status === 'sending'}>
-          {status === 'sending' ? 'Sending…' : 'Join the list'}
+          {status === 'sending' ? 'Sending…' : variant === 'footer' ? 'Join' : 'Join the list'}
         </button>
       </form>
 
       {/* What they're agreeing to, before they agree to it. Occasional, from a
           person, and stoppable — said plainly and once. */}
-      <p className="subscribe__terms">
-        Occasional updates from Stu Pender. No more than that, and you can
-        unsubscribe from any of them.
-      </p>
+      {variant === 'invitation' && (
+        <p className="subscribe__terms">
+          Occasional updates from Stu Pender. No more than that, and you can
+          unsubscribe from any of them.
+        </p>
+      )}
 
       {status === 'error' && (
         <p className="subscribe__error" role="status">

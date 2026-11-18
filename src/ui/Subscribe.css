@@ -173,28 +173,30 @@
 }
 
 /* ---- The footer version ------------------------------------------------- */
-/* No card, no shadow: it's the end of the page, not an interruption. But it
-   does need to announce itself — without a heading it was a stray box beside a
-   paragraph, and nobody scanning a footer would have read it as a signup. */
-.subscribe--footer .subscribe__title {
-  font-size: 17px;
-}
-
-.subscribe--footer .subscribe__blurb {
-  margin-bottom: 10px;
-  font-size: 13px;
+/* One quiet line, like Soundscape's: the field and a Join button side by
+   side. The "Email address" label is kept for screen readers but hidden
+   from sight; beside "Join", the you@example.com placeholder is enough. */
+.subscribe--footer .subscribe__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .subscribe--footer .subscribe__form {
-  max-width: 380px;
+  flex-wrap: nowrap;
+  width: min(340px, 100%);
 }
 
 .subscribe--footer .subscribe__input {
   font-size: 14px;
 }
 
-.subscribe--footer .subscribe__terms {
-  font-size: 12px;
+.subscribe--footer .subscribe__error,
+.subscribe--footer .subscribe__thanks {
+  font-size: 13px;
 }
 
 /* ==========================================================================
@@ -205,7 +207,7 @@
   gap: 28px 48px;
   flex-wrap: wrap;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-top: 56px;
   padding: 26px 0 40px;
   border-top: 1px solid var(--line);
@@ -223,6 +225,25 @@
 }
 
 .sitefoot__about a {
+  color: var(--ink);
+  text-underline-offset: 2px;
+}
+
+/* The small line along the bottom: the beta note on the left, the
+   copyright on the right. Takes the footer's full width. */
+.sitefoot__base {
+  flex: 1 0 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 24px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.sitefoot__base a {
   color: var(--ink);
   text-underline-offset: 2px;
 }

@@ -706,99 +706,60 @@ function App() {
       </div>
       )}
 
-      {/* WHO MADE THIS, and the quiet permanent way to hear about it — for
-          everyone who never saves a setting and so never sees the invitation.
-          A line about Stu rather than an advert for the teaching: the course
-          it's all heading towards doesn't exist yet, and saying so would be
-          selling something that isn't there. */}
+      {/* THE FOOTER, kept minimal on purpose and shaped like Soundscape's:
+          one sentence about who made this and where to find more, the email
+          line beside it, and a small beta line underneath. (2026-11-18: the
+          Being Sound site now asks for an email before it links here, so the
+          app needs to say very little.) Each link drops out on its own if
+          its URL is unset — the empty-means-hidden rule in ui/links.ts. */}
       <footer className="sitefoot">
         <div className="sitefoot__about">
           <p>
-            Built by{' '}
+            Fretboard Constellations is made by{' '}
             <a href={BEING_SOUND} target="_blank" rel="noreferrer">
               {AUTHOR}
-            </a>
-            {' '}— guitarist, composer and teacher.
+            </a>{' '}
+            at Being Sound.
+            {LESSONS && (
+              <>
+                {' '}For guidance with your own playing, book{' '}
+                <a href={LESSONS} target="_blank" rel="noreferrer">
+                  1:1 music lessons
+                </a>
+              </>
+            )}
+            {SUBSTACK && (
+              <>
+                {LESSONS ? ', and read' : ' Read'} about my work at{' '}
+                <a href={SUBSTACK} target="_blank" rel="noreferrer">
+                  Being Sound on Substack
+                </a>
+              </>
+            )}
+            {(LESSONS || SUBSTACK) && '.'}
           </p>
-          {/* ALL THREE PARTS ARE STU'S, and each has a source:
-                "a living textbook" — the founding idea, in the first commit
-                  in this repo (2026-06-15) and still at the top of README.md;
-                "constellations ... across the whole neck" — the v1 brief, and
-                  "of possibility" from Stu's own word for what a chosen
-                  fingering shows you: the field you're now in. POSSIBILITY
-                  rather than his first draft's "potentiality" — the same idea
-                  with one less layer of abstraction, and it's already the name
-                  of the app's main area, so the page and the nav say the same
-                  word;
-                "so you can just play" — the README thesis, compressed.
-              A previous pass replaced this whole line because the tail of it
-              was mine — three verbs saying nothing anyone could disagree with
-              — and threw away the living-textbook opening with it. Worth a
-              note: the bad half was attached to a good half, and only the bad
-              half needed going.
-              The payoff can't stand alone, either: "so" needs the sentence
-              it's answering. */}
-          <p>
-            A living textbook for the fretboard: scales, harmony and ear
-            training, seen as constellations of possibility across the whole
-            neck. So you can just play.
-          </p>
-          {/* One invitation, and only once there's somewhere to send people.
-              See ui/links.ts — an unset address renders nothing at all rather
-              than a link that goes nowhere. */}
-          {/* One sentence for both outward links, rather than two lines each
-              opening with the same name. Either clause drops out on its own if
-              its URL is unset — the empty-means-hidden rule in ui/links.ts. */}
-          {(SUBSTACK || LESSONS) && (
-            <p>
-              Stu{' '}
-              {SUBSTACK && (
-                <>
-                  writes about listening and expression at{' '}
-                  <a href={SUBSTACK} target="_blank" rel="noreferrer">
-                    his Substack
-                  </a>
-                </>
-              )}
-              {SUBSTACK && LESSONS && ', and '}
-              {LESSONS && (
-                <>
-                  offers{' '}
-                  <a href={LESSONS} target="_blank" rel="noreferrer">
-                    1:1 music lessons
-                  </a>{' '}
-                  through Being Sound
-                </>
-              )}
-              .
-            </p>
-          )}
-          {/* THE ONE THING WORTH MORE THAN ANY DASHBOARD while this is in
-              beta. A plain mailto rather than a form on purpose: it reaches
-              Stu's actual inbox, the sender can write freely and attach a
-              screenshot of the thing that confused them, and the reply comes
-              from a person instead of a ticketing system. It also needs no
-              backend, no spam handling and nothing to maintain. */}
+        </div>
+        {/* THE ONLY PLACE THIS APP ASKS FOR ANYTHING: one quiet line, free to
+            ignore. Nothing pops up (the corner invitation is retired). */}
+        <Subscribe variant="footer" />
+        {/* The beta line. A plain mailto on purpose: it reaches Stu's inbox,
+            people can attach a screenshot, and it needs no backend. */}
+        <p className="sitefoot__base">
           {FEEDBACK_EMAIL && (
-            <p>
-              Something confusing, broken, or missing?{' '}
+            <span>
+              In beta. Something confusing, broken, or missing?{' '}
               <a
                 href={`mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(FEEDBACK_SUBJECT)}`}
               >
                 Tell Stu
               </a>
-              {' '}— it's in beta and still being shaped.
-            </p>
+              .
+            </span>
           )}
-          <p className="sitefoot__legal">
-            © {new Date().getFullYear()} {AUTHOR}. Being Sound.
-          </p>
-        </div>
-        {/* THE ONLY PLACE THIS APP ASKS FOR ANYTHING: a quiet line in the
-            footer, free to ignore. Nothing pops up — the corner invitation
-            that used to arrive after your first saved setting is retired
-            (Stu, 2026-11-16). See Subscribe.tsx. */}
-        <Subscribe variant="footer" />
+          <span>
+            © {new Date().getFullYear()} {AUTHOR}
+          </span>
+        </p>
       </footer>
     </main>
   );
