@@ -706,20 +706,19 @@ function App() {
       </div>
       )}
 
-      {/* THE FOOTER, kept minimal on purpose and shaped like Soundscape's:
-          one sentence about who made this and where to find more, the email
-          line beside it, and a small beta line underneath. (2026-11-18: the
-          Being Sound site now asks for an email before it links here, so the
-          app needs to say very little.) Each link drops out on its own if
-          its URL is unset — the empty-means-hidden rule in ui/links.ts. */}
+      {/* THE FOOTER, laid out exactly like Soundscape's (2026-11-18): one band
+          between two rules, holding a sentence about who made this and the
+          email line; then one small capitals line underneath. The Being Sound
+          site asks for an email before it links here, so the app says very
+          little. Each link drops out if its URL is unset (ui/links.ts). */}
       <footer className="sitefoot">
-        <div className="sitefoot__about">
-          <p>
-            Fretboard Constellations is made by{' '}
+        <div className="sitefoot__doors">
+          <p className="sitefoot__line">
+            Fretboard Constellations is made by {AUTHOR} at{' '}
             <a href={BEING_SOUND} target="_blank" rel="noreferrer">
-              {AUTHOR}
-            </a>{' '}
-            at Being Sound.
+              Being Sound
+            </a>
+            .
             {LESSONS && (
               <>
                 {' '}For guidance with your own playing, book{' '}
@@ -730,36 +729,37 @@ function App() {
             )}
             {SUBSTACK && (
               <>
-                {LESSONS ? ', and read' : ' Read'} about my work at{' '}
+                {LESSONS ? ', and read' : ' Read'} about my work at Being Sound
+                on{' '}
                 <a href={SUBSTACK} target="_blank" rel="noreferrer">
-                  Being Sound on Substack
+                  Substack
                 </a>
               </>
             )}
             {(LESSONS || SUBSTACK) && '.'}
           </p>
+          {/* THE ONLY PLACE THIS APP ASKS FOR ANYTHING. Nothing pops up. */}
+          <Subscribe variant="footer" />
         </div>
-        {/* THE ONLY PLACE THIS APP ASKS FOR ANYTHING: one quiet line, free to
-            ignore. Nothing pops up (the corner invitation is retired). */}
-        <Subscribe variant="footer" />
-        {/* The beta line. A plain mailto on purpose: it reaches Stu's inbox,
-            people can attach a screenshot, and it needs no backend. */}
-        <p className="sitefoot__base">
-          {FEEDBACK_EMAIL && (
+        {/* The beta line: a plain mailto, so it reaches Stu's inbox and
+            people can attach a screenshot. */}
+        <div className="sitefoot__base">
+          {FEEDBACK_EMAIL ? (
             <span>
-              In beta. Something confusing, broken, or missing?{' '}
+              In beta. Something confusing or broken?{' '}
               <a
                 href={`mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(FEEDBACK_SUBJECT)}`}
               >
                 Tell Stu
               </a>
-              .
             </span>
+          ) : (
+            <span>In beta.</span>
           )}
-          <span>
-            © {new Date().getFullYear()} {AUTHOR}
-          </span>
-        </p>
+          <a href={BEING_SOUND} target="_blank" rel="noreferrer">
+            beingsound.studio
+          </a>
+        </div>
       </footer>
     </main>
   );
